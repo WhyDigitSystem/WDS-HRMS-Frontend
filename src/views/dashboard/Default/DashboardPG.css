@@ -1,0 +1,49 @@
+/* DashboardPG.css */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.department-card {
+  transition: transform 0.2s;
+}
+
+.department-card:hover {
+  transform: translateY(-2px);
+}
+
+.subdept-card {
+  transition: all 0.2s;
+  border: 1px solid #dee2e6;
+}
+
+.subdept-card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  text-decoration: underline;
+}
+
+.bg-purple {
+  background-color: #6f42c1 !important;
+}
+
+.bg-teal {
+  background-color: #20c997 !important;
+}
+
+.text-purple {
+  color: #6f42c1 !important;
+}
+
+.text-teal {
+  color: #20c997 !important;
+}
