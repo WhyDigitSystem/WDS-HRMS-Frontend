@@ -9,7 +9,8 @@ import {
   IconIdBadge2,
   IconBeach,
   IconReportMoney,
-  IconReport
+  IconReport,
+  IconFileInvoice
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -82,6 +83,13 @@ const teamChildren = [
     type: 'item',
     url: '/team/PayslipGenerate',
     icon: IconClockCheck
+  },
+    hasScreenAccess('OATR') && {
+    id: 'overAllReport',
+    title: 'Over All Task Report',
+    type: 'item',
+    url: '/me/OverAllReport',
+    icon: IconFileInvoice
   },
   // hasScreenAccess('LA') && {
   //   id: 'leaveApproval',

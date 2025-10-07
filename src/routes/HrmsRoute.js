@@ -73,6 +73,7 @@ const HolidayReport = Loadable(lazy(() => import('views/me/HolidayReport')));
 const TimeSheet = Loadable(lazy(() => import('views/me/TimeSheet')));
 const WorkFromHome = Loadable(lazy(() => import('views/me/WorkFromHome')));
 const TravelRequest = Loadable(lazy(() => import('views/me/TravelRequest')));
+const Task = Loadable(lazy(() => import('views/me/Task')));
 
 // finance
 const Payslip = Loadable(lazy(() => import('views/finance/Payslip')));
@@ -94,6 +95,7 @@ const TodayAttendance = Loadable(lazy(() => import('views/team/TodayAttendance')
 const EmployeeAttanceReport = Loadable(lazy(() => import('views/team/EmployeeAttanceReport')));
 const ShiftAssignReport = Loadable(lazy(() => import('views/team/ShiftAssignReport')));
 const PayslipGenerate = Loadable(lazy(() => import('views/team/PayslipGeneration')));
+const OverAllReport = Loadable(lazy(() => import('views/team/OverAllReport')));
 
 // manageTax
 // const ManageTax = Loadable(lazy(() => import('views/ManageTax/manageTax')));
@@ -343,6 +345,14 @@ const HrmsRoute = {
     {
       path: '/me/TravelRequest',
       element: <TravelRequest />
+    },
+    {
+      path: '/me/OverAllReport',
+      element: <OverAllReport />
+    },
+    {
+      path: '/me/Task',
+      element: <Task />
     },
     {
       path: '/finance/Payslip',

@@ -99,6 +99,13 @@ const meChildren = [
     url: '/finance/payslip',
     icon: IconFileInvoice
   },
+  hasScreenAccess('TK') && {
+    id: 'task',
+    title: 'Task',
+    type: 'item',
+    url: '/me/Task',
+    icon: IconFileInvoice
+  },
 ].filter(Boolean); // filter out inaccessible screens
 
 // Export final menu
