@@ -398,7 +398,7 @@ const LeaveRequest = () => {
       for (const row of newRows) {
         const notify2Emails = (row.leaveRequestNotifyDTO || []).map((p) => p.notify2Email).join(', ');
 
-        const baseURL = 'http://139.5.190.203:8045/pages/confirmationPage/confirmationPage'; // 🔁 Replace with real backend URL
+        const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage'; // 🔁 Replace with real backend URL
         const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${row.notifyCode}&notify=${row.notify}&screenName=${row.screenName}`;
         const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${row.notifyCode}&notify=${row.notify}&screenName=${row.screenName}`;
 
