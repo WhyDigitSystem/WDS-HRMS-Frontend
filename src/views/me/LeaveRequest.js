@@ -33,6 +33,7 @@ const LeaveRequest = () => {
   const [department, setDepartment] = useState(localStorage.getItem('department'));
   const [designation, setDesignation] = useState(localStorage.getItem('designation'));
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
+  const [employeeEmail, setEmployeeEmail] = useState(localStorage.getItem('email'));
   const [editId, setEditId] = useState('');
   const [branchList, setBranchList] = useState([]);
   const [companyList, setCompanyList] = useState([]);
@@ -317,6 +318,7 @@ const LeaveRequest = () => {
         designation: designation,
         employeeCode: employeeCode,
         employeeName: employeeName,
+        email: employeeEmail,
         createdBy: loginUserName,
         leaveRequestNotifyDTO: Array.isArray(formData.allNotifyPerson)
           ? formData.allNotifyPerson.map((item) => ({

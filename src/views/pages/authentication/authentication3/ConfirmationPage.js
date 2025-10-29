@@ -21,6 +21,7 @@ const ConfirmationPage = () => {
   const action = searchParams.get('action'); // 'APPROVED' or 'REJECTED'
   const actionId = searchParams.get('id');
   const employeeCode = searchParams.get('employeeCode');
+  const employeeEmail = searchParams.get('email');
   const loginUserName = searchParams.get('actionBy');
   const notifyCode = searchParams.get('notifyCode');
   const notify = searchParams.get('notify');
@@ -276,7 +277,7 @@ const ConfirmationPage = () => {
   const handleApprove = async (matchedRequest = {}) => {
     try {
       const response = await axios.put(
-        `${API_URL}/api/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`
+        `${API_URL}/api/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&email=${employeeEmail}`
       );
 
       const isSuccess = response.data.status === true;
@@ -301,7 +302,7 @@ const ConfirmationPage = () => {
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
         remarks: matchedRequest?.remarks || backendData?.remarks || 'N/A',
-        email: matchedRequest?.employeeEmail || backendData?.employeeEmail || ''
+        email: backendData?.email || ''
       };
 
       await emailjs.send('service_hff8dd7', 'template_0pmh0cu', templateParams, 'G6cKiPBXzCvlFaOuo');

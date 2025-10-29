@@ -11,6 +11,7 @@ import basicMaster from './basicMaster';
 import companySetup from './companySetup';
 import admin from './admin';
 import salaryMaster from './salaryMaster';
+import Appraisal from './Appraisal';
 // Import other dynamically filtered modules as needed
 
 const filterValid = (items) => items.filter(Boolean);
@@ -25,6 +26,7 @@ const getMenuItems = () => {
       me,
       // finance,
       team,
+      Appraisal,
       basicMaster,
       salaryMaster,
       companySetup,
