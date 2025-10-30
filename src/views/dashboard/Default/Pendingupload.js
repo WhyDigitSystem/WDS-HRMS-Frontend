@@ -26,6 +26,8 @@ import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import IncrementViewDialog from 'utils/IncrementViewDialog';
+import { showToast } from 'utils/toast-component';
 
 // Background image component
 const BackgroundImage = () => {
@@ -143,29 +145,20 @@ const PendingApproval = ({ isLoading }) => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [processingId, setProcessingId] = useState(null);
-  // const [processingId, setProcessingId] = useState(null);
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [branch, setBranch] = useState(localStorage.getItem('branch'));
   const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
   const [empCode, setEmpCode] = useState(localStorage.getItem('employeeCode'));
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
-  // const orgId = localStorage.getItem("orgId");
   const employeeCode = localStorage.getItem('employeeCode');
   const isProcessing = processingId !== null;
+  const [selectedIncrement, setSelectedIncrement] = useState(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   useEffect(() => {
     getAllRequests();
   }, [orgId, employeeCode]);
-
-  // useEffect(() => {
-  //   return () => {
-  //     if (processingId) {
-  //       // If component unmounts during processing, refresh data when mounted again
-  //       getLeaveRequest();
-  //     }
-  //   };
-  // }, [processingId]);
 
   const getAllRequests = async () => {
     try {
@@ -176,7 +169,8 @@ const PendingApproval = ({ isLoading }) => {
         permissionResponse,
         compoOffResponse,
         checkOutResponse,
-        checkInOutResult
+        checkInOutResult,
+        incrementResponse
       ] = await Promise.all([
         apiCalls(
           'get',
@@ -197,16 +191,21 @@ const PendingApproval = ({ isLoading }) => {
         apiCalls(
           'get',
           `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+        ),
+        apiCalls(
+          'get',
+          `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
         )
       ]);
 
-      // ===== Normalize Leave/Permission/CompoOff/Checkout Requests =====
+      // ===== Normalize all responses =====
       const normalize = (data) =>
         Array.isArray(data) ? data : [data].filter(Boolean);
 
       const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
       const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
       const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
+      const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
 
       let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
         ...item,
@@ -236,12 +235,10 @@ const PendingApproval = ({ isLoading }) => {
       });
 
       const checkInOutRequests = Object.values(grouped).map((group) => {
-        // Sort records by time
         const sortedRecords = group.records.sort((a, b) =>
           a.entryTime.localeCompare(b.entryTime)
         );
 
-        // Assign first time as entry, last time as exit
         const entry = sortedRecords[0]?.entryTime || '';
         const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
 
@@ -262,7 +259,8 @@ const PendingApproval = ({ isLoading }) => {
         ...filterPending(permissionRequests),
         ...filterPending(compoOffRequests),
         ...filterPending(checkOutRequests),
-        ...filterPending(checkInOutRequests)
+        ...filterPending(checkInOutRequests),
+        ...filterPending(incrementManagementRequests),
       ];
 
       // ===== Set State =====
@@ -552,13 +550,50 @@ const PendingApproval = ({ isLoading }) => {
     }
   };
 
+  const handleActionIncrementManagement = async (request, action) => {
+    setProcessingId(request.id);
+
+    try {
+      const response = await apiCalls(
+        'put',
+        `/incrementmanagement/createApprovalIncrementManagement?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${request.screenName}`
+      );
+
+      if (response.status === true) {
+        setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+        toast.success(`Increment request ${action.toLowerCase()} successfully`, {
+          autoClose: 3000
+        });
+      } else {
+        throw new Error(response.message || `Failed to ${action.toLowerCase()} increment request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action.toLowerCase()}ing increment request:`, error);
+
+      // Revert UI if error occurs
+      setLeaveRequests((prev) => [...prev, request].sort((a, b) => a.id - b.id));
+
+      toast.error(`Failed to ${action.toLowerCase()} increment request`, {
+        autoClose: 3000
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleApproveAll = async () => {
     if (leaveRequests.length === 0) return;
 
-    setProcessingId('ALL'); // To optionally show UI loading spinner
+    setProcessingId('ALL');
 
     for (const request of leaveRequests) {
       try {
+        // Skip increment management from bulk approval
+        if (request.screenName === 'INCREMENT MANAGEMENT') {
+          continue;
+        }
+
         if (request.screenName === 'LEAVE REQUEST') {
           await handleActionLeave(request, 'APPROVED');
         } else if (request.screenName === 'PERMISSION REQUEST') {
@@ -579,10 +614,55 @@ const PendingApproval = ({ isLoading }) => {
     setProcessingId(null);
   };
 
+  const handleViewIncrement = (incrementData) => {
+    setSelectedIncrement(incrementData);
+    setViewDialogOpen(true);
+  };
+
+  const handleApproveIncrement = async (incrementData) => {
+    try {
+      // Call the increment management approval API
+      await handleActionIncrementManagement(incrementData, 'APPROVED');
+      setViewDialogOpen(false);
+      // showToast('success', 'Increment approved successfully');
+    } catch (error) {
+      showToast('error', 'Failed to approve increment');
+    }
+  };
+
+  const handleRejectIncrement = async (incrementData) => {
+    try {
+      await handleActionIncrementManagement(incrementData, 'REJECTED');
+      setViewDialogOpen(false);
+      showToast('success', 'Increment rejected successfully');
+    } catch (error) {
+      showToast('error', 'Failed to reject increment');
+    }
+  };
+
   const ActionButtons = ({ request }) => {
     const isProcessing = processingId === request.id;
     const isPending = !request.approveStatus || request.approveStatus === 'PENDING';
 
+    // Check for Increment Management - Only show View button in main list
+    if (request.screenName === 'INCREMENT MANAGEMENT') {
+      return (
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => handleViewIncrement(request)}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2
+          }}
+        >
+          View
+        </Button>
+      );
+    }
+
+    // Normal approve/reject logic for other screens
     if (!isPending) {
       return (
         <Chip
@@ -590,8 +670,14 @@ const PendingApproval = ({ isLoading }) => {
           size="small"
           sx={{
             fontWeight: 600,
-            backgroundColor: request.approveStatus === 'APPROVED' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
-            color: request.approveStatus === 'APPROVED' ? theme.palette.success.dark : theme.palette.error.dark
+            backgroundColor:
+              request.approveStatus === 'APPROVED'
+                ? 'rgba(76, 175, 80, 0.1)'
+                : 'rgba(244, 67, 54, 0.1)',
+            color:
+              request.approveStatus === 'APPROVED'
+                ? theme.palette.success.dark
+                : theme.palette.error.dark
           }}
         />
       );
@@ -599,28 +685,18 @@ const PendingApproval = ({ isLoading }) => {
 
     return (
       <Stack direction="row" spacing={1} alignItems="center">
-        <Tooltip title="Approve leave request">
+        {/* APPROVE Button for other request types */}
+        <Tooltip title="Approve request">
           <span>
             <IconButtonStyled
               actiontype="approve"
               onClick={() => {
-                if (request.screenName === 'LEAVE REQUEST') {
-                  handleActionLeave(request, 'APPROVED');
-                }
-                if (request.screenName === 'PERMISSION REQUEST') {
-                  handleActionPermission(request, 'APPROVED');
-                }
-                if (request.screenName === 'COMPENSATORY OFF') {
-                  handleActionCompoOff(request, 'APPROVED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUT') {
-                  handleActionCheckout(request, 'APPROVED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUTADJUSTMENT') {
-                  handleCheckInOutApprove(request, 'APPROVED'); // You can customize this if you need different logic
-                }
+                if (request.screenName === 'LEAVE REQUEST') handleActionLeave(request, 'APPROVED');
+                if (request.screenName === 'PERMISSION REQUEST') handleActionPermission(request, 'APPROVED');
+                if (request.screenName === 'COMPENSATORY OFF') handleActionCompoOff(request, 'APPROVED');
+                if (request.screenName === 'CHECKINOUT') handleActionCheckout(request, 'APPROVED');
+                if (request.screenName === 'CHECKINOUTADJUSTMENT') handleCheckInOutApprove(request, 'APPROVED');
               }}
-              // onClick={() => handleAction(request, "APPROVED")}
               disabled={isProcessing}
             >
               {isProcessing ? <CircularProgress size={20} color="inherit" /> : <ThumbUp fontSize="small" />}
@@ -628,28 +704,18 @@ const PendingApproval = ({ isLoading }) => {
           </span>
         </Tooltip>
 
-        <Tooltip title="Reject leave request">
+        {/* REJECT Button for other request types */}
+        <Tooltip title="Reject request">
           <span>
             <IconButtonStyled
               actiontype="reject"
               onClick={() => {
-                if (request.screenName === 'LEAVE REQUEST') {
-                  handleActionLeave(request, 'REJECTED');
-                }
-                if (request.screenName === 'PERMISSION REQUEST') {
-                  handleActionPermission(request, 'REJECTED');
-                }
-                if (request.screenName === 'COMPENSATORY OFF') {
-                  handleActionCompoOff(request, 'REJECTED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUT') {
-                  handleActionCheckout(request, 'REJECTED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUTADJUSTMENT') {
-                  handleCheckInOutApprove(request, 'REJECTED'); // You can customize this if you need different logic
-                }
+                if (request.screenName === 'LEAVE REQUEST') handleActionLeave(request, 'REJECTED');
+                if (request.screenName === 'PERMISSION REQUEST') handleActionPermission(request, 'REJECTED');
+                if (request.screenName === 'COMPENSATORY OFF') handleActionCompoOff(request, 'REJECTED');
+                if (request.screenName === 'CHECKINOUT') handleActionCheckout(request, 'REJECTED');
+                if (request.screenName === 'CHECKINOUTADJUSTMENT') handleCheckInOutApprove(request, 'REJECTED');
               }}
-              // onClick={() => handleAction(request, "REJECTED")}
               disabled={isProcessing}
             >
               {isProcessing ? <CircularProgress size={20} color="inherit" /> : <ThumbDown fontSize="small" />}
@@ -979,6 +1045,35 @@ const PendingApproval = ({ isLoading }) => {
                               </Grid>
                             </>
                           )}
+
+                          {screen === 'INCREMENT MANAGEMENT' && (
+                            <>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increment Cycle
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.incrementCycle}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increase %
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.totalCtcPercentage}%
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  New Designation
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.newDesignation || '-'}
+                                </Typography>
+                              </Grid>
+                            </>
+                          )}
                         </Grid>
 
                         {request.reason && (
@@ -1025,6 +1120,16 @@ const PendingApproval = ({ isLoading }) => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Increment View Dialog */}
+        <IncrementViewDialog
+          open={viewDialogOpen}
+          onClose={() => setViewDialogOpen(false)}
+          data={selectedIncrement}
+          onApprove={handleApproveIncrement}
+          onReject={handleRejectIncrement}
+          isProcessing={processingId === selectedIncrement?.id}
+        />
       </StyledCard>
     </Box>
   );

@@ -74,7 +74,8 @@ const SalaryMaster = () => {
     dateOfJoining: '',
     orgId: orgId,
     pfPercentage: '',
-    esiPercentage: ''
+    esiPercentage: '',
+    effectiveFrom: ''
   });
 
   const [fieldErrors, setFieldErrors] = useState({
@@ -89,7 +90,8 @@ const SalaryMaster = () => {
     dateOfJoining: '',
     orgId: orgId,
     pfPercentage: '',
-    esiPercentage: ''
+    esiPercentage: '',
+    effectiveFrom: ''
   });
 
   const listViewColumns = [
@@ -184,7 +186,8 @@ const SalaryMaster = () => {
           position: selectedEmp.designation || '', // Mapping Designation
           dateOfJoining: selectedEmp.joiningDate || '', // Mapping Date of Joining
           pfPercentage: selectedEmp.pfPercentage || '', // Mapping PF Percentage
-          esiPercentage: selectedEmp.esiPercentage || '' // Mapping ESI Percentage
+          esiPercentage: selectedEmp.esiPercentage || '', // Mapping ESI Percentage
+          effectiveFrom: selectedEmp.effectiveFrom || '' // Mapping ESI Percentage
         }));
       } else {
         console.log('No employee found with the given code:', employeeCode);
@@ -213,6 +216,23 @@ const SalaryMaster = () => {
       } else {
         setFieldErrors({ ...fieldErrors, toDate: false });
       }
+    }
+  };
+
+  const handleEffectiveDateChange = (name, date) => {
+    if (date && dayjs(date).isValid()) {
+      // store only the date part (local date)
+      const dateString = dayjs(date).format("YYYY-MM-DD");
+      setFormData({ ...formData, [name]: dateString });
+      setFieldErrors({ ...fieldErrors, [name]: false });
+    } else {
+      setFormData({ ...formData, [name]: null });
+    }
+
+    if (formData.fromDate && formData.toDate) {
+      const start = dayjs(formData.fromDate);
+      const end = dayjs(formData.toDate);
+      setFieldErrors({ ...fieldErrors, toDate: start.isAfter(end) });
     }
   };
 
@@ -292,7 +312,8 @@ const SalaryMaster = () => {
           position: particularSalaryStructure.designation,
           dateOfJoining: particularSalaryStructure.dateOfJoining,
           pfPercentage: particularSalaryStructure.pfPercentage,
-          esiPercentage: particularSalaryStructure.esiPercentage
+          esiPercentage: particularSalaryStructure.esiPercentage,
+          effectiveFrom: particularSalaryStructure.effectiveFrom
         });
         setEarningDetailsData(
           particularSalaryStructure.salaryEarningDetailsVO.map((role) => ({
@@ -359,8 +380,9 @@ const SalaryMaster = () => {
         grade: formData.grade,
         orgId: orgId,
         panNo: formData.panNo,
-        pfPercentage:formData.pfPercentage,
-        esiPercentage:formData.esiPercentage,
+        pfPercentage: formData.pfPercentage,
+        esiPercentage: formData.esiPercentage,
+        effectiveFrom: formData.effectiveFrom,
         salaryDetectionDetailsDTO: detectionDetailsVO,
         salaryEarningDetailsDTO: earningDetailsVO
       };
@@ -400,7 +422,8 @@ const SalaryMaster = () => {
       dateOfJoining: '',
       orgId: orgId,
       pfPercentage: '',
-      esiPercentage: ''
+      esiPercentage: '',
+      effectiveFrom: ''
     });
     setFieldErrors({
       employeeCode: false,
@@ -938,6 +961,22 @@ const SalaryMaster = () => {
                     disabled
                     inputProps={{ maxLength: 10 }}
                   />
+                </div>
+                <div className="col-md-3 mb-3">
+                  <FormControl fullWidth variant="filled" size="small" sx={{ minWidth: '120px' }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        label="Effective From"
+                        value={formData.effectiveFrom ? dayjs(formData.effectiveFrom) : null}
+                        onChange={(date) => handleEffectiveDateChange('effectiveFrom', date)}
+                        slotProps={{
+                          textField: { size: 'small', clearable: true }
+                        }}
+                        format="DD-MM-YYYY"
+                        error={fieldErrors.effectiveFrom}
+                      />
+                    </LocalizationProvider>
+                  </FormControl>
                 </div>
               </div>
               <div className="row mt-2">

@@ -103,14 +103,19 @@ const OverAllReport = Loadable(lazy(() => import('views/team/OverAllReport')));
 // const DeclarationInput = Loadable(lazy(() => import('views/ManageTax/DeclarationInput')));
 
 // PreGoals
-// const Appraisee = Loadable(lazy(() => import('views/Appraisal/Appraisee')));
-// const Appraiser = Loadable(lazy(() => import('views/Appraisal/Appraiser')));
-// const AdditionalGoals = Loadable(lazy(() => import('views/Appraisal/AdditionalGoals')));
-// const PreGoals = Loadable(lazy(() => import('views/Appraisal/PreGoals')));
-// const PreGoalsApproval = Loadable(lazy(() => import('views/Appraisal/PreGoalsApproval')));
-// const SelfGoals = Loadable(lazy(() => import('views/Appraisal/SelfGoals')));
-// const Supervisor1_Input = Loadable(lazy(() => import('views/Appraisal/Supervisor1_Input')));
-// const HR_Review = Loadable(lazy(() => import('views/Appraisal/HR_Review')));
+const Appraisee = Loadable(lazy(() => import('views/Appraisal/Appraisee')));
+const Appraiser = Loadable(lazy(() => import('views/Appraisal/Appraiser')));
+const AdditionalGoals = Loadable(lazy(() => import('views/Appraisal/AdditionalGoals')));
+const PreGoals = Loadable(lazy(() => import('views/Appraisal/PreGoals')));
+const PreGoalsApproval = Loadable(lazy(() => import('views/Appraisal/PreGoalsApproval')));
+const SelfGoals = Loadable(lazy(() => import('views/Appraisal/SelfGoals')));
+const Supervisor1_Input = Loadable(lazy(() => import('views/Appraisal/Supervisor1_Input')));
+const HR_Review = Loadable(lazy(() => import('views/Appraisal/HR_Review')));
+const PerformanceGoals = Loadable(lazy(() => import('views/Appraisal/PerformanceGoals')));
+const AppraiserReview = Loadable(lazy(() => import('views/Appraisal/AppraisalReview')));
+const AppraisalReport = Loadable(lazy(() => import('views/Appraisal/AppraisalReport')));
+const AppraisalDashboard = Loadable(lazy(() => import('views/Appraisal/AppraisalDashboard')));
+const IncrementManagement = Loadable(lazy(() => import('views/Appraisal/IncrementManagement')));
 
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
@@ -402,7 +407,7 @@ const HrmsRoute = {
     {
       path: '/team/payslipGenerate',
       element: <PayslipGenerate />
-    }
+    },
     // manageTax
     // {
     //   path: '/ManageTax/manageTax',
@@ -417,42 +422,62 @@ const HrmsRoute = {
     //   element: <DeclarationInput />
     // },
     // PreGoals
-    // {
-    //   path: '/Appraisal/Appraisee',
-    //   element: <Appraisee />
-    // },
-    // {
-    //   path: '/Appraisal/Appraiser',
-    //   element: <Appraiser />
-    // },
-    // {
-    //   path: '/Appraisal/AdditionalGoals',
-    //   element: <AdditionalGoals />
-    // },
-    // {
-    //   path: '/Appraisal/PreGoals',
-    //   element: <PreGoals />
-    // },
-    // {
-    //   path: '/Appraisal/PreGoalsApproval',
-    //   element: <PreGoalsApproval />
-    // },
-    // {
-    //   path: '/Appraisal/SelfGoals',
-    //   element: <SelfGoals />
-    // },
-    // {
-    //   path: '/Appraisal/Supervisor1_Input',
-    //   element: <Supervisor1_Input />
-    // },
-    // {
-    //   path: '/Appraisal/HR_Review',
-    //   element: <HR_Review />
-    // },
-    // {
-    //   path: '/Appraisal/HR_Review',
-    //   element: <HR_Review />
-    // }
+    {
+      path: '/Appraisal/Appraisee',
+      element: <Appraisee />
+    },
+    {
+      path: '/Appraisal/Appraiser',
+      element: <Appraiser />
+    },
+    {
+      path: '/Appraisal/AdditionalGoals',
+      element: <AdditionalGoals />
+    },
+    {
+      path: '/Appraisal/PreGoals',
+      element: <PreGoals />
+    },
+    {
+      path: '/Appraisal/PreGoalsApproval',
+      element: <PreGoalsApproval />
+    },
+    {
+      path: '/Appraisal/SelfGoals',
+      element: <SelfGoals />
+    },
+    {
+      path: '/Appraisal/Supervisor1_Input',
+      element: <Supervisor1_Input />
+    },
+    {
+      path: '/Appraisal/HR_Review',
+      element: <HR_Review />
+    },
+    {
+      path: '/Appraisal/HR_Review',
+      element: <HR_Review />
+    },
+    {
+      path: '/Appraisal/performanceGoals',
+      element: <PerformanceGoals />
+    },
+    {
+      path: '/Appraisal/appraiserReview',
+      element: <AppraiserReview />
+    },
+    {
+      path: '/Appraisal/appraisalReport',
+      element: <AppraisalReport />
+    },
+    {
+      path: '/Appraisal/appraisalDashboard',
+      element: <AppraisalDashboard />
+    },
+    {
+      path: '/Appraisal/incrementManagement',
+      element: <IncrementManagement />
+    }
   ]
 };
 
