@@ -117,6 +117,9 @@ const AppraisalReport = Loadable(lazy(() => import('views/Appraisal/AppraisalRep
 const AppraisalDashboard = Loadable(lazy(() => import('views/Appraisal/AppraisalDashboard')));
 const IncrementManagement = Loadable(lazy(() => import('views/Appraisal/IncrementManagement')));
 
+
+//Asset Management
+const AssetManagementSystem = Loadable(lazy(() => import('views/assetManagement/AssetManagement')));
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
 const HrmsRoute = {
@@ -477,6 +480,10 @@ const HrmsRoute = {
     {
       path: '/Appraisal/incrementManagement',
       element: <IncrementManagement />
+    },
+    {
+      path: '/AssetManagement/AssetManagement',
+      element: <AssetManagementSystem />
     }
   ]
 };

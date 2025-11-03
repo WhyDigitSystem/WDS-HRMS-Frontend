@@ -800,7 +800,7 @@ const Task = () => {
                               <option value="In Progress">In Progress</option>
                               <option value="Testing">Testing</option>
                               <option value="Done">Done</option>
-                              <option value="PCB">PCB</option>
+                              {/* <option value="PCB">PCB</option> */}
                             </select>
                           </td>
 

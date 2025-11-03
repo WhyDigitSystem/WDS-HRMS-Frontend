@@ -12,6 +12,7 @@ import companySetup from './companySetup';
 import admin from './admin';
 import salaryMaster from './salaryMaster';
 import Appraisal from './Appraisal';
+import AssetManagement from './assetManagement';
 // Import other dynamically filtered modules as needed
 
 const filterValid = (items) => items.filter(Boolean);
@@ -27,6 +28,7 @@ const getMenuItems = () => {
       // finance,
       team,
       Appraisal,
+      AssetManagement,
       basicMaster,
       salaryMaster,
       companySetup,

@@ -18,12 +18,16 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import dayjs from 'dayjs';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import apiCalls from 'apicall';
 import { useEffect, useState } from 'react';
 import ToastComponent, { showToast } from 'utils/toast-component';
 import { getAllActiveBranches } from 'utils/CommonFunctions';
 import Draggable from 'react-draggable';
 import Autocomplete from '@mui/material/Autocomplete';
+import FilterListOffIcon from '@mui/icons-material/FilterListOff';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+
 const StatusBadge = ({ status }) => {
   const colorMap = {
     Done: 'success',
@@ -34,6 +38,7 @@ const StatusBadge = ({ status }) => {
   };
   return <Chip label={status || ''} color={colorMap[status] || 'default'} size="small" />;
 };
+
 function PaperComponent(props) {
   return (
     <Draggable handle="#draggable-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
@@ -54,6 +59,12 @@ function OverAllReport() {
 
   const [listView, setListView] = useState(false);
   const [rowData, setRowData] = useState([]);
+  const [filteredRowData, setFilteredRowData] = useState([]);
+  const [screenList, setScreenList] = useState([]);
+  const [screenFilter, setScreenFilter] = useState('All');
+  const [dateList, setDateList] = useState([]);
+  const [dateFilter, setDateFilter] = useState('All');
+
   const [formData, setFormData] = useState({
     currMonth: dayjs().format('MMM'),
     currMonthNum: dayjs().format('M'),
@@ -62,6 +73,7 @@ function OverAllReport() {
     employeeCode: 'All',
     empDepartment: 'All'
   });
+
   const [fieldErrors, setFieldErrors] = useState({
     currMonth: '',
     currYear: '',
@@ -69,6 +81,114 @@ function OverAllReport() {
     employeeCode: '',
     empDepartment: ''
   });
+
+  // Extract unique screens from rowData and remove duplicates
+  const extractScreenList = (data) => {
+    const screens = new Set(['All']);
+
+    data.forEach((row) => {
+      row.timesheets.forEach((ts) => {
+        // Only include screens from working timesheets
+        if (ts.status === 'TIMESHEET' && ts.timeSheetDetailsVO?.length > 0) {
+          ts.timeSheetDetailsVO.forEach((task) => {
+            if (task.project?.trim()) {
+              screens.add(task.project.trim());
+            }
+          });
+        }
+      });
+    });
+
+    return Array.from(screens).sort((a, b) => a.localeCompare(b));
+  };
+
+  // Extract unique dates from rowData
+  const extractDateList = (data) => {
+    const dates = new Set(['All']);
+
+    data.forEach((row) => {
+      row.timesheets.forEach((ts) => {
+        if (ts.date) {
+          dates.add(ts.date);
+        }
+      });
+    });
+
+    return Array.from(dates)
+      .sort((a, b) => new Date(a) - new Date(b))
+      .map(date => ({
+        value: date,
+        label: dayjs(date).format('DD/MM/YYYY')
+      }));
+  };
+
+  // Filter data by screen - show only tasks matching the selected screen
+  const filterDataByScreen = (data, screen) => {
+    if (screen === 'All') return data;
+
+    return data
+      .map((row) => {
+        // Filter only relevant timesheets
+        const validTimesheets = row.timesheets
+          .filter((ts) => ts.status === 'TIMESHEET') // ✅ exclude leave/holiday
+          .map((ts) => ({
+            ...ts,
+            timeSheetDetailsVO: ts.timeSheetDetailsVO
+              ? ts.timeSheetDetailsVO.filter(
+                (task) => task.project?.trim() === screen
+              )
+              : [],
+          }))
+          .filter((ts) => ts.timeSheetDetailsVO.length > 0);
+
+        return { ...row, timesheets: validTimesheets };
+      })
+      .filter((row) => row.timesheets.length > 0); // remove employees with no matches
+  };
+
+  // Filter data by date - show only tasks matching the selected date
+  const filterDataByDate = (data, date) => {
+    if (date === 'All') return data;
+
+    return data
+      .map((row) => {
+        // Filter timesheets for the selected date
+        const validTimesheets = row.timesheets.filter((ts) => ts.date === date);
+
+        return { ...row, timesheets: validTimesheets };
+      })
+      .filter((row) => row.timesheets.length > 0); // remove employees with no matches
+  };
+
+  // Apply both screen and date filters
+  const applyFilters = (data, screen, date) => {
+    let filteredData = data;
+
+    if (screen !== 'All') {
+      filteredData = filterDataByScreen(filteredData, screen);
+    }
+
+    if (date !== 'All') {
+      filteredData = filterDataByDate(filteredData, date);
+    }
+
+    return filteredData;
+  };
+
+  // ✅ Screen filter change handler
+  const handleScreenFilterChange = (screen) => {
+    setScreenFilter(screen);
+    const filteredData = applyFilters(rowData, screen, dateFilter);
+    setFilteredRowData(filteredData);
+  };
+
+  // ✅ Date filter change handler
+  const handleDateFilterChange = (date) => {
+    setDateFilter(date);
+    const filteredData = applyFilters(rowData, screenFilter, date);
+    setFilteredRowData(filteredData);
+  };
+
   const handleClear = () => {
     setListView(false);
     setFormData({
@@ -87,7 +207,13 @@ function OverAllReport() {
       empDepartment: ''
     });
     setRowData([]);
+    setFilteredRowData([]);
+    setScreenFilter('All');
+    setScreenList([]);
+    setDateFilter('All');
+    setDateList([]);
   };
+
   const handleDateChange = (field, date) => {
     if (!date) {
       setFormData((prev) => ({ ...prev, [field]: '' }));
@@ -105,6 +231,7 @@ function OverAllReport() {
       setFormData((prev) => ({ ...prev, [field]: date.format('YYYY-MM-DD') }));
     }
   };
+
   const handleChange = async (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -119,7 +246,6 @@ function OverAllReport() {
       try {
         if (value === 'All') {
           setEmpCodeName([{ empCode: 'All', empName: '' }]);
-          // setEmpCodeName([]);
           getEmployeeCodeName(value);
         } else {
           getEmployeeCodeName(value);
@@ -130,12 +256,14 @@ function OverAllReport() {
       }
     }
   };
+
   useEffect(() => {
     getBranch();
     getAllDepartment();
     getCompanyDetails();
     getEmployeeCodeName('All');
   }, []);
+
   const getEmployeeCodeName = async (dept) => {
     try {
       const response = await apiCalls(
@@ -147,6 +275,7 @@ function OverAllReport() {
       console.error('Error fetching gate passes:', error);
     }
   };
+
   const getBranch = async () => {
     try {
       const branchData = await getAllActiveBranches(orgId);
@@ -155,6 +284,7 @@ function OverAllReport() {
       console.error('Error fetching country data:', error);
     }
   };
+
   const getAllDepartment = async () => {
     try {
       const response = await apiCalls('get', `commonmaster/getDepartmentByOrgId?orgid=${orgId}`);
@@ -169,35 +299,34 @@ function OverAllReport() {
       console.error('Error fetching data:', error);
     }
   };
+
   const handleSearchTasks = async () => {
-    const errors = {};
-    if (Object.keys(errors).length === 0) {
-      setIsLoading(true);
-      setListView(false);
-      try {
-        let response = await apiCalls(
-          'get',
-          `/timesheet/getAllEmployeeTask?branchCode=${branchCode}&department=${formData.empDepartment}&employeecode=${formData.employeeCode}&month=${formData.currMonthNum}&orgId=${orgId}&year=${formData.currYear}`
-        );
-        if (response.status === true) {
-          console.log('Response:', response);
-          setRowData(response.paramObjectsMap.timeSheetVO || []);
-          console.log('Res', response.paramObjectsMap.timeSheetVO || []);
-          setIsLoading(false);
-          setListView(true);
-        } else {
-          showToast('error', response.paramObjectsMap.errorMessage || 'Report Fetch failed');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showToast('error', 'Report Fetch failed');
-        setIsLoading(false);
+    setIsLoading(true);
+    setListView(false);
+    try {
+      const response = await apiCalls(
+        'get',
+        `/timesheet/getAllEmployeeTask?branchCode=${branchCode}&department=${formData.empDepartment}&employeecode=${formData.employeeCode}&month=${formData.currMonthNum}&orgId=${orgId}&year=${formData.currYear}`
+      );
+      if (response.status === true) {
+        const data = response.paramObjectsMap.timeSheetVO || [];
+        setRowData(data);
+        setFilteredRowData(data);
+        setScreenList(extractScreenList(data));
+        setDateList(extractDateList(data));
+        setScreenFilter('All');
+        setDateFilter('All');
+        setListView(true);
+      } else {
+        showToast('error', response.paramObjectsMap.errorMessage || 'Report Fetch failed');
       }
-    } else {
-      setFieldErrors(errors);
+    } catch (error) {
+      showToast('error', 'Report Fetch failed');
+    } finally {
+      setIsLoading(false);
     }
   };
+
   const getCompanyDetails = async () => {
     try {
       const response = await apiCalls('get', `commonmaster/company/${orgId}`);
@@ -207,6 +336,7 @@ function OverAllReport() {
       console.error('Error fetching data:', error);
     }
   };
+
   const exportToExcel = async ({ logo, empName, filters, rowData }) => {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Task Report');
@@ -237,7 +367,9 @@ function OverAllReport() {
       ['Month', filters?.currMonth || '-'],
       ['Year', filters?.currYear || '-'],
       ['Branch', filters?.branch || '-'],
-      ['Department', filters?.empDepartment || '-']
+      ['Department', filters?.empDepartment || '-'],
+      ['Screen Filter', screenFilter !== 'All' ? screenFilter : 'All Screens'],
+      ['Date Filter', dateFilter !== 'All' ? dayjs(dateFilter).format('DD/MM/YYYY') : 'All Dates']
     ];
     paramEntries.forEach(([label, value]) => {
       const row = sheet.getRow(metaRowIndex++);
@@ -369,6 +501,7 @@ function OverAllReport() {
     const buffer = await workbook.xlsx.writeBuffer();
     saveAs(new Blob([buffer]), `Task_Report_${dayjs().format('YYYY_MM_DD_HHmmss')}.xlsx`);
   };
+
   const exportToPDF = ({ logo, loginUserName, fileName, empName, filters, rowData }) => {
     const doc = new jsPDF('landscape');
     const pageW = doc.internal.pageSize.getWidth();
@@ -390,7 +523,9 @@ function OverAllReport() {
       ['Month', filters?.currMonth || '-'],
       ['Year', filters?.currYear || '-'],
       ['Branch', filters?.branch || '-'],
-      ['Department', filters?.empDepartment || '-']
+      ['Department', filters?.empDepartment || '-'],
+      ['Screen Filter', screenFilter !== 'All' ? screenFilter : 'All Screens'],
+      ['Date Filter', dateFilter !== 'All' ? dayjs(dateFilter).format('DD/MM/YYYY') : 'All Dates']
     ];
 
     paramEntries.forEach(([label, value]) => {
@@ -500,14 +635,38 @@ function OverAllReport() {
     // ===== 6) SAVE =====
     doc.save(`${fileName || 'Task_Report'}_${dayjs().format('YYYY_MM_DD_HHmmss')}.pdf`);
   };
+
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [screenFilterAnchorEl, setScreenFilterAnchorEl] = React.useState(null);
+  const [dateFilterAnchorEl, setDateFilterAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const screenFilterOpen = Boolean(screenFilterAnchorEl);
+  const dateFilterOpen = Boolean(dateFilterAnchorEl);
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const handleScreenFilterMenuOpen = (event) => {
+    setScreenFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleScreenFilterMenuClose = () => {
+    setScreenFilterAnchorEl(null);
+  };
+
+  const handleDateFilterMenuOpen = (event) => {
+    setDateFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleDateFilterMenuClose = () => {
+    setDateFilterAnchorEl(null);
+  };
+
   return (
     <>
       <div>
@@ -609,7 +768,7 @@ function OverAllReport() {
                 options={[{ employeeCode: 'All', employee: 'All Employees' }, ...empCodeName]}
                 getOptionLabel={(option) => {
                   if (!option) return '';
-                  if (option.employeeCode === 'All') return 'All'; // ✅ Show only "All"
+                  if (option.employeeCode === 'All') return 'All';
                   return `${option.employeeCode} - ${option.employee}`;
                 }}
                 value={
@@ -618,7 +777,7 @@ function OverAllReport() {
                   ) || null
                 }
                 onChange={(event, newValue) => handleChange('employeeCode', newValue?.employeeCode || '')}
-                isOptionEqualToValue={(option, value) => option.employeeCode === value.employeeCode} // ✅ Fix equality issue
+                isOptionEqualToValue={(option, value) => option.employeeCode === value.employeeCode}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -663,34 +822,6 @@ function OverAllReport() {
                 {isLoading ? <CircularProgress size={14} sx={{ color: 'white' }} /> : 'Show Tasks'}
               </Button>
             </div>
-            {/* <div className="col-md-1 mb-1">
-              <Button
-                variant="contained"
-                onClick={handleClear}
-                // disabled={isLoading}
-                startIcon={<ClearIcon />}
-                sx={{
-                  borderRadius: '30px',
-                  padding: '6px 14px',
-                  fontWeight: '100',
-                  fontSize: '12px',
-                  textTransform: 'none',
-                  background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
-                  boxShadow: '0 2spx 10px rgba(25, 118, 210, 0.4)',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    background: 'linear-gradient(90deg, #1565c0, #1e88e5)',
-                    transform: 'translateY(-3px) scale(1.05)',
-                    boxShadow: '0 8px 25px rgba(25, 118, 210, 0.6)'
-                  },
-                  '&:active': {
-                    transform: 'scale(0.97)'
-                  }
-                }}
-              >
-                <CircularProgress size={14} sx={{ color: 'white' }} />
-              </Button>
-            </div> */}
           </div>
         </>
         <Dialog
@@ -706,6 +837,7 @@ function OverAllReport() {
         >
           <DialogTitle style={{ cursor: 'move', backgroundColor: '#0f0f1a', color: 'white' }} id="draggable-dialog-title">
             Task Details
+
             {/* Download Icon */}
             <Tooltip title="Download">
               <IconButton
@@ -720,6 +852,7 @@ function OverAllReport() {
                 <DownloadIcon />
               </IconButton>
             </Tooltip>
+
             <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose} PaperProps={{ sx: { minWidth: 150 } }}>
               <MenuItem
                 onClick={() => {
@@ -728,7 +861,7 @@ function OverAllReport() {
                     logo: listViewData[0]?.companyLogo,
                     empName: formData.employeeCode === 'All' ? 'All Employees' : formData.employeeCode,
                     filters: formData,
-                    rowData: rowData
+                    rowData: filteredRowData
                   });
                 }}
               >
@@ -743,13 +876,14 @@ function OverAllReport() {
                     fileName: 'Employee Task Report',
                     empName: formData.employeeCode === 'All' ? 'All Employees' : formData.employeeCode,
                     filters: formData,
-                    rowData: rowData
+                    rowData: filteredRowData
                   });
                 }}
               >
                 <PictureAsPdfIcon sx={{ mr: 1, color: 'red' }} /> PDF
               </MenuItem>
             </Menu>
+
             <IconButton
               onClick={() => setListView(false)}
               sx={{
@@ -769,17 +903,143 @@ function OverAllReport() {
             }}
           >
             <>
-              {/* <Typography variant="subtitle1" gutterBottom>
-                Date Range: {filters.dateRange.start} to {filters.dateRange.end}
-              </Typography> */}
+              {/* Filter Info Section */}
+              {(screenFilter !== 'All' || dateFilter !== 'All') && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                    py: 1.2,
+                    px: 2,
+                    borderRadius: 2,
+                    background: 'linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%)',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                    border: '1px solid #90caf9',
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: '#0d47a1',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    <span>Active Filters:</span>
+                    
+                    {screenFilter !== 'All' && (
+                      <Chip
+                        label={`Screen: ${screenFilter}`}
+                        color="primary"
+                        variant="filled"
+                        size="small"
+                        sx={{
+                          fontWeight: 'bold',
+                          letterSpacing: 0.3,
+                          backgroundColor: '#1976d2',
+                          color: 'white',
+                          px: 1,
+                        }}
+                      />
+                    )}
+                    
+                    {dateFilter !== 'All' && (
+                      <Chip
+                        label={`Date: ${dayjs(dateFilter).format('DD/MM/YYYY')}`}
+                        color="secondary"
+                        variant="filled"
+                        size="small"
+                        sx={{
+                          fontWeight: 'bold',
+                          letterSpacing: 0.3,
+                          backgroundColor: '#7b1fa2',
+                          color: 'white',
+                          px: 1,
+                        }}
+                      />
+                    )}
+                  </Typography>
+
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => {
+                      handleScreenFilterChange('All');
+                      handleDateFilterChange('All');
+                    }}
+                    startIcon={<FilterListOffIcon />}
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      borderColor: '#1976d2',
+                      color: '#1976d2',
+                      '&:hover': {
+                        backgroundColor: '#bbdefb',
+                        borderColor: '#1565c0',
+                      },
+                    }}
+                  >
+                    Clear All Filters
+                  </Button>
+                </Box>
+              )}
+
               <TableContainer component={Paper}>
                 <Table stickyHeader aria-label="employee task report table" size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ minWidth: 110, fontWeight: 'bold' }}>Date</TableCell>
+                      <TableCell sx={{ minWidth: 110, fontWeight: 'bold' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          Date
+                          {/* Date Filter Icon - Always show for all employees */}
+                          <Tooltip title="Filter by Date">
+                            <IconButton
+                              onClick={handleDateFilterMenuOpen}
+                              size="small"
+                              sx={{
+                                padding: '2px',
+                                color: 'primary.main',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                                },
+                              }}
+                            >
+                              <CalendarMonthIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
                       <TableCell sx={{ minWidth: 90, fontWeight: 'bold' }}>Tot Hrs</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Project</TableCell>
-                      <TableCell sx={{ minWidth: 50, maxWidth: 70, fontWeight: 'bold' }}>Screens</TableCell>
+                      <TableCell sx={{ minWidth: 50, maxWidth: 70, fontWeight: 'bold' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          Screens
+                          {/* Screen Filter Icon - Only show when specific employee is selected */}
+                          {formData.employeeCode !== 'All' && formData.employeeCode !== '' && (
+                            <Tooltip title="Filter by Screen">
+                              <IconButton
+                                onClick={handleScreenFilterMenuOpen}
+                                size="small"
+                                sx={{
+                                  padding: '2px',
+                                  color: 'primary.main',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                                  },
+                                }}
+                              >
+                                <FilterListIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>From</TableCell>
                       <TableCell sx={{ fontWeight: 'bold' }}>To</TableCell>
@@ -788,100 +1048,174 @@ function OverAllReport() {
                       <TableCell sx={{ fontWeight: 'bold' }}>Remarks</TableCell>
                     </TableRow>
                   </TableHead>
+
+                  {/* Screen Filter Menu */}
+                  <Menu
+                    anchorEl={screenFilterAnchorEl}
+                    open={screenFilterOpen}
+                    onClose={handleScreenFilterMenuClose}
+                    PaperProps={{ sx: { maxHeight: 300, minWidth: 200 } }}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        handleScreenFilterChange('All');
+                        handleScreenFilterMenuClose();
+                      }}
+                      selected={screenFilter === 'All'}
+                    >
+                      All Screens
+                    </MenuItem>
+                    {screenList
+                      .filter(screen => screen !== 'All')
+                      .map((screen, index) => (
+                        <MenuItem
+                          key={index}
+                          onClick={() => {
+                            handleScreenFilterChange(screen);
+                            handleScreenFilterMenuClose();
+                          }}
+                          selected={screenFilter === screen}
+                        >
+                          {screen}
+                        </MenuItem>
+                      ))
+                    }
+                  </Menu>
+
+                  {/* Date Filter Menu */}
+                  <Menu
+                    anchorEl={dateFilterAnchorEl}
+                    open={dateFilterOpen}
+                    onClose={handleDateFilterMenuClose}
+                    PaperProps={{ sx: { maxHeight: 300, minWidth: 150 } }}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        handleDateFilterChange('All');
+                        handleDateFilterMenuClose();
+                      }}
+                      selected={dateFilter === 'All'}
+                    >
+                      All Dates
+                    </MenuItem>
+                    {dateList
+                      .filter(date => date.value !== 'All')
+                      .map((date, index) => (
+                        <MenuItem
+                          key={index}
+                          onClick={() => {
+                            handleDateFilterChange(date.value);
+                            handleDateFilterMenuClose();
+                          }}
+                          selected={dateFilter === date.value}
+                        >
+                          {date.label}
+                        </MenuItem>
+                      ))
+                    }
+                  </Menu>
+
                   <TableBody>
-                    {rowData.map((row, rowIndex) => (
-                      <React.Fragment key={rowIndex}>
-                        <TableRow sx={{ backgroundColor: 'blue' }}>
-                          <TableCell colSpan={11} style={{ fontWeight: 'bold' }}>
-                            {(() => {
-                              const totalDays = row.timesheets.length;
-                              const presentDays = row.timesheets.filter((ts) => ts.status === 'TIMESHEET').length;
+                    {filteredRowData.length > 0 ? (
+                      filteredRowData.map((row, rowIndex) => (
+                        <React.Fragment key={rowIndex}>
+                          <TableRow sx={{ backgroundColor: 'blue' }}>
+                            <TableCell colSpan={11} style={{ fontWeight: 'bold' }}>
+                              {(() => {
+                                const totalDays = row.timesheets.length;
+                                const presentDays = row.timesheets.filter((ts) => ts.status === 'TIMESHEET').length;
+                                const leaveDays = row.timesheets.filter(
+                                  (ts) =>
+                                    ts.status === 'ABSENT' || ts.status === 'COMPENSATORY OFF' || ts.status?.toUpperCase().includes('LEAVE')
+                                ).length;
+                                return (
+                                  <>
+                                    <span style={{ color: '#FFFFFF' }}>{row.empcodename}</span> &nbsp; | &nbsp;
+                                    <span style={{ color: '#FFFFFF' }}>Total Days: {totalDays}</span> &nbsp; | &nbsp;
+                                    <span style={{ color: '#FFFFFF' }}>Present: {presentDays}</span> &nbsp; | &nbsp;
+                                    <span style={{ color: '#FFFFFF' }}>Leave: {leaveDays}</span>
+                                  </>
+                                );
+                              })()}
+                            </TableCell>
+                          </TableRow>
+                          {/* Timesheet Loop */}
+                          {[...row.timesheets]
+                            .sort((a, b) => new Date(a.date) - new Date(b.date))
+                            .map((ts, tsIndex) => {
+                              const details = ts.timeSheetDetailsVO || [];
+                              const detailCount = details.length || 1;
 
-                              // Leave days = Absent + any status that includes "LEAVE"
-                              const leaveDays = row.timesheets.filter(
-                                (ts) =>
-                                  ts.status === 'ABSENT' || ts.status === 'COMPENSATORY OFF' || ts.status?.toUpperCase().includes('LEAVE')
-                              ).length;
+                              if (ts.status === 'TIMESHEET' && details.length > 0) {
+                                return details.map((task, i) => (
+                                  <TableRow key={`${rowIndex}-${tsIndex}-${i}`}>
+                                    {/* Show Date/Status/Hours only once, span all rows */}
+                                    {i === 0 && (
+                                      <>
+                                        <TableCell rowSpan={detailCount} sx={{ verticalAlign: 'middle', fontWeight: 'bold' }}>
+                                          {dayjs(ts.date).format('DD/MM/YYYY')}
+                                        </TableCell>
+                                        <TableCell rowSpan={detailCount} sx={{ verticalAlign: 'middle' }}>
+                                          {ts.totalhours} h
+                                        </TableCell>
+                                      </>
+                                    )}
+
+                                    {/* Task details */}
+                                    <TableCell>{task.projectName}</TableCell>
+                                    <TableCell>{task.project}</TableCell>
+                                    <TableCell>
+                                      <StatusBadge status={task.status} />
+                                    </TableCell>
+                                    <TableCell>{task.fromTime}</TableCell>
+                                    <TableCell>{task.toTime}</TableCell>
+                                    <TableCell>{task.wip}</TableCell>
+                                    <TableCell>{task.description}</TableCell>
+                                    <TableCell>{task.remarks}</TableCell>
+                                  </TableRow>
+                                ));
+                              }
+                              // ✅ Case 2: Any other status (holiday, leave, absent, weekend, etc.)
                               return (
-                                <>
-                                  <span style={{ color: '#FFFFFF' }}>{row.empcodename}</span> &nbsp; | &nbsp;
-                                  <span style={{ color: '#FFFFFF' }}>Total Days: {totalDays}</span> &nbsp; | &nbsp;
-                                  <span style={{ color: '#FFFFFF' }}>Present: {presentDays}</span> &nbsp; | &nbsp;
-                                  <span style={{ color: '#FFFFFF' }}>Leave: {leaveDays}</span>
-                                </>
-                              );
-                            })()}
-                          </TableCell>
-                        </TableRow>
-                        {/* Timesheet Loop */}
-                        {/* {row.timesheets.map((ts, tsIndex) => {
-                          const details = ts.timeSheetDetailsVO || [];
-                          const detailCount = details.length || 1; */}
-                        {[...row.timesheets]
-                          .sort((a, b) => new Date(a.date) - new Date(b.date))
-                          .map((ts, tsIndex) => {
-                            const details = ts.timeSheetDetailsVO || [];
-                            const detailCount = details.length || 1;
-                            // ✅ Case 1: Timesheet with task details
-                            if (ts.status === 'TIMESHEET' && details.length > 0) {
-                              return details.map((task, i) => (
-                                <TableRow key={`${rowIndex}-${tsIndex}-${i}`}>
-                                  {/* Show Date/Status/Hours only once, span all rows */}
-                                  {i === 0 && (
-                                    <>
-                                      <TableCell rowSpan={detailCount} sx={{ verticalAlign: 'middle', fontWeight: 'bold' }}>
-                                        {dayjs(ts.date).format('DD/MM/YYYY')}
-                                      </TableCell>
-                                      <TableCell rowSpan={detailCount} sx={{ verticalAlign: 'middle' }}>
-                                        {ts.totalhours} h
-                                      </TableCell>
-                                    </>
-                                  )}
-
-                                  {/* Task details */}
-                                  <TableCell>{task.projectName}</TableCell>
-                                  <TableCell>{task.project}</TableCell>
-                                  <TableCell>
-                                    <StatusBadge status={task.status} />
-                                  </TableCell>
-                                  <TableCell>{task.fromTime}</TableCell>
-                                  <TableCell>{task.toTime}</TableCell>
-                                  <TableCell>{task.wip}</TableCell>
-                                  <TableCell>{task.description}</TableCell>
-                                  <TableCell>{task.remarks}</TableCell>
-                                </TableRow>
-                              ));
-                            }
-                            // ✅ Case 2: Any other status (holiday, leave, absent, weekend, etc.)
-                            return (
-                              <TableRow
-                                key={`${rowIndex}-${tsIndex}`}
-                                sx={{
-                                  backgroundColor: '#ffeaea',
-                                  textAlign: 'center'
-                                }}
-                              >
-                                <TableCell sx={{ textAlign: 'start', fontWeight: 'bold' }}>{dayjs(ts.date).format('DD/MM/YYYY')}</TableCell>
-                                <TableCell sx={{ textAlign: 'center' }}>
-                                  {ts.totalhours}
-                                  {ts.totalhours ? 'hrs' : ''}
-                                </TableCell>
-                                <TableCell
-                                  colSpan={8}
+                                <TableRow
+                                  key={`${rowIndex}-${tsIndex}`}
                                   sx={{
-                                    textAlign: 'center',
-                                    fontStyle: 'italic',
-                                    fontWeight: 'bold',
-                                    color: '#d32f2f'
+                                    backgroundColor: '#ffeaea',
+                                    textAlign: 'center'
                                   }}
                                 >
-                                  {ts.status}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                      </React.Fragment>
-                    ))}
+                                  <TableCell sx={{ textAlign: 'start', fontWeight: 'bold' }}>{dayjs(ts.date).format('DD/MM/YYYY')}</TableCell>
+                                  <TableCell sx={{ textAlign: 'center' }}>
+                                    {ts.totalhours}
+                                    {ts.totalhours ? 'hrs' : ''}
+                                  </TableCell>
+                                  <TableCell
+                                    colSpan={8}
+                                    sx={{
+                                      textAlign: 'center',
+                                      fontStyle: 'italic',
+                                      fontWeight: 'bold',
+                                      color: '#d32f2f'
+                                    }}
+                                  >
+                                    {ts.status}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                        </React.Fragment>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={11} align="center" sx={{ py: 3 }}>
+                          <Typography variant="body1" color="textSecondary">
+                            {screenFilter !== 'All' || dateFilter !== 'All' 
+                              ? `No data found for the selected filters` 
+                              : 'No data available'}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -892,4 +1226,5 @@ function OverAllReport() {
     </>
   );
 }
+
 export default OverAllReport;
