@@ -6,39 +6,27 @@ import {
     Button,
     TextField,
     MenuItem,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
     Chip,
     Grid,
     Alert,
     Snackbar,
-    Tooltip,
     Fade,
     Card,
     CardContent,
     Autocomplete,
-    CircularProgress,
-    IconButton,
-    Pagination,
-    Stack
+    CircularProgress
 } from '@mui/material';
 import {
     Add,
-    AssignmentReturn,
     CalendarMonth,
-    Notes,
     Save,
     Cancel,
     Inventory2,
-    Search,
     Edit
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
+import CommonListView from '../../utils/AssetCommonListViewTable';
 
 const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => {
     const [isAllocating, setIsAllocating] = useState(false);
@@ -62,27 +50,129 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
     const [orgId] = useState(localStorage.getItem("orgId"));
     const [loginUserName] = useState(localStorage.getItem("employeeName"));
     const [branchCode] = useState(localStorage.getItem("branchCode"));
+    const [branch] = useState(localStorage.getItem("branch"));
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
 
     const conditions = ['Excellent', 'Good', 'Fair', 'Poor'];
 
-    // Fetch all data on component mount
     useEffect(() => {
         getAllEmployees();
         getAssetOptions();
         getAllAllocations();
     }, []);
 
-    // Calculate pagination values
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentAllocations = allocations.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(allocations.length / itemsPerPage);
+
+    const tableColumns = [
+        {
+            key: 'asset_details',
+            label: 'Asset Details',
+            render: (value, row) => (
+                <Box>
+                    <Typography variant="subtitle2" fontWeight="600" gutterBottom>
+                        {row.assetCode}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {row.assetName}
+                    </Typography>
+                </Box>
+            )
+        },
+        {
+            key: 'employee_details',
+            label: 'Employee',
+            render: (value, row) => (
+                <Box>
+                    <Typography variant="body2" fontWeight="500">
+                        {row.employeeName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        ID: {row.employeeCode}
+                    </Typography>
+                </Box>
+            )
+        },
+        {
+            key: 'allocationDate',
+            label: 'Allocation Date',
+            render: (value) => (
+                <Typography variant="body2">
+                    {value}
+                </Typography>
+            )
+        },
+        {
+            key: 'expected_return',
+            label: 'Expected Return',
+            render: (value, row) => (
+                <Typography variant="body2">
+                    {row.expectedreturndate || 'Not specified'}
+                </Typography>
+            )
+        },
+        {
+            key: 'assetcondition',
+            label: 'Condition',
+            render: (value) => (
+                <Chip
+                    label={value}
+                    color={
+                        value === 'Excellent' ? 'success' :
+                            value === 'Good' ? 'primary' :
+                                value === 'Fair' ? 'warning' : 'error'
+                    }
+                    size="small"
+                    sx={{
+                        fontWeight: '600',
+                        minWidth: 80
+                    }}
+                />
+            )
+        },
+        {
+            key: 'status',
+            label: 'Status',
+            render: (value, row) => (
+                <Chip
+                    label={row.active ? "Active" : "Inactive"}
+                    color={row.active ? "success" : "error"}
+                    size="small"
+                    sx={{
+                        fontWeight: '600',
+                        minWidth: 80
+                    }}
+                />
+            )
+        }
+    ];
+
+    // Table actions configuration
+    const tableActions = [
+        {
+            icon: <Edit fontSize="small" />,
+            tooltip: 'Edit Allocation',
+            color: 'primary',
+            onClick: (allocation) => handleEdit(allocation.id)
+        }
+    ];
+
+    // Pagination configuration
+    const paginationConfig = {
+        currentPage,
+        totalPages,
+        itemsPerPage,
+        indexOfFirstItem,
+        indexOfLastItem,
+        onPageChange: (event, value) => setCurrentPage(value)
+    };
 
     const getAssetOptions = async () => {
         setLoading(true);
@@ -158,12 +248,6 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 const employee = employees.find(emp => emp.employeeCode === allocation.employeeCode);
                 if (employee) {
                     setSelectedEmployee(employee);
-                }
-
-                // Set selected asset for Autocomplete
-                const asset = assetOptions.find(ast => ast.assetCode === allocation.assetCode);
-                if (asset) {
-                    // This will be handled by the Autocomplete component
                 }
 
                 setIsEditing(true);
@@ -264,7 +348,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 assetCode: formData.asset_id,
                 assetName: formData.asset_name,
                 assetcondition: formData.condition,
-                branch: "BENGALORE", // You might want to get this from localStorage
+                branch: branch, // You might want to get this from localStorage
                 branchCode: branchCode,
                 createdBy: loginUserName,
                 employeeCode: formData.employee_id,
@@ -273,6 +357,11 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 finyear: config.finyear || '2025',
                 orgId: parseInt(orgId) || 0,
             };
+
+            // Add ID for update operation
+            if (isEditing && editingId) {
+                saveData.id = editingId;
+            }
 
             console.log(`${isEditing ? 'Updating' : 'Creating'} allocation data:`, saveData);
 
@@ -588,166 +677,15 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                         </CardContent>
                     </Card>
                 ) : (
-                    // Allocations Table with Pagination (shown when not allocating)
-                    <>
-                        <TableContainer
-                            component={Paper}
-                            variant="outlined"
-                            sx={{
-                                borderRadius: 2,
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                overflow: 'auto',
-                                mb: 2
-                            }}
-                        >
-                            <Table>
-                                <TableHead>
-                                    <TableRow sx={{ backgroundColor: 'grey.50' }}>
-                                        <TableCell sx={{ fontWeight: '600', py: 2, textAlign: 'center' }}>Actions</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 2 }}>Asset Details</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 2 }}>Employee</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 2 }}>Allocation Date</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 2 }}>Expected Return</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 2 }}>Condition</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 2 }}>Status</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {currentAllocations.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={7} align="center" sx={{ py: 8 }}>
-                                                <Box sx={{ textAlign: 'center' }}>
-                                                    <Inventory2 sx={{ fontSize: 64, color: 'grey.300', mb: 2 }} />
-                                                    <Typography variant="h6" color="textSecondary" gutterBottom>
-                                                        No Allocations Found
-                                                    </Typography>
-                                                    <Typography variant="body2" color="textSecondary">
-                                                        Allocate assets to employees to track assignments
-                                                    </Typography>
-                                                </Box>
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : (
-                                        currentAllocations.map((allocation) => (
-                                            <TableRow
-                                                key={allocation.id}
-                                                sx={{
-                                                    '&:hover': {
-                                                        backgroundColor: 'grey.50',
-                                                        transition: 'background-color 0.2s ease'
-                                                    }
-                                                }}
-                                            >
-                                                <TableCell sx={{ textAlign: 'center' }}>
-                                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                                                        <Tooltip title="Edit Allocation">
-                                                            <IconButton
-                                                                onClick={() => handleEdit(allocation.id)}
-                                                                color="primary"
-                                                                size="small"
-                                                                sx={{
-                                                                    borderRadius: 1,
-                                                                    '&:hover': {
-                                                                        backgroundColor: 'primary.light',
-                                                                        color: 'white'
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <Edit fontSize="small" />
-                                                            </IconButton>
-                                                        </Tooltip>
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Box>
-                                                        <Typography variant="subtitle2" fontWeight="600" gutterBottom>
-                                                            {allocation.assetCode}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {allocation.assetName}
-                                                        </Typography>
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight="500">
-                                                            {allocation.employeeName}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            ID: {allocation.employeeCode}
-                                                        </Typography>
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="body2">
-                                                        {allocation.allocationDate}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Typography variant="body2">
-                                                        {allocation.expectedreturndate || 'Not specified'}
-                                                    </Typography>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        label={allocation.assetcondition}
-                                                        color={
-                                                            allocation.assetcondition === 'Excellent' ? 'success' :
-                                                                allocation.assetcondition === 'Good' ? 'primary' :
-                                                                    allocation.assetcondition === 'Fair' ? 'warning' : 'error'
-                                                        }
-                                                        size="small"
-                                                        sx={{
-                                                            fontWeight: '600',
-                                                            minWidth: 80
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Chip
-                                                        label={allocation.active ? "Active" : "Inactive"}
-                                                        color={allocation.active ? "success" : "error"}
-                                                        size="small"
-                                                        sx={{
-                                                            fontWeight: '600',
-                                                            minWidth: 80
-                                                        }}
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-
-                        {/* Pagination */}
-                        {allocations.length > itemsPerPage && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                                <Stack spacing={2}>
-                                    <Pagination
-                                        count={totalPages}
-                                        page={currentPage}
-                                        onChange={handlePageChange}
-                                        color="primary"
-                                        showFirstButton
-                                        showLastButton
-                                        size="medium"
-                                    />
-                                </Stack>
-                            </Box>
-                        )}
-
-                        {/* Items per page info */}
-                        {allocations.length > 0 && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                                <Typography variant="body2" color="textSecondary">
-                                    Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, allocations.length)} of {allocations.length} allocations
-                                </Typography>
-                            </Box>
-                        )}
-                    </>
+                    <CommonListView
+                        data={currentAllocations}
+                        columns={tableColumns}
+                        actions={tableActions}
+                        loading={loading}
+                        emptyMessage="No Allocations Found"
+                        emptyDescription="Allocate assets to employees to track assignments"
+                        pagination={paginationConfig}
+                    />
                 )}
             </Box>
 

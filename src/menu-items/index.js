@@ -14,6 +14,7 @@ import salaryMaster from './salaryMaster';
 import Appraisal from './Appraisal';
 import AssetManagement from './assetManagement';
 import ExpenceTrack from './ExpenceTrack';
+import RecruitmentManagement from './recruitmentManagement';
 // Import other dynamically filtered modules as needed
 
 const filterValid = (items) => items.filter(Boolean);
@@ -30,6 +31,7 @@ const getMenuItems = () => {
       team,
       Appraisal,
       AssetManagement,
+      RecruitmentManagement,
       ExpenceTrack,
       basicMaster,
       salaryMaster,

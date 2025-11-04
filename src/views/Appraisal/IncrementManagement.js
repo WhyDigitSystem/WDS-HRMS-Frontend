@@ -412,7 +412,8 @@ const IncrementManagement = () => {
             newGrade: employeeData.newGrade,
             nextApproval: employeeData.nextApproval,
             remarks: employeeData.justification,
-            reportingTo: selectedReportingPerson?.label || '',
+            reportingTo: selectedReportingPerson?.label || '', // This might be the reporting chain
+            reportingPerson: selectedReportingPerson?.label || '', // Add this field for reporting person name
             reportingPersonCode: selectedReportingPerson?.code || '',
             reportingPersonEmail: selectedReportingPerson?.email || '',
             totalCtcPercentage: calculateTotalIncrease().replace('%', '')

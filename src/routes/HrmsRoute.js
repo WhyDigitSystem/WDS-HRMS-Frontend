@@ -125,6 +125,9 @@ const AssetManagementSystem = Loadable(lazy(() => import('views/assetManagement/
 //Expence Management
 // const ExpenceTracking = Loadable(lazy(() => import('views/ExpenceManagement/ExpenceTracking')));
 const ExpenceManagement = Loadable(lazy(() => import('views/ExpenceManagement/ExpenceManagement')));
+
+//Recruitment Management
+const RecruitmentManagement = Loadable(lazy(() => import('views/recruitmentManagement/RecruitmentManagement')));
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
 const HrmsRoute = {
@@ -497,7 +500,11 @@ const HrmsRoute = {
     {
       path: '/ExpenceManagement/ExpenceManagement',
       element: <ExpenceManagement />
-    }
+    },
+    {
+      path: '/RecruitmentManagement/RecruitmentManagement',
+      element: <RecruitmentManagement />
+    },
   ]
 };
 
