@@ -156,6 +156,8 @@ const PendingApproval = ({ isLoading }) => {
   const [selectedIncrement, setSelectedIncrement] = useState(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
+  const [EMPLOYEECODE] = useState("WDS051");
+
   useEffect(() => {
     getAllRequests();
   }, [orgId, employeeCode]);
@@ -170,7 +172,9 @@ const PendingApproval = ({ isLoading }) => {
         compoOffResponse,
         checkOutResponse,
         checkInOutResult,
-        incrementResponse
+        incrementResponse,
+        expenseClaims,
+        travelExpense
       ] = await Promise.all([
         apiCalls(
           'get',
@@ -195,6 +199,14 @@ const PendingApproval = ({ isLoading }) => {
         apiCalls(
           'get',
           `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+        ),
+        apiCalls(
+          'get',
+          `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${EMPLOYEECODE}`
+        ),
+        apiCalls(
+          'get',
+          `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${EMPLOYEECODE}`
         )
       ]);
 
@@ -206,6 +218,8 @@ const PendingApproval = ({ isLoading }) => {
       const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
       const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
       const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
+      const expenseRequests = normalize(incrementResponse?.paramObjectsMap?.expenseClaimsVO);
+      const travelRequests = normalize(incrementResponse?.paramObjectsMap?.travelRequestsVO);
 
       let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
         ...item,
@@ -261,6 +275,8 @@ const PendingApproval = ({ isLoading }) => {
         ...filterPending(checkOutRequests),
         ...filterPending(checkInOutRequests),
         ...filterPending(incrementManagementRequests),
+        ...filterPending(expenseRequests),
+        ...filterPending(travelRequests),
       ];
 
       // ===== Set State =====
@@ -581,6 +597,68 @@ const PendingApproval = ({ isLoading }) => {
       setProcessingId(null);
     }
   };
+  const handleActionExpense = async (request, action) => {
+    setProcessingId(request.id);
+
+    try {
+      const response = await apiCalls(
+        'put',
+        `/assetmanagement/createApprovalExpenseClaims?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}`
+      );
+
+      if (response.status === true) {
+        setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+        toast.success(`Expense request ${action.toLowerCase()} successfully`, {
+          autoClose: 3000
+        });
+      } else {
+        throw new Error(response.message || `Failed to ${action.toLowerCase()} expense request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action.toLowerCase()}ing expense request:`, error);
+
+      // Revert UI if error occurs
+      setLeaveRequests((prev) => [...prev, request].sort((a, b) => a.id - b.id));
+
+      toast.error(`Failed to ${action.toLowerCase()} expense request`, {
+        autoClose: 3000
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+  const handleActionTravel = async (request, action) => {
+    setProcessingId(request.id);
+
+    try {
+      const response = await apiCalls(
+        'put',
+        `/assetmanagement/createApprovalTravelRequests?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}`
+      );
+
+      if (response.status === true) {
+        setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+        toast.success(`Travel request ${action.toLowerCase()} successfully`, {
+          autoClose: 3000
+        });
+      } else {
+        throw new Error(response.message || `Failed to ${action.toLowerCase()} travel request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action.toLowerCase()}ing travel request:`, error);
+
+      // Revert UI if error occurs
+      setLeaveRequests((prev) => [...prev, request].sort((a, b) => a.id - b.id));
+
+      toast.error(`Failed to ${action.toLowerCase()} travel request`, {
+        autoClose: 3000
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   const handleApproveAll = async () => {
     if (leaveRequests.length === 0) return;
@@ -604,6 +682,12 @@ const PendingApproval = ({ isLoading }) => {
           await handleActionCheckout(request, 'APPROVED');
         } else if (request.screenName === 'CHECKINOUTADJUSTMENT') {
           await handleCheckInOutApprove(request, 'APPROVED');
+        } else if (request.screenName === 'CHECKINOUTADJUSTMENT') {
+          await handleCheckInOutApprove(request, 'APPROVED');
+        } else if (request.screenName === 'EXPENSE CLAIMS') {
+          await handleActionExpense(request, 'APPROVED');
+        }else if (request.screenName === 'TRAVEL REQUEST') {
+          await handleActionTravel(request, 'APPROVED');
         }
       } catch (error) {
         console.error(`Error approving request ID ${request.id}:`, error);
@@ -1047,6 +1131,64 @@ const PendingApproval = ({ isLoading }) => {
                           )}
 
                           {screen === 'INCREMENT MANAGEMENT' && (
+                            <>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increment Cycle
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.incrementCycle}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increase %
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.totalCtcPercentage}%
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  New Designation
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.newDesignation || '-'}
+                                </Typography>
+                              </Grid>
+                            </>
+                          )}
+
+                          {screen === 'EXPENSE CLAIMS' && (
+                            <>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increment Cycle
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.incrementCycle}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increase %
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.totalCtcPercentage}%
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  New Designation
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.newDesignation || '-'}
+                                </Typography>
+                              </Grid>
+                            </>
+                          )}
+
+                          {screen === 'TRAVEL REQUESTS' && (
                             <>
                               <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">

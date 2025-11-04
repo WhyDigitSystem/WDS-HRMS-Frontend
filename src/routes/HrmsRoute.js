@@ -6,6 +6,7 @@ import Loadable from 'ui-component/Loadable';
 import { element } from 'prop-types';
 import PrivateRoute from './PrivateRoute';
 import SalaryApproval from 'views/salaryMaster/SalaryApproval';
+import ListOfValues from 'views/basicMaster/ListOfValues';
 // import Roles from 'views/basicMaster/roles';
 
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -120,6 +121,10 @@ const IncrementManagement = Loadable(lazy(() => import('views/Appraisal/Incremen
 
 //Asset Management
 const AssetManagementSystem = Loadable(lazy(() => import('views/assetManagement/AssetManagement')));
+
+//Expence Management
+// const ExpenceTracking = Loadable(lazy(() => import('views/ExpenceManagement/ExpenceTracking')));
+const ExpenceManagement = Loadable(lazy(() => import('views/ExpenceManagement/ExpenceManagement')));
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
 const HrmsRoute = {
@@ -217,6 +222,10 @@ const HrmsRoute = {
     {
       path: '/basicMaster/roles',
       element: <Roles />
+    },
+    {
+      path: '/basicMaster/ListOfValues',
+      element: <ListOfValues />
     },
     // {
     //   path: '/basicMaster/AppraisalPeroid',
@@ -484,6 +493,10 @@ const HrmsRoute = {
     {
       path: '/AssetManagement/AssetManagement',
       element: <AssetManagementSystem />
+    },
+    {
+      path: '/ExpenceManagement/ExpenceManagement',
+      element: <ExpenceManagement />
     }
   ]
 };

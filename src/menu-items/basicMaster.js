@@ -9,7 +9,8 @@ import {
   IconWorld,
   IconMap,
   IconBuildingSkyscraper,
-  IconSun
+  IconSun,
+  IconListDetails 
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -124,6 +125,13 @@ const basicMasterChildren = [
     type: 'item',
     url: '/leaveMaster/Holidays',
     icon: IconSun
+  },
+  hasScreenAccess('LOV') && {
+    id: 'listOfValues',
+    title: 'List Of Values',
+    type: 'item',
+    url: '/basicMaster/ListOfValues',
+    icon: IconListDetails
   },
 ].filter(Boolean);
 
