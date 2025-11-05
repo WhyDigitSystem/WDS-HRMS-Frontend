@@ -37,7 +37,7 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
   const [branchCode] = useState(localStorage.getItem("branchCode"));
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5); // Changed from 10 to 5
+  const [itemsPerPage] = useState(5);
 
   const tableColumns = [
     {
@@ -109,12 +109,13 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
     }
   ];
 
+  // Fixed pagination configuration - pass full assets array to CommonListView
   const paginationConfig = {
     currentPage,
     totalPages: Math.ceil(assets.length / itemsPerPage),
     itemsPerPage,
     indexOfFirstItem: (currentPage - 1) * itemsPerPage,
-    indexOfLastItem: currentPage * itemsPerPage,
+    indexOfLastItem: Math.min(currentPage * itemsPerPage, assets.length),
     onPageChange: (event, value) => setCurrentPage(value)
   };
 
@@ -194,10 +195,6 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
     fetchAllData();
   }, []);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentAssets = assets.slice(indexOfFirstItem, indexOfLastItem);
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'Available': return 'success';
@@ -248,7 +245,7 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
 
   return (
     <Box sx={{ p: 0 }}>
-      {/* Summary Cards - Updated to show actual asset data */}
+      {/* Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {summaryCards.map((card, index) => (
           <Grid item xs={12} sm={6} lg={4} key={index}>
@@ -289,7 +286,6 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
                       justifyContent: 'space-between',
                     }}
                   >
-                    {/* Left Content */}
                     <Box sx={{ flex: 1 }}>
                       <Typography
                         variant="subtitle2"
@@ -334,7 +330,6 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
                       </Typography>
                     </Box>
 
-                    {/* Icon Container */}
                     <Box
                       sx={{
                         width: 54,
@@ -378,9 +373,9 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
         </Button>
       </Box>
 
-      {/* Common List View Component */}
+      {/* Common List View Component - Pass full assets array */}
       <CommonListView
-        data={currentAssets}
+        data={assets} // Pass full array, let CommonListView handle pagination
         columns={tableColumns}
         actions={tableActions}
         loading={listLoading}
@@ -390,20 +385,6 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
         pagination={paginationConfig}
         sx={{ mb: 2 }}
       />
-
-      {/* Items per page info */}
-      {assets.length > 0 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2" color="textSecondary">
-            Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, assets.length)} of {assets.length} assets
-          </Typography>
-          <Chip
-            label={`${itemsPerPage} per page`}
-            size="small"
-            variant="outlined"
-          />
-        </Box>
-      )}
     </Box>
   );
 };

@@ -58,6 +58,9 @@ const IncrementManagement = () => {
     const [incrementHistory, setIncrementHistory] = useState([]);
     const [designationData, setDesignationData] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
+    const [salaryHeadsType, setSalaryHeadsType] = useState([]);
+    const [pfHead, setPfHead] = useState(null);
+    const [esiHead, setEsiHead] = useState(null);
 
     const [employeeData, setEmployeeData] = useState({
         employeeId: '',
@@ -115,6 +118,7 @@ const IncrementManagement = () => {
         fetchEmployees();
         getAllReportingPersonList();
         getAllDesignation();
+        getSalaryHeadsDetails();
     }, []);
 
     // Fetch increment history when employee is selected
@@ -146,6 +150,24 @@ const IncrementManagement = () => {
             showToast('error', 'Error fetching employees');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const getSalaryHeadsDetails = async () => {
+        try {
+            const response = await apiCalls('get', `employeemaster/getAllSalaryHeadsByOrgId?orgId=${orgId}`);
+            if (response.status === true) {
+                const heads = response.paramObjectsMap.salaryHeadsVO;
+                setSalaryHeadsType(heads);
+
+                const pf = heads.find((head) => head.code.toLowerCase() === 'pf' && head.type === 'DEDUCTION');
+                const esi = heads.find((head) => head.code.toLowerCase() === 'esi' && head.type === 'DEDUCTION');
+
+                setPfHead(pf);
+                setEsiHead(esi);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
         }
     };
 
@@ -326,6 +348,44 @@ const IncrementManagement = () => {
         if (field === 'adjustmentValue') {
             updateProposedCompensation(value);
         }
+    };
+
+    const handleAddRow = () => {
+        setProposedCompensation(prev => [
+            ...prev,
+            { component: '', componentCode: '', current: 0, proposed: 0, increase: '0%', isNew: true },
+        ]);
+    };
+
+    const handleComponentChange = (index, newValue) => {
+        setProposedCompensation(prev => {
+            const updated = [...prev];
+            updated[index].component = newValue ? newValue.heading : '';
+            updated[index].componentCode = newValue ? newValue.code : '';
+            return updated;
+        });
+    };
+
+    const handleCurrentAmountChange = (index, value) => {
+        // Allow only whole numbers (no decimals)
+        const numericValue = value.replace(/\D/g, ''); // remove non-numeric characters
+
+        setProposedCompensation(prev => {
+            const updated = [...prev];
+            const currentValue = Number(numericValue) || 0;
+
+            updated[index].current = currentValue;
+
+            // Auto-calculate proposed based on employeeData.adjustmentValue
+            const adjustmentPercentage = parseFloat(employeeData.adjustmentValue) || 0;
+            const increaseFactor = 1 + (adjustmentPercentage / 100);
+            const proposedValue = Math.round(currentValue * increaseFactor);
+
+            updated[index].proposed = proposedValue;
+            updated[index].increase = `${adjustmentPercentage.toFixed(2)}%`;
+
+            return updated;
+        });
     };
 
     const updateProposedCompensation = (percentage) => {
@@ -825,16 +885,41 @@ const IncrementManagement = () => {
                                     </Grid>
                                 </Grid>
 
-                                <Typography variant="h6" mt={4} mb={2} sx={{
-                                    color: '#2c3e50',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1
-                                }}>
-                                    <TrendingUp sx={{ color: '#ff6b6b', fontSize: 20 }} />
-                                    Proposed New Compensation
-                                    {salaryLoading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+                                <Typography
+                                    variant="h6"
+                                    mt={4}
+                                    mb={2}
+                                    sx={{
+                                        color: '#2c3e50',
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <TrendingUp sx={{ color: '#ff6b6b', fontSize: 20 }} />
+                                        Proposed New Compensation
+                                        {salaryLoading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+                                    </Box>
+
+                                    <Button
+                                        variant="contained"
+                                        size="medium"
+                                        onClick={handleAddRow}
+                                        sx={{
+                                            borderRadius: 2,
+                                            px: 3,
+                                            fontWeight: 600,
+                                            background: 'linear-gradient(45deg, #1976d2 0%, #42a5f5 100%)',
+                                            '&:hover': {
+                                                background: 'linear-gradient(45deg, #1565c0 0%, #1e88e5 100%)',
+                                                boxShadow: '0 4px 12px rgba(21, 101, 192, 0.3)',
+                                            },
+                                        }}
+                                    >
+                                        Add
+                                    </Button>
                                 </Typography>
 
                                 <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2 }}>
@@ -854,11 +939,63 @@ const IncrementManagement = () => {
                                                         key={index}
                                                         sx={{
                                                             '&:nth-of-type(odd)': { backgroundColor: '#f8f9fa' },
-                                                            '&:hover': { backgroundColor: '#e3f2fd' }
+                                                            '&:hover': { backgroundColor: '#e3f2fd' },
                                                         }}
                                                     >
-                                                        <TableCell sx={{ fontWeight: 500 }}>{row.component}</TableCell>
-                                                        <TableCell sx={{ color: '#d32f2f', fontWeight: 600 }}>{row.current}</TableCell>
+                                                        {/* Component */}
+                                                        <TableCell sx={{ fontWeight: 500 }}>
+                                                            {row.isNew ? (
+                                                                <Autocomplete
+                                                                    size="small"
+                                                                    value={salaryHeadsType.find(opt => opt.heading === row.component) || null}
+                                                                    onChange={(e, newValue) => handleComponentChange(index, newValue)}
+                                                                    options={salaryHeadsType
+                                                                        .filter(
+                                                                            opt =>
+                                                                                opt.type === 'EARNING' && // ✅ Only earning heads
+                                                                                !proposedCompensation.some(r => r.component === opt.heading)
+                                                                        )}
+                                                                    getOptionLabel={(option) => option.heading || ''}
+                                                                    renderInput={(params) => (
+                                                                        <TextField
+                                                                            {...params}
+                                                                            label="Select Component"
+                                                                            variant="outlined"
+                                                                            sx={{ width: 220 }}
+                                                                        />
+                                                                    )}
+                                                                />
+                                                            ) : (
+                                                                row.component
+                                                            )}
+                                                        </TableCell>
+
+                                                        {/* Current Amount */}
+                                                        <TableCell sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                                                            {row.isNew ? (
+                                                                <TextField
+                                                                    size="small"
+                                                                    type="text"
+                                                                    value={row.current}
+                                                                    onChange={(e) => handleCurrentAmountChange(index, e.target.value)}
+                                                                    inputProps={{
+                                                                        inputMode: 'numeric',
+                                                                        pattern: '[0-9]*',
+                                                                    }}
+                                                                    sx={{
+                                                                        width: 120,
+                                                                        '& .MuiOutlinedInput-root': {
+                                                                            borderRadius: 1,
+                                                                            '&:hover fieldset': { borderColor: '#ff6b6b' },
+                                                                        },
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                row.current
+                                                            )}
+                                                        </TableCell>
+
+                                                        {/* Proposed Amount */}
                                                         <TableCell>
                                                             <TextField
                                                                 size="small"
@@ -866,15 +1003,15 @@ const IncrementManagement = () => {
                                                                 onChange={(e) => handleProposedAmountChange(index, e.target.value)}
                                                                 sx={{
                                                                     width: 120,
-                                                                    "& .MuiOutlinedInput-root": {
+                                                                    '& .MuiOutlinedInput-root': {
                                                                         borderRadius: 1,
-                                                                        "&:hover fieldset": {
-                                                                            borderColor: '#667eea',
-                                                                        }
-                                                                    }
+                                                                        '&:hover fieldset': { borderColor: '#667eea' },
+                                                                    },
                                                                 }}
                                                             />
                                                         </TableCell>
+
+                                                        {/* Increase % */}
                                                         <TableCell>
                                                             <Chip
                                                                 label={row.increase}
@@ -883,7 +1020,7 @@ const IncrementManagement = () => {
                                                                     backgroundColor: '#e8f5e8',
                                                                     color: '#2e7d32',
                                                                     fontWeight: 600,
-                                                                    minWidth: 80
+                                                                    minWidth: 80,
                                                                 }}
                                                             />
                                                         </TableCell>
@@ -892,12 +1029,12 @@ const IncrementManagement = () => {
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
-                                                        <Typography color="text.secondary">
-                                                            No salary data available
-                                                        </Typography>
+                                                        <Typography color="text.secondary">No salary data available</Typography>
                                                     </TableCell>
                                                 </TableRow>
                                             )}
+
+                                            {/* Total Row */}
                                             {proposedCompensation.length > 0 && (
                                                 <TableRow sx={{ backgroundColor: '#e3f2fd' }}>
                                                     <TableCell sx={{ fontWeight: 700, color: '#1565c0' }}>Total CTC</TableCell>

@@ -57,7 +57,7 @@ const AssetMaster = ({ config }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
-    // Pagination state
+    // Pagination state - same as AssetManagement
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
 
@@ -76,12 +76,6 @@ const AssetMaster = ({ config }) => {
     useEffect(() => {
         getAllAssets();
     }, []);
-
-    // Calculate pagination values
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentAssets = assetsData.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(assetsData.length / itemsPerPage);
 
     // Table columns configuration
     const tableColumns = [
@@ -160,13 +154,12 @@ const AssetMaster = ({ config }) => {
         }
     ];
 
-    // Pagination configuration
+    // Pagination configuration - EXACTLY like AssetManagement
+    // In AssetMaster component - simplified pagination config
     const paginationConfig = {
         currentPage,
-        totalPages,
+        totalPages: Math.ceil(assetsData.length / itemsPerPage),
         itemsPerPage,
-        indexOfFirstItem,
-        indexOfLastItem,
         onPageChange: (event, value) => setCurrentPage(value)
     };
 
@@ -206,7 +199,7 @@ const AssetMaster = ({ config }) => {
                     createdBy: asset.createdBy
                 }));
                 setAssetsData(formattedAssets);
-                setCurrentPage(1);
+                setCurrentPage(1); // Reset to first page when data loads
             } else {
                 showToast('error', 'Failed to fetch assets');
                 setAssetsData([]);
@@ -433,6 +426,7 @@ const AssetMaster = ({ config }) => {
             notes: ''
         });
         setUploadedImages([]);
+        setCurrentPage(1); // Reset to first page when adding new asset
     };
 
     const handleCancel = () => {
@@ -455,6 +449,7 @@ const AssetMaster = ({ config }) => {
         // Clean up image URLs
         uploadedImages.forEach(img => URL.revokeObjectURL(img.preview));
         setUploadedImages([]);
+        setCurrentPage(1); // Reset to first page when canceling
     };
 
     const getStatusColor = (status) => {
@@ -874,14 +869,15 @@ const AssetMaster = ({ config }) => {
                         </CardContent>
                     </Card>
                 ) : (
+                    // Pass the full assetsData array to CommonListView - let it handle pagination internally
                     <CommonListView
-                        data={currentAssets}
+                        data={assetsData} // Full array - CommonListView handles pagination
                         columns={tableColumns}
                         actions={tableActions}
                         loading={isFetching}
                         emptyMessage="No Assets Found"
                         emptyDescription="Add your first asset"
-                        pagination={paginationConfig}
+                        pagination={paginationConfig} // Same pagination config as AssetManagement
                     />
                 )}
             </Box>

@@ -30,6 +30,31 @@ const CommonListView = ({
     stickyHeader = true,
     sx = {}
 }) => {
+    // Calculate paginated data
+    const getPaginatedData = () => {
+        if (!pagination || !pagination.itemsPerPage) {
+            return data;
+        }
+        
+        const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+        const endIndex = startIndex + pagination.itemsPerPage;
+        return data.slice(startIndex, endIndex);
+    };
+
+    // Calculate display indices for pagination info
+    const getDisplayIndices = () => {
+        if (!pagination || !pagination.itemsPerPage) {
+            return { start: 1, end: data.length, total: data.length };
+        }
+        
+        const start = (pagination.currentPage - 1) * pagination.itemsPerPage + 1;
+        const end = Math.min(pagination.currentPage * pagination.itemsPerPage, data.length);
+        return { start, end, total: data.length };
+    };
+
+    const paginatedData = getPaginatedData();
+    const { start, end, total } = getDisplayIndices();
+
     // If loading, show loading indicator
     if (loading) {
         return (
@@ -102,7 +127,7 @@ const CommonListView = ({
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data.map((row, index) => (
+                        {paginatedData.map((row, index) => (
                             <TableRow
                                 key={row.id || index}
                                 sx={{
@@ -151,7 +176,13 @@ const CommonListView = ({
 
             {/* Pagination */}
             {pagination && data.length > pagination.itemsPerPage && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, px: 1 }}>
+                    {/* Items per page info */}
+                    <Typography variant="body2" color="textSecondary">
+                        Showing {start}-{end} of {total} items
+                    </Typography>
+
+                    {/* Pagination Controls */}
                     <Stack spacing={2}>
                         <Pagination
                             count={pagination.totalPages}
@@ -163,15 +194,13 @@ const CommonListView = ({
                             size="medium"
                         />
                     </Stack>
-                </Box>
-            )}
 
-            {/* Items per page info */}
-            {pagination && data.length > 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                    <Typography variant="body2" color="textSecondary">
-                        Showing {pagination.indexOfFirstItem + 1}-{Math.min(pagination.indexOfLastItem, data.length)} of {data.length} items
-                    </Typography>
+                    {/* Items per page indicator */}
+                    <Chip
+                        label={`${pagination.itemsPerPage} per page`}
+                        size="small"
+                        variant="outlined"
+                    />
                 </Box>
             )}
         </>

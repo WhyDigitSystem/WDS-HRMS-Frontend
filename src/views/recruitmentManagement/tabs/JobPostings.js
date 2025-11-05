@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Grid,
     Card,
@@ -8,7 +8,16 @@ import {
     Chip,
     Box,
     IconButton,
-    Stack
+    Stack,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Autocomplete,
+    FormControlLabel,
+    Checkbox,
+    Switch
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -17,254 +26,694 @@ import {
     Business as BusinessIcon,
     LocationOn as LocationIcon,
     WorkOutline as WorkIcon,
-    Schedule as ScheduleIcon
+    Schedule as ScheduleIcon,
+    Close as CloseIcon
 } from '@mui/icons-material';
+import apiCalls from 'apicall';
+import { showToast } from 'utils/toast-component';
 
-const JobPostings = ({ jobs, onViewJob, onDeleteJob, onAddJob, config }) => {
+const JobPostings = ({ config }) => {
+    const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
+    const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
+    const [branch, setBranch] = useState(localStorage.getItem('branch'));
+    const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
+    const [jobs, setJobs] = useState([]);
+    const [departmentList, setDepartmentList] = useState([]);
+    const [addJobModalOpen, setAddJobModalOpen] = useState(false);
+    const [viewJobModalOpen, setViewJobModalOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [newJobData, setNewJobData] = useState({
+        jobTitle: '',
+        department: '',
+        location: '',
+        active: true // Changed from isActive to active
+    });
+
+    useEffect(() => {
+        getJobPostings();
+        getAllDepartment();
+    }, [orgId, branchCode]);
+
     const primaryColor = config.primary_action_color || '#2563eb';
     const secondaryColor = config.secondary_action_color || '#6b7280';
 
-    if (jobs.length === 0) {
-        return (
-            <Box
-                sx={{
-                    textAlign: 'center',
-                    py: 6,
-                    background: 'linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%)',
-                    borderRadius: 2,
-                    border: '1px solid #e2e8f0',
-                    maxWidth: 400,
-                    mx: 'auto',
-                    mt: 2
-                }}
-            >
-                <WorkIcon
-                    sx={{
-                        fontSize: 48,
-                        color: '#7c3aed', // Purple
-                        mb: 1.5,
-                        opacity: 0.8
-                    }}
-                />
-                <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                    No Job Postings
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, maxWidth: 280, mx: 'auto', fontSize: '0.875rem' }}>
-                    Create your first job posting to attract qualified candidates.
-                </Typography>
-                <Button
-                    variant="contained"
-                    size="medium"
-                    startIcon={<AddIcon />}
-                    onClick={onAddJob}
-                    sx={{
-                        background: `linear-gradient(135deg, ${primaryColor} 0%, #1d4ed8 100%)`,
-                        boxShadow: '0 2px 8px 0 rgba(37, 99, 235, 0.2)',
-                        borderRadius: 1,
-                        px: 2.5,
-                        py: 0.75,
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        '&:hover': {
-                            boxShadow: '0 4px 12px 0 rgba(37, 99, 235, 0.3)',
-                            transform: 'translateY(-1px)'
-                        },
-                        transition: 'all 0.2s ease'
-                    }}
-                >
-                    Create Job
-                </Button>
-            </Box>
-        );
-    }
+    const getJobPostings = async () => {
+        try {
+            setLoading(true);
+            const response = await apiCalls('get', `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
+            if (response.status === true) {
+                setJobs(response.paramObjectsMap.jobPostingsVO || []);
+            } else {
+                console.error('API Error:', response);
+                setJobs([]);
+            }
+        } catch (error) {
+            console.error('Error fetching job postings:', error);
+            setJobs([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getAllDepartment = async () => {
+        try {
+            const response = await apiCalls('get', `commonmaster/getDepartmentByOrgId?orgid=${orgId}`);
+            if (response.status === true) {
+                setDepartmentList(response.paramObjectsMap.departmentVO || []);
+            } else {
+                console.error('API Error:', response);
+            }
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+        }
+    };
+
+    const handleViewJob = (job) => {
+        setSelectedJob(job);
+        setViewJobModalOpen(true);
+    };
+
+    const handleCloseViewJobModal = () => {
+        setViewJobModalOpen(false);
+        setSelectedJob(null);
+    };
+
+    const handleAddJobClick = () => {
+        setAddJobModalOpen(true);
+    };
+
+    const handleCloseAddJobModal = () => {
+        setAddJobModalOpen(false);
+        setNewJobData({
+            jobTitle: '',
+            department: '',
+            location: '',
+            branch: branchCode || '',
+            branchCode: branchCode || '',
+            createdBy: localStorage.getItem('username') || 'admin',
+            orgId: parseInt(orgId) || 0,
+            active: true // Changed from isActive to active
+        });
+    };
+
+    const handleInputChange = (field, value) => {
+        setNewJobData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handleCreateJob = async () => {
+        try {
+            const payload = {
+                ...newJobData,
+                branch: branch || '',
+                branchCode: branchCode || '',
+                createdBy: loginUserName,
+                orgId: parseInt(orgId),
+                // active field is already included in newJobData
+            };
+
+            const response = await apiCalls('put', 'recruitmentmanagement/createUpdateJobPostings', payload);
+
+            if (response.status === true) {
+                // Refresh the jobs list
+                await getJobPostings();
+                handleCloseAddJobModal();
+                showToast('success', 'Job posting created successfully!');
+            } else {
+                showToast('error', 'Failed to create job posting: ' + (response.message || 'Unknown error'));
+            }
+
+        } catch (error) {
+            console.error('Error creating job:', error);
+            alert('Error creating job posting. Please try again.');
+        }
+    };
+
+    // Transform department data for autocomplete options
+    const departmentOptions = departmentList.map(dept => ({
+        value: dept.departmentName,
+        label: dept.departmentName
+    }));
+
+    // Transform API data to match component expectations
+    const transformedJobs = jobs.map(job => ({
+        id: job.id,
+        job_title: job.jobTitle,
+        department: job.department,
+        location: job.location,
+        status: job.active ? 'Active' : 'Inactive', // Fixed status logic
+        postedDate: job.commonDate ? job.commonDate.createdon : '',
+        applications: 0, // You might want to add this field to your API
+        salary: '' // You might want to add this field to your API
+    }));
 
     return (
         <Box>
-            <Grid container spacing={1.5}>
-                {jobs.map((job) => (
-                    <Grid item xs={12} sm={6} lg={4} key={job.id}>
-                        <Card
+            {/* Header with Add New Button */}
+            <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mb: 1 }}>
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddJobClick}
+                    sx={{
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        px: 1.5,
+                        py: 0.5
+                    }}
+                >
+                    Add New
+                </Button>
+            </Box>
+
+            {/* Add Job Modal */}
+            <Dialog
+                open={addJobModalOpen}
+                onClose={handleCloseAddJobModal}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
+                    }
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        pb: 1,
+                        borderBottom: '1px solid #e2e8f0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        mb: 1
+                    }}
+                >
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        Create Job Posting
+                    </Typography>
+                    <IconButton
+                        onClick={handleCloseAddJobModal}
+                        size="small"
+                        sx={{ color: 'text.secondary' }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+
+                <DialogContent sx={{ pt: 2 }}>
+                    <Stack spacing={2}>
+                        {/* Job Title */}
+                        <TextField
+                            label="Job Title"
+                            required
+                            fullWidth
+                            size="small"
+                            value={newJobData.jobTitle}
+                            onChange={(e) => handleInputChange('jobTitle', e.target.value)}
+                            placeholder="e.g., Senior Frontend Developer"
                             sx={{
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                background: 'white',
-                                border: '1px solid #f1f5f9',
-                                borderRadius: 1.5,
-                                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
-                                transition: 'all 0.2s ease',
-                                '&:hover': {
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.08)',
-                                    borderColor: primaryColor
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 1,
+                                    height: 40
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.875rem'
                                 }
                             }}
-                        >
-                            {/* Header with subtle accent */}
-                            <Box 
-                                sx={{ 
-                                    height: 3,
-                                    background: `linear-gradient(90deg, ${primaryColor} 0%, #3b82f6 100%)`,
-                                    opacity: 0.8
-                                }}
-                            />
-                            
-                            <CardContent sx={{ flexGrow: 1, p: 2, pb: 1 }}>
-                                {/* Job Title with Work Icon */}
-                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1.5 }}>
-                                    <WorkIcon 
-                                        sx={{ 
-                                            fontSize: 18, 
-                                            color: '#dc2626', // Red
-                                            mt: 0.25,
-                                            opacity: 0.9
-                                        }} 
-                                    />
-                                    <Typography
-                                        variant="h6"
-                                        component="h3"
-                                        sx={{
-                                            fontWeight: 700,
-                                            fontSize: '1rem',
-                                            lineHeight: 1.4,
-                                            color: 'text.primary',
-                                            display: '-webkit-box',
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: 'vertical',
-                                            overflow: 'hidden',
-                                            flex: 1
-                                        }}
-                                    >
-                                        {job.job_title}
-                                    </Typography>
-                                </Box>
+                        />
 
-                                {/* Department and Location - Compact */}
-                                <Stack spacing={1} sx={{ mb: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                        <BusinessIcon
-                                            sx={{
-                                                fontSize: 14,
-                                                color: '#059669', // Emerald Green
-                                                opacity: 0.8
-                                            }}
-                                        />
-                                        <Typography variant="body2" sx={{ 
-                                            color: 'text.primary', 
-                                            fontSize: '0.8rem',
-                                            fontWeight: 500
-                                        }}>
-                                            {job.department}
-                                        </Typography>
-                                    </Box>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                        <LocationIcon
-                                            sx={{
-                                                fontSize: 14,
-                                                color: '#7c3aed', // Purple
-                                                opacity: 0.8
-                                            }}
-                                        />
-                                        <Typography variant="body2" color="text.secondary" sx={{ 
-                                            fontSize: '0.8rem'
-                                        }}>
-                                            {job.location}
-                                        </Typography>
-                                    </Box>
-                                    {/* Added Posted Date Icon */}
-                                    {job.postedDate && (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                            <ScheduleIcon
-                                                sx={{
-                                                    fontSize: 14,
-                                                    color: '#ea580c', // Orange
-                                                    opacity: 0.8
-                                                }}
-                                            />
-                                            <Typography variant="body2" color="text.secondary" sx={{ 
-                                                fontSize: '0.8rem'
-                                            }}>
-                                                {job.postedDate}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                </Stack>
-                            </CardContent>
-
-                            {/* Footer with Status and Actions - Compact */}
-                            <Box sx={{ 
-                                p: 2, 
-                                pt: 1,
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'space-between',
-                                borderTop: '1px solid #f8fafc'
-                            }}>
-                                {/* Status Chip */}
-                                <Chip
-                                    label={job.status}
+                        {/* Department */}
+                        <Autocomplete
+                            options={departmentOptions}
+                            size="small"
+                            getOptionLabel={(option) => option.label}
+                            value={
+                                departmentOptions.find(
+                                    (option) => option.value === newJobData.department
+                                ) || null
+                            }
+                            onChange={(event, newValue) => {
+                                handleInputChange('department', newValue ? newValue.value : '');
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Department"
+                                    required
+                                    placeholder="Select Department"
                                     size="small"
                                     sx={{
-                                        backgroundColor: job.status === 'Active'
-                                            ? '#dcfce7' // Light green
-                                            : '#f3f4f6', // Light gray
-                                        color: job.status === 'Active'
-                                            ? '#166534' // Dark green
-                                            : '#374151', // Dark gray
-                                        fontWeight: 600,
-                                        fontSize: '0.7rem',
-                                        height: 22,
-                                        border: job.status === 'Active'
-                                            ? `1px solid #bbf7d0` // Green border
-                                            : `1px solid #e5e7eb`, // Gray border
-                                        borderRadius: 0.75
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 1,
+                                            height: 40
+                                        },
+                                        '& .MuiInputLabel-root': {
+                                            fontSize: '0.875rem'
+                                        }
                                     }}
                                 />
+                            )}
+                        />
 
-                                {/* Actions - Minimal */}
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                                    <Button
-                                        variant="text"
-                                        size="small"
-                                        startIcon={<ViewIcon sx={{ fontSize: 16, color: primaryColor }} />}
-                                        onClick={() => onViewJob(job)}
-                                        sx={{
-                                            color: primaryColor,
-                                            fontWeight: 500,
-                                            fontSize: '0.75rem',
-                                            minWidth: 'auto',
-                                            px: 1,
-                                            py: 0.25,
-                                            borderRadius: 0.75,
-                                            '&:hover': {
-                                                backgroundColor: `${primaryColor}08`
-                                            }
-                                        }}
-                                    >
-                                        View
-                                    </Button>
-                                    <IconButton
-                                        onClick={() => onDeleteJob(job.id)}
-                                        size="small"
-                                        sx={{
-                                            color: '#d97706', // Amber
-                                            borderRadius: 0.75,
-                                            p: 0.5,
-                                            '&:hover': {
-                                                color: '#dc2626', // Red
-                                                backgroundColor: '#fef2f2'
-                                            },
-                                            transition: 'all 0.15s ease'
-                                        }}
-                                    >
-                                        <DeleteIcon sx={{ fontSize: 16 }} />
-                                    </IconButton>
-                                </Box>
+                        {/* Location */}
+                        <TextField
+                            label="Location"
+                            required
+                            fullWidth
+                            size="small"
+                            value={newJobData.location}
+                            onChange={(e) => handleInputChange('location', e.target.value)}
+                            placeholder="e.g., San Francisco, CA"
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 1,
+                                    height: 40
+                                },
+                                '& .MuiInputLabel-root': {
+                                    fontSize: '0.875rem'
+                                }
+                            }}
+                        />
+
+                        {/* Job Status Section */}
+                        <Box
+                            sx={{
+                                p: 1.5,
+                                borderRadius: 1,
+                                backgroundColor: '#f8fafc',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
+                            }}
+                        >
+                            <Typography
+                                variant="subtitle2"
+                                sx={{ fontWeight: 600, color: 'text.primary' }}
+                            >
+                                Job Status
+                            </Typography>
+
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Switch
+                                    checked={newJobData.active} // Changed from isActive to active
+                                    onChange={(e) =>
+                                        handleInputChange('active', e.target.checked) // Changed from isActive to active
+                                    }
+                                    sx={{
+                                        '& .MuiSwitch-switchBase.Mui-checked': {
+                                            color: '#22c55e'
+                                        },
+                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                            backgroundColor: '#22c55e'
+                                        }
+                                    }}
+                                />
+                                <Typography
+                                    variant="body2"
+                                    sx={{
+                                        color: newJobData.active ? '#22c55e' : '#64748b', // Changed from isActive to active
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    {newJobData.active ? 'Active' : 'Inactive'} {/* Changed from isActive to active */}
+                                </Typography>
                             </Box>
-                        </Card>
+                        </Box>
+                    </Stack>
+                </DialogContent>
+
+                <DialogActions sx={{ p: 2, gap: 1 }}>
+                    <Button
+                        onClick={handleCloseAddJobModal}
+                        sx={{
+                            color: '#64748b',
+                            textTransform: 'none',
+                            borderRadius: 1,
+                            px: 3,
+                            py: 0.5
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleCreateJob}
+                        sx={{
+                            backgroundColor: primaryColor,
+                            textTransform: 'none',
+                            borderRadius: 1,
+                            px: 3,
+                            py: 0.5,
+                            '&:hover': {
+                                backgroundColor: primaryColor
+                            }
+                        }}
+                    >
+                        Create Job
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* View Job Details Modal */}
+            <Dialog
+                open={viewJobModalOpen}
+                onClose={handleCloseViewJobModal}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    pb: 1,
+                    borderBottom: '1px solid #e2e8f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        Job Details
+                    </Typography>
+                    <IconButton
+                        onClick={handleCloseViewJobModal}
+                        size="small"
+                        sx={{ color: 'text.secondary' }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+
+                <DialogContent sx={{ pt: 3 }}>
+                    {selectedJob && (
+                        <Stack spacing={2.5}>
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
+                                    Job Title
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {selectedJob.jobTitle || selectedJob.job_title}
+                                </Typography>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
+                                    Department
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {selectedJob.department}
+                                </Typography>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
+                                    Location
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {selectedJob.location}
+                                </Typography>
+                            </Box>
+
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
+                                    Status
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {selectedJob.active ? 'Active' : 'Inactive'}
+                                </Typography>
+                            </Box>
+
+                            {selectedJob.branch && (
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
+                                        Branch
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        {selectedJob.branch}
+                                    </Typography>
+                                </Box>
+                            )}
+
+                            {selectedJob.commonDate && selectedJob.commonDate.createdon && (
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
+                                        Created On
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                        {selectedJob.commonDate.createdon}
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Stack>
+                    )}
+                </DialogContent>
+
+                <DialogActions sx={{ p: 3 }}>
+                    <Button
+                        onClick={handleCloseViewJobModal}
+                        variant="contained"
+                        sx={{
+                            backgroundColor: primaryColor,
+                            textTransform: 'none',
+                            borderRadius: 1,
+                            px: 3,
+                            py: 1,
+                            '&:hover': {
+                                backgroundColor: primaryColor
+                            }
+                        }}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Loading State */}
+            {loading && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography>Loading job postings...</Typography>
+                </Box>
+            )}
+
+            {/* Jobs Grid */}
+            {!loading && transformedJobs.length === 0 ? (
+                <Box
+                    sx={{
+                        textAlign: 'center',
+                        py: 6,
+                        background: 'linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%)',
+                        borderRadius: 2,
+                        border: '1px solid #e2e8f0',
+                        maxWidth: 400,
+                        mx: 'auto',
+                        mt: 2
+                    }}
+                >
+                    <WorkIcon
+                        sx={{
+                            fontSize: 48,
+                            color: '#7c3aed',
+                            mb: 1.5,
+                            opacity: 0.8
+                        }}
+                    />
+                    <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                        No Job Postings
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, maxWidth: 280, mx: 'auto', fontSize: '0.875rem' }}>
+                        Create your first job posting to attract qualified candidates.
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={handleAddJobClick}
+                        sx={{
+                            borderRadius: 2,
+                            textTransform: 'none',
+                        }}
+                    >
+                        Create Job Posting
+                    </Button>
+                </Box>
+            ) : (
+                !loading && (
+                    <Grid container spacing={1.5}>
+                        {transformedJobs.map((job) => (
+                            <Grid item xs={12} sm={6} lg={4} key={job.id}>
+                                <Card
+                                    sx={{
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        background: 'white',
+                                        border: '1px solid #f1f5f9',
+                                        borderRadius: 1.5,
+                                        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.08)',
+                                            borderColor: primaryColor
+                                        }
+                                    }}
+                                >
+                                    {/* Header with subtle accent */}
+                                    <Box
+                                        sx={{
+                                            height: 3,
+                                            background: `linear-gradient(90deg, ${primaryColor} 0%, #3b82f6 100%)`,
+                                            opacity: 0.8
+                                        }}
+                                    />
+
+                                    <CardContent sx={{ flexGrow: 1, p: 2, pb: 1 }}>
+                                        {/* Job Title with Work Icon */}
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1.5 }}>
+                                            <WorkIcon
+                                                sx={{
+                                                    fontSize: 18,
+                                                    color: '#dc2626',
+                                                    mt: 0.25,
+                                                    opacity: 0.9
+                                                }}
+                                            />
+                                            <Typography
+                                                variant="h6"
+                                                component="h3"
+                                                sx={{
+                                                    fontWeight: 700,
+                                                    fontSize: '1rem',
+                                                    lineHeight: 1.4,
+                                                    color: 'text.primary',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    flex: 1
+                                                }}
+                                            >
+                                                {job.job_title}
+                                            </Typography>
+                                        </Box>
+
+                                        {/* Department and Location - Compact */}
+                                        <Stack spacing={1} sx={{ mb: 2 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                                <BusinessIcon
+                                                    sx={{
+                                                        fontSize: 14,
+                                                        color: '#059669',
+                                                        opacity: 0.8
+                                                    }}
+                                                />
+                                                <Typography variant="body2" sx={{
+                                                    color: 'text.primary',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 500
+                                                }}>
+                                                    {job.department}
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                                <LocationIcon
+                                                    sx={{
+                                                        fontSize: 14,
+                                                        color: '#7c3aed',
+                                                        opacity: 0.8
+                                                    }}
+                                                />
+                                                <Typography variant="body2" color="text.secondary" sx={{
+                                                    fontSize: '0.8rem'
+                                                }}>
+                                                    {job.location}
+                                                </Typography>
+                                            </Box>
+                                            {/* Added Posted Date Icon */}
+                                            {job.postedDate && (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                                    <ScheduleIcon
+                                                        sx={{
+                                                            fontSize: 14,
+                                                            color: '#ea580c',
+                                                            opacity: 0.8
+                                                        }}
+                                                    />
+                                                    <Typography variant="body2" color="text.secondary" sx={{
+                                                        fontSize: '0.8rem'
+                                                    }}>
+                                                        {job.postedDate}
+                                                    </Typography>
+                                                </Box>
+                                            )}
+                                        </Stack>
+                                    </CardContent>
+
+                                    {/* Footer with Status and Actions - Compact */}
+                                    <Box sx={{
+                                        p: 2,
+                                        pt: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        borderTop: '1px solid #f8fafc'
+                                    }}>
+                                        {/* Status Chip */}
+                                        <Chip
+                                            label={job.status}
+                                            size="small"
+                                            sx={{
+                                                backgroundColor: job.status === 'Active'
+                                                    ? '#dcfce7'
+                                                    : '#f3f4f6',
+                                                color: job.status === 'Active'
+                                                    ? '#166534'
+                                                    : '#374151',
+                                                fontWeight: 600,
+                                                fontSize: '0.7rem',
+                                                height: 22,
+                                                border: job.status === 'Active'
+                                                    ? `1px solid #bbf7d0`
+                                                    : `1px solid #e5e7eb`,
+                                                borderRadius: 0.75
+                                            }}
+                                        />
+
+                                        {/* Actions - Minimal */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                                            <Button
+                                                variant="text"
+                                                size="small"
+                                                startIcon={<ViewIcon sx={{ fontSize: 16, color: primaryColor }} />}
+                                                onClick={() => handleViewJob(jobs.find(j => j.id === job.id))}
+                                                sx={{
+                                                    color: primaryColor,
+                                                    fontWeight: 500,
+                                                    fontSize: '0.75rem',
+                                                    minWidth: 'auto',
+                                                    px: 1,
+                                                    py: 0.25,
+                                                    borderRadius: 0.75,
+                                                    '&:hover': {
+                                                        backgroundColor: `${primaryColor}08`
+                                                    }
+                                                }}
+                                            >
+                                                View
+                                            </Button>
+                                        </Box>
+                                    </Box>
+                                </Card>
+                            </Grid>
+                        ))}
                     </Grid>
-                ))}
-            </Grid>
+                )
+            )}
         </Box>
     );
 };

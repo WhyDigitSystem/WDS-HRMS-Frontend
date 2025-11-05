@@ -54,7 +54,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Pagination state
+    // Pagination state - same as AssetManagement
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
 
@@ -65,11 +65,6 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         getAssetOptions();
         getAllAllocations();
     }, []);
-
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentAllocations = allocations.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(allocations.length / itemsPerPage);
 
     const tableColumns = [
         {
@@ -164,13 +159,13 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         }
     ];
 
-    // Pagination configuration
+    // Pagination configuration - EXACTLY like AssetManagement
     const paginationConfig = {
         currentPage,
-        totalPages,
+        totalPages: Math.ceil(allocations.length / itemsPerPage),
         itemsPerPage,
-        indexOfFirstItem,
-        indexOfLastItem,
+        indexOfFirstItem: (currentPage - 1) * itemsPerPage,
+        indexOfLastItem: Math.min(currentPage * itemsPerPage, allocations.length),
         onPageChange: (event, value) => setCurrentPage(value)
     };
 
@@ -320,10 +315,6 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         }));
     };
 
-    const handlePageChange = (event, value) => {
-        setCurrentPage(value);
-    };
-
     const handleSubmit = async (event) => {
         event.preventDefault();
         setIsSubmitting(true);
@@ -348,7 +339,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 assetCode: formData.asset_id,
                 assetName: formData.asset_name,
                 assetcondition: formData.condition,
-                branch: branch, // You might want to get this from localStorage
+                branch: branch,
                 branchCode: branchCode,
                 createdBy: loginUserName,
                 employeeCode: formData.employee_id,
@@ -410,6 +401,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         setIsAllocating(true);
         setIsEditing(false);
         setEditingId(null);
+        setCurrentPage(1); // Reset to first page when starting allocation
     };
 
     const handleCancel = () => {
@@ -427,6 +419,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
             notes: ''
         });
         setSelectedEmployee(null);
+        setCurrentPage(1); // Reset to first page when canceling
     };
 
     return (
@@ -677,14 +670,15 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                         </CardContent>
                     </Card>
                 ) : (
+                    // Pass full allocations array to CommonListView - let it handle pagination internally
                     <CommonListView
-                        data={currentAllocations}
+                        data={allocations} // Full array - CommonListView handles pagination
                         columns={tableColumns}
                         actions={tableActions}
                         loading={loading}
                         emptyMessage="No Allocations Found"
                         emptyDescription="Allocate assets to employees to track assignments"
-                        pagination={paginationConfig}
+                        pagination={paginationConfig} // Same pagination config as AssetManagement
                     />
                 )}
             </Box>

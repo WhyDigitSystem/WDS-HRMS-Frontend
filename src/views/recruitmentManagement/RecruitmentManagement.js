@@ -49,20 +49,20 @@ const RecruitmentManagement = () => {
     // Icon colors for different tabs - always colored
     const iconColors = {
         jobs: {
-            active: '#3b82f6', // Blue
-            inactive: '#3b82f6' // Same blue but with opacity
+            active: '#3b82f6',
+            inactive: '#3b82f6'
         },
         candidates: {
-            active: '#10b981', // Green
-            inactive: '#10b981' // Same green
+            active: '#10b981',
+            inactive: '#10b981'
         },
         interviews: {
-            active: '#f59e0b', // Amber
-            inactive: '#f59e0b' // Same amber
+            active: '#f59e0b',
+            inactive: '#f59e0b'
         },
         offers: {
-            active: '#8b5cf6', // Violet
-            inactive: '#8b5cf6' // Same violet
+            active: '#8b5cf6',
+            inactive: '#8b5cf6'
         }
     };
 
@@ -126,199 +126,15 @@ const RecruitmentManagement = () => {
         setCurrentTab(newValue);
     };
 
-    const openModal = (modalType, record = null) => {
-        const modalConfigs = {
-            addJob: {
-                title: 'Create Job Posting',
-                fields: [
-                    { name: 'job_title', label: 'Job Title', placeholder: 'e.g., Senior Frontend Developer', required: true },
-                    { name: 'department', label: 'Department', placeholder: 'e.g., Engineering', required: true },
-                    { name: 'location', label: 'Location', placeholder: 'e.g., San Francisco, CA', required: true }
-                ],
-                onSubmit: createJob,
-                submitLabel: 'Create Job'
-            },
-            viewJob: {
-                title: 'Job Details',
-                fields: [
-                    { name: 'job_title', label: 'Job Title' },
-                    { name: 'department', label: 'Department' },
-                    { name: 'location', label: 'Location' },
-                    { name: 'status', label: 'Status' },
-                    { name: 'applications', label: 'Applications' },
-                    { name: 'salary', label: 'Salary Range' }
-                ],
-                initialData: record,
-                mode: 'view'
-            },
-            addCandidate: {
-                title: 'Add Candidate',
-                fields: [
-                    { name: 'candidate_name', label: 'Full Name', required: true },
-                    { name: 'candidate_email', label: 'Email', type: 'email', required: true },
-                    { name: 'position', label: 'Position Applied', required: true },
-                    { name: 'resume_score', label: 'Resume Score', type: 'number', required: true }
-                ],
-                onSubmit: createCandidate,
-                submitLabel: 'Add Candidate'
-            },
-            scheduleInterview: {
-                title: 'Schedule Interview',
-                fields: [
-                    { name: 'candidate_name', label: 'Candidate', disabled: true },
-                    { name: 'position', label: 'Position', disabled: true },
-                    { name: 'interview_date', label: 'Interview Date', type: 'date', required: true },
-                    { name: 'interview_time', label: 'Interview Time', type: 'time', required: true },
-                    { name: 'interviewer', label: 'Interviewer', required: true },
-                    {
-                        name: 'interview_type', label: 'Interview Type', type: 'select', options: [
-                            { value: 'Technical', label: 'Technical' },
-                            { value: 'Behavioral', label: 'Behavioral' },
-                            { value: 'Cultural', label: 'Cultural' }
-                        ], required: true
-                    }
-                ],
-                initialData: record,
-                onSubmit: createInterview,
-                submitLabel: 'Schedule Interview'
-            },
-            addFeedback: {
-                title: 'Interview Feedback',
-                fields: [
-                    { name: 'candidate_name', label: 'Candidate', disabled: true },
-                    { name: 'rating', label: 'Rating (1-5)', type: 'number', required: true },
-                    { name: 'feedback', label: 'Feedback', multiline: true, rows: 4, required: true }
-                ],
-                initialData: record,
-                onSubmit: updateInterview,
-                submitLabel: 'Submit Feedback'
-            },
-            createOffer: {
-                title: 'Create Offer Letter',
-                fields: [
-                    { name: 'candidate_name', label: 'Candidate Name', required: true },
-                    { name: 'candidate_email', label: 'Email', type: 'email', required: true },
-                    { name: 'position', label: 'Position', required: true },
-                    { name: 'department', label: 'Department', required: true },
-                    { name: 'location', label: 'Location', required: true },
-                    { name: 'salary', label: 'Salary Offer', required: true }
-                ],
-                onSubmit: createOffer,
-                submitLabel: 'Create Offer'
-            },
-            viewOffer: {
-                title: 'Offer Details',
-                fields: [
-                    { name: 'candidate_name', label: 'Candidate' },
-                    { name: 'position', label: 'Position' },
-                    { name: 'department', label: 'Department' },
-                    { name: 'location', label: 'Location' },
-                    { name: 'salary', label: 'Salary' },
-                    { name: 'status', label: 'Status' }
-                ],
-                initialData: record,
-                mode: 'view'
-            }
-        };
-
-        setModalConfig(modalConfigs[modalType] || {});
+    // Generic modal handlers
+    const openModal = (modalConfig) => {
+        setModalConfig(modalConfig);
         setModalOpen(true);
     };
 
     const closeModal = () => {
         setModalOpen(false);
         setModalConfig({});
-    };
-
-    const createJob = async (formData) => {
-        const newRecord = {
-            id: Date.now().toString(),
-            type: 'job',
-            status: 'Active',
-            created_at: new Date().toISOString(),
-            applications: 0,
-            ...formData
-        };
-
-        try {
-            setRecords(prev => [...prev, newRecord]);
-            showToast('success', 'Job created successfully!');
-            return true; // Return true only after successful operation
-        } catch (error) {
-            showToast('error', 'Failed to create job. Please try again.');
-            return false; // Return false on error
-        }
-    };
-
-    const createCandidate = async (formData) => {
-        const newRecord = {
-            id: Date.now().toString(),
-            type: 'candidate',
-            status: 'Screening',
-            created_at: new Date().toISOString(),
-            ...formData,
-            resume_score: parseInt(formData.resume_score)
-        };
-
-        try {
-            setRecords(prev => [...prev, newRecord]);
-            showToast('success', 'Candidate added successfully!');
-            return true;
-        } catch (error) {
-            showToast('error', 'Failed to add candidate. Please try again.');
-            return false;
-        }
-    };
-
-    const createInterview = async (formData) => {
-        const newRecord = {
-            id: Date.now().toString(),
-            type: 'interview',
-            status: 'Scheduled',
-            created_at: new Date().toISOString(),
-            ...formData
-        };
-
-        try {
-            setRecords(prev => [...prev, newRecord]);
-            showToast('success', 'Interview scheduled successfully!');
-            return true;
-        } catch (error) {
-            showToast('error', 'Failed to schedule interview. Please try again.');
-            return false;
-        }
-    };
-
-    const updateInterview = async (formData) => {
-        try {
-            setRecords(prev => prev.map(record =>
-                record.id === formData.id ? { ...record, ...formData, status: 'Completed' } : record
-            ));
-            showToast('success', 'Feedback submitted successfully!');
-            return true;
-        } catch (error) {
-            showToast('error', 'Failed to submit feedback. Please try again.');
-            return false;
-        }
-    };
-
-    const createOffer = async (formData) => {
-        const newRecord = {
-            id: Date.now().toString(),
-            type: 'offer',
-            status: 'Pending',
-            created_at: new Date().toISOString(),
-            ...formData
-        };
-
-        try {
-            setRecords(prev => [...prev, newRecord]);
-            showToast('success', 'Offer created successfully!');
-            return true;
-        } catch (error) {
-            showToast('error', 'Failed to create offer. Please try again.');
-            return false;
-        }
     };
 
     // Filter records by type
@@ -485,22 +301,6 @@ const RecruitmentManagement = () => {
                             />
                         </Tabs>
 
-                        {/* Button Section */}
-                        {
-                            currentTab === 'jobs' ? (
-                                <Button
-                                    variant="contained"
-                                    startIcon={<AddIcon />}
-                                    onClick={() => openModal('addJob')}
-                                    size="small"
-                                    sx={{
-                                        borderRadius: 2,
-                                        textTransform: 'none',
-                                    }}
-                                >
-                                    New Job
-                                </Button>) : ('')
-                        }
                     </Container>
                 </Toolbar>
             </AppBar>
@@ -510,8 +310,8 @@ const RecruitmentManagement = () => {
                 {currentTab === 'jobs' && (
                     <JobPostings
                         jobs={jobs}
-                        onViewJob={(job) => openModal('viewJob', job)}
-                        onAddJob={() => openModal('addJob')}
+                        onOpenModal={openModal}
+                        onCloseModal={closeModal}
                         config={config}
                     />
                 )}
@@ -519,8 +319,8 @@ const RecruitmentManagement = () => {
                 {currentTab === 'candidates' && (
                     <Candidates
                         candidates={candidates}
-                        onAddCandidate={() => openModal('addCandidate')}
-                        onScheduleInterview={(candidate) => openModal('scheduleInterview', candidate)}
+                        onOpenModal={openModal}
+                        onCloseModal={closeModal}
                         config={config}
                     />
                 )}
@@ -528,7 +328,8 @@ const RecruitmentManagement = () => {
                 {currentTab === 'interviews' && (
                     <Interviews
                         interviews={interviews}
-                        onAddFeedback={(interview) => openModal('addFeedback', interview)}
+                        onOpenModal={openModal}
+                        onCloseModal={closeModal}
                         config={config}
                     />
                 )}
@@ -536,8 +337,8 @@ const RecruitmentManagement = () => {
                 {currentTab === 'offers' && (
                     <Offers
                         offers={offers}
-                        onCreateOffer={() => openModal('createOffer')}
-                        onViewOffer={(offer) => openModal('viewOffer', offer)}
+                        onOpenModal={openModal}
+                        onCloseModal={closeModal}
                         config={config}
                     />
                 )}

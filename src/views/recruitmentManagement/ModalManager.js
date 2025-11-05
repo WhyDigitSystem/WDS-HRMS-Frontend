@@ -10,7 +10,8 @@ import {
     Box,
     Typography,
     IconButton,
-    Grid
+    Grid,
+    Autocomplete
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
@@ -34,13 +35,18 @@ const ReusableModal = ({
             setFormData(initialData);
             setErrors({});
         }
-    }, [open]);
+    }, [open, initialData]);
 
-    const handleInputChange = (fieldName) => (event) => {
+    const handleInputChange = (fieldName) => (event, value) => {
+        // For Autocomplete, value is the selected option object
+        // For regular inputs, event.target.value is used
+        const newValue = value ? value.value : event.target.value;
+        
         setFormData(prev => ({
             ...prev,
-            [fieldName]: event.target.value
+            [fieldName]: newValue
         }));
+        
         // Clear error when user starts typing
         if (errors[fieldName]) {
             setErrors(prev => ({
@@ -75,6 +81,15 @@ const ReusableModal = ({
         onClose();
     };
 
+    // Helper function to get the current value for Autocomplete
+    const getAutocompleteValue = (field) => {
+        const currentValue = formData[field.name];
+        if (!currentValue) return null;
+        
+        // Find the option that matches the current value
+        return field.options?.find(option => option.value === currentValue) || null;
+    };
+
     return (
         <Dialog
             open={open}
@@ -85,7 +100,7 @@ const ReusableModal = ({
                 sx: {
                     borderRadius: 2,
                     boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
-                    width: '400px', // Reduced modal width
+                    width: '400px',
                     margin: 'auto'
                 }
             }}
@@ -105,7 +120,7 @@ const ReusableModal = ({
                         sx={{
                             fontWeight: 600,
                             color: config.text_color || '#1e293b',
-                            fontSize: '1.1rem' // Smaller title
+                            fontSize: '1.1rem'
                         }}
                     >
                         {title}
@@ -131,20 +146,20 @@ const ReusableModal = ({
                     component="form"
                     id="reusable-modal-form"
                     onSubmit={handleSubmit}
-                    sx={{ p: 2 }} // Reduced padding
+                    sx={{ p: 2 }}
                 >
-                    <Grid container spacing={2}> {/* Reduced spacing */}
+                    <Grid container spacing={2}>
                         {fields.map((field) => (
                             <Grid item xs={12} key={field.name}>
                                 {mode === 'view' ? (
-                                    <Box sx={{ mb: 1 }}> {/* Reduced margin */}
+                                    <Box sx={{ mb: 1 }}>
                                         <Typography
                                             variant="subtitle2"
                                             sx={{
                                                 fontWeight: 600,
-                                                mb: 0.25, // Reduced margin
+                                                mb: 0.25,
                                                 color: '#64748b',
-                                                fontSize: '0.8rem', // Smaller font
+                                                fontSize: '0.8rem',
                                                 textTransform: 'uppercase',
                                                 letterSpacing: '0.05em'
                                             }}
@@ -155,13 +170,58 @@ const ReusableModal = ({
                                             variant="body1"
                                             sx={{
                                                 color: '#1e293b',
-                                                fontSize: '0.9rem', // Smaller font
-                                                minHeight: '20px' // Reduced height
+                                                fontSize: '0.9rem',
+                                                minHeight: '20px'
                                             }}
                                         >
                                             {formData[field.name] || 'N/A'}
                                         </Typography>
                                     </Box>
+                                ) : field.type === 'autocomplete' ? (
+                                    <Autocomplete
+                                        options={field.options || []}
+                                        getOptionLabel={(option) => option.label || ''}
+                                        value={getAutocompleteValue(field)}
+                                        onChange={handleInputChange(field.name)}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label={field.label}
+                                                placeholder={field.placeholder}
+                                                error={!!errors[field.name]}
+                                                helperText={errors[field.name]}
+                                                required={field.required}
+                                                size="small"
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderRadius: 1,
+                                                        backgroundColor: '#ffffff',
+                                                        fontSize: '0.875rem',
+                                                        '&:hover fieldset': {
+                                                            borderColor: config.primary_action_color || '#3b82f6',
+                                                        },
+                                                        '&.Mui-focused fieldset': {
+                                                            borderColor: config.primary_action_color || '#3b82f6',
+                                                            borderWidth: 1,
+                                                        },
+                                                    },
+                                                    '& .MuiInputLabel-root': {
+                                                        fontWeight: 500,
+                                                        fontSize: '0.875rem',
+                                                    },
+                                                    '& .MuiFormHelperText-root': {
+                                                        fontSize: '0.75rem',
+                                                        marginTop: '4px',
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                        sx={{
+                                            '& .MuiAutocomplete-inputRoot': {
+                                                padding: '2px 8px !important',
+                                            }
+                                        }}
+                                    />
                                 ) : (
                                     <TextField
                                         fullWidth
@@ -174,7 +234,7 @@ const ReusableModal = ({
                                         helperText={errors[field.name]}
                                         type={field.type || 'text'}
                                         multiline={field.multiline}
-                                        rows={field.rows || 3} // Default reduced rows for multiline
+                                        rows={field.rows || 3}
                                         required={field.required}
                                         disabled={field.disabled}
                                         select={field.type === 'select'}
@@ -184,35 +244,35 @@ const ReusableModal = ({
                                         InputLabelProps={{
                                             shrink: field.type === 'date' || field.type === 'datetime-local' ? true : undefined,
                                         }}
-                                        size="small" // Using small size for smaller inputs
+                                        size="small"
                                         sx={{
                                             '& .MuiOutlinedInput-root': {
-                                                borderRadius: 1, // Smaller border radius
+                                                borderRadius: 1,
                                                 backgroundColor: '#ffffff',
-                                                fontSize: '0.875rem', // Smaller font size
+                                                fontSize: '0.875rem',
                                                 '&:hover fieldset': {
                                                     borderColor: config.primary_action_color || '#3b82f6',
                                                 },
                                                 '&.Mui-focused fieldset': {
                                                     borderColor: config.primary_action_color || '#3b82f6',
-                                                    borderWidth: 1, // Thinner border
+                                                    borderWidth: 1,
                                                 },
                                             },
                                             '& .MuiInputLabel-root': {
                                                 fontWeight: 500,
-                                                fontSize: '0.875rem', // Smaller label
+                                                fontSize: '0.875rem',
                                             },
                                             '& .MuiInputBase-input': {
-                                                padding: '8px 12px', // Reduced padding
-                                                fontSize: '0.875rem', // Smaller input text
-                                                height: field.multiline ? 'auto' : '20px', // Reduced height
+                                                padding: '8px 12px',
+                                                fontSize: '0.875rem',
+                                                height: field.multiline ? 'auto' : '20px',
                                             },
                                             '& .MuiInputBase-multiline': {
-                                                padding: '8px 12px', // Reduced padding for textarea
+                                                padding: '8px 12px',
                                             },
                                             '& .MuiFormHelperText-root': {
-                                                fontSize: '0.75rem', // Smaller helper text
-                                                marginTop: '4px', // Reduced margin
+                                                fontSize: '0.75rem',
+                                                marginTop: '4px',
                                             }
                                         }}
                                     >
@@ -233,25 +293,25 @@ const ReusableModal = ({
             {mode === 'form' && (
                 <DialogActions
                     sx={{
-                        p: 2, // Reduced padding
+                        p: 2,
                         pt: 1.5,
                         borderTop: '1px solid #e0e0e0',
-                        gap: 1 // Reduced gap
+                        gap: 1
                     }}
                 >
                     <Button
                         onClick={handleClose}
                         variant="outlined"
-                        size="small" // Smaller button
+                        size="small"
                         sx={{
-                            borderRadius: 1, // Smaller border radius
-                            px: 2, // Reduced horizontal padding
-                            py: 0.75, // Reduced vertical padding
+                            borderRadius: 1,
+                            px: 2,
+                            py: 0.75,
                             borderColor: config.secondary_action_color || '#64748b',
                             color: config.secondary_action_color || '#64748b',
                             fontWeight: 600,
-                            fontSize: '0.875rem', // Smaller font
-                            minWidth: '70px', // Reduced minimum width
+                            fontSize: '0.875rem',
+                            minWidth: '70px',
                             '&:hover': {
                                 borderColor: config.secondary_action_color || '#64748b',
                                 backgroundColor: 'rgba(100, 116, 139, 0.04)',
@@ -264,15 +324,15 @@ const ReusableModal = ({
                         type="submit"
                         form="reusable-modal-form"
                         variant="contained"
-                        size="small" // Smaller button
+                        size="small"
                         sx={{
-                            borderRadius: 1, // Smaller border radius
-                            px: 2, // Reduced horizontal padding
-                            py: 0.75, // Reduced vertical padding
+                            borderRadius: 1,
+                            px: 2,
+                            py: 0.75,
                             background: `linear-gradient(135deg, ${config.primary_action_color || '#3b82f6'} 0%, #2563eb 100%)`,
                             fontWeight: 600,
-                            fontSize: '0.875rem', // Smaller font
-                            minWidth: '70px', // Reduced minimum width
+                            fontSize: '0.875rem',
+                            minWidth: '70px',
                             boxShadow: '0 1px 4px rgba(59, 130, 246, 0.3)',
                             '&:hover': {
                                 background: `linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`,
@@ -288,7 +348,7 @@ const ReusableModal = ({
             {mode === 'view' && (
                 <DialogActions
                     sx={{
-                        p: 2, // Reduced padding
+                        p: 2,
                         pt: 1.5,
                         borderTop: '1px solid #e0e0e0',
                     }}
@@ -296,15 +356,15 @@ const ReusableModal = ({
                     <Button
                         onClick={handleClose}
                         variant="contained"
-                        size="small" // Smaller button
+                        size="small"
                         sx={{
-                            borderRadius: 1, // Smaller border radius
-                            px: 2, // Reduced horizontal padding
-                            py: 0.75, // Reduced vertical padding
+                            borderRadius: 1,
+                            px: 2,
+                            py: 0.75,
                             background: `linear-gradient(135deg, ${config.primary_action_color || '#3b82f6'} 0%, #2563eb 100%)`,
                             fontWeight: 600,
-                            fontSize: '0.875rem', // Smaller font
-                            minWidth: '70px', // Reduced minimum width
+                            fontSize: '0.875rem',
+                            minWidth: '70px',
                         }}
                     >
                         Close
