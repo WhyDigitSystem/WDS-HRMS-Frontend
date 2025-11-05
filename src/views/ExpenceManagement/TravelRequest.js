@@ -349,10 +349,10 @@ const TravelRequest = () => {
         setSnackbar({ open: true, message, severity });
     };
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Approved': return 'success';
-            case 'Pending': return 'warning';
-            case 'Rejected': return 'error';
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return 'success';
+            case 'PENDING': return 'warning';
+            case 'REJECTED': return 'error';
             default: return 'info';
         }
     };
@@ -452,7 +452,7 @@ const TravelRequest = () => {
                                             required
                                             size="small"
                                             disabled={isLoading}
-                                            // helperText={isEditing ? "Title Required" : ""}
+                                        // helperText={isEditing ? "Title Required" : ""}
                                         />
                                     </Grid>
 
@@ -466,7 +466,7 @@ const TravelRequest = () => {
                                             required
                                             size="small"
                                             disabled={isLoading}
-                                            // helperText={isEditing ? "From Place Required" : ""}
+                                        // helperText={isEditing ? "From Place Required" : ""}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>
@@ -479,7 +479,7 @@ const TravelRequest = () => {
                                             required
                                             size="small"
                                             disabled={isLoading}
-                                            // helperText={isEditing ? "To Place Required" : ""}
+                                        // helperText={isEditing ? "To Place Required" : ""}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>

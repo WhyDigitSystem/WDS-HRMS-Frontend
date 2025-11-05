@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import dayjs from "dayjs";
+import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import {
     Box,
     Autocomplete,
@@ -172,6 +173,7 @@ const ExpenceTracking = () => {
 
             if (response.status === true && response.paramObjectsMap?.expenseClaimsVO) {
                 const expense = response.paramObjectsMap.expenseClaimsVO;
+                setLogo(expense.expenseAttachment)
                 const expenseDetails = {
                     id: expense.id,
                     receiptAttached: expense.receiptAttached,
@@ -276,7 +278,14 @@ const ExpenceTracking = () => {
 
             if (response.status === true) {
                 console.log('Response:', response);
-
+                const generatedId = response.paramObjectsMap.expenseClaimsVO.id;
+                if (generatedId && typeof logo === 'object') {
+                    console.log('Generated ID:', generatedId);
+                    console.log('Uploaded Item', logo);
+                    handleFileUpload(generatedId);
+                } else {
+                    console.log('handle Img Upload failed');
+                }
                 // Refresh the expence list
                 await getAllExpence();
 
@@ -331,10 +340,10 @@ const ExpenceTracking = () => {
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Approved': return 'success';
-            case 'Pending': return 'warning';
-            case 'Rejected': return 'error';
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return 'success';
+            case 'PENDING': return 'warning';
+            case 'REJECTED': return 'error';
             default: return 'info';
         }
     };
@@ -376,12 +385,14 @@ const ExpenceTracking = () => {
             showSnackbar('error', 'Generated ID is required');
             return;
         }
+        console.log("Logo", logo);
+
         const formData = new FormData();
-        formData.append('file', logo);
+        formData.append('files', logo);
         try {
             const response = await apiCalls(
                 'post',
-                `/commonmaster/uploadCompanyLogoInBloob?id=${generatedId}`,
+                `/assetmanagement/uploadExpenseClaimsImageInBloob?id=${generatedId}`,
                 formData,
                 {},
                 { 'Content-Type': 'multipart/form-data' }
@@ -485,7 +496,7 @@ const ExpenceTracking = () => {
                                             placeholder="e.g., Travel, Food"
                                             size="small"
                                             disabled={isLoading || (selectedExpense.approveStatus === 'Approved' || selectedExpense.approveStatus === 'Rejected')}
-                                            // helperText={isEditing ? "Title Required" : ""}
+                                        // helperText={isEditing ? "Title Required" : ""}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>
@@ -593,7 +604,7 @@ const ExpenceTracking = () => {
                                         />
                                     </Grid> */}
                                     {/* {formData.receiptAttached && }*/}
-                                    <Grid item xs={12}  sm={6}>
+                                    <Grid item xs={12} sm={6}>
                                         <TextField
                                             fullWidth
                                             label="Description"
@@ -615,7 +626,7 @@ const ExpenceTracking = () => {
                                                 justifyContent: 'center',
                                                 background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)',
                                                 borderRadius: '50px',
-                                                padding: '4px',
+                                                padding: '2px',
                                                 boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
                                                 width: 'fit-content',
                                                 mx: 'auto',
@@ -644,6 +655,18 @@ const ExpenceTracking = () => {
                                                 {logo ? (typeof logo === 'object' && logo.name ? logo.name : 'Attachment') : 'Attachment'}
                                                 <input type="file" hidden accept="image/png, image/jpeg" onChange={handleLogoChange} />
                                             </Button>
+                                            {logo && (
+                                                <IconButton
+                                                    variant="contained"
+                                                    sx={{
+                                                        whiteSpace: 'nowrap',
+                                                        color: '#374151'
+                                                    }}
+                                                    onClick={handleOpen}
+                                                >
+                                                    <ControlCameraIcon />
+                                                </IconButton>
+                                            )}
                                         </Box>
 
                                         {/* Dialog for preview */}

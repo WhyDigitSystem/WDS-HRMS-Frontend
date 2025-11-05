@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import {
     Box,
     Paper,
@@ -57,31 +60,17 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 
 const Approvals = () => {
-    const [isAdding, setIsAdding] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(false);
     const [assetsData, setAssetsData] = useState([]);
     const [selectedAsset, setSelectedAsset] = useState(null);
-    const [viewDialogOpen, setViewDialogOpen] = useState(false);
     const [orgId] = useState(localStorage.getItem("orgId"));
     const [loginUserName] = useState(localStorage.getItem("employeeName"));
     const [employeeCode] = useState(localStorage.getItem("employeeCode"));
     const [branchCode] = useState(localStorage.getItem("branchCode"));
     const [branch] = useState(localStorage.getItem("branch"));
-    const [formData, setFormData] = useState({
-        asset_code: '',
-        asset_name: '',
-        category: '',
-        brand: '',
-        model: '',
-        serial_number: '',
-        purchase_date: '',
-        purchase_cost: '',
-        warranty_expiry: '',
-        location: '',
-        notes: ''
-    });
+
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     // Pagination state
@@ -110,12 +99,14 @@ const Approvals = () => {
             if (response.status === true && response.paramObjectsMap?.approval) {
                 const formattedAssets = response.paramObjectsMap.approval.map(asset => ({
                     id: asset.id,
-        //             "employeeName": asset.
-        // "amount": asset.
-        // "submitted": asset.
-        // "type": asset.
-        // "title": asset.
-        // "status": asset.
+                    employeeName: asset.employeeName,
+                    expenseLimit: asset.expenseLimit,
+                    employeeCode: asset.employeeCode,
+                    amount: asset.amount,
+                    submitted: asset.submitted,
+                    type: asset.type,
+                    title: asset.title,
+                    status: asset.status
                 }));
                 setAssetsData(formattedAssets);
                 setCurrentPage(1); // Reset to first page when data changes
@@ -132,178 +123,6 @@ const Approvals = () => {
         }
     };
 
-    const getAssetById = async (assetId) => {
-        setIsLoading(true);
-        try {
-            const response = await apiCalls(
-                'get',
-                `/assetmanagement/getAssetMasterById?id=${assetId}`
-            );
-
-            if (response.status === true && response.paramObjectsMap?.assetMasterVO) {
-                const asset = response.paramObjectsMap.assetMasterVO;
-                const assetDetails = {
-                    id: asset.id,
-                    asset_code: asset.assetCode,
-                    asset_name: asset.assetName,
-                    category: asset.category,
-                    brand: asset.brand,
-                    model: asset.model,
-                    serial_number: asset.serialNumber,
-                    purchase_date: asset.purchaseDate,
-                    purchase_cost: asset.purchaseCost,
-                    warranty_expiry: asset.warrantyExpiry,
-                    location: asset.location,
-                    notes: asset.notes,
-                    status: 'Available',
-                    branch: asset.branch,
-                    branchCode: asset.branchCode,
-                    orgId: asset.orgId
-                };
-
-                // Populate form data with the fetched asset details
-                setFormData({
-                    asset_code: asset.assetCode || '',
-                    asset_name: asset.assetName || '',
-                    category: asset.category || '',
-                    brand: asset.brand || '',
-                    model: asset.model || '',
-                    serial_number: asset.serialNumber || '',
-                    purchase_date: asset.purchaseDate || '',
-                    purchase_cost: asset.purchaseCost || '',
-                    warranty_expiry: asset.warrantyExpiry || '',
-                    location: asset.location || '',
-                    notes: asset.notes || ''
-                });
-
-                setSelectedAsset(assetDetails);
-                setIsEditing(true);
-                setIsAdding(true); // Switch to form view
-                return assetDetails;
-            } else {
-                showSnackbar('Request not found', 'error');
-                return null;
-            }
-        } catch (error) {
-            console.error('Error fetching requests:', error);
-            showSnackbar('Error fetching asset details', 'error');
-            return null;
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleEditAsset = (assetId) => {
-        getAssetById(assetId);
-    };
-
-    const handleInputChange = (field) => (event) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: event.target.value
-        }));
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-
-        // Validate required fields
-        const errors = {};
-        if (!formData.asset_code) errors.asset_code = 'Asset Code is required';
-        if (!formData.asset_name) errors.asset_name = 'Asset Name is required';
-        if (!formData.category) errors.category = 'Category is required';
-
-        if (Object.keys(errors).length > 0) {
-            showSnackbar('Please fill all required fields', 'error');
-            return;
-        }
-
-        setIsLoading(true);
-
-        const saveData = {
-            assetCode: formData.asset_code,
-            assetName: formData.asset_name,
-            category: formData.category,
-            brand: formData.brand || '',
-            model: formData.model || '',
-            serialNumber: formData.serial_number || '',
-            purchaseDate: formData.purchase_date || '',
-            purchaseCost: formData.purchase_cost ? formData.purchase_cost.toString() : '',
-            warrantyExpiry: formData.warranty_expiry || '',
-            location: formData.location || '',
-            notes: formData.notes || '',
-            branch: branch,
-            branchCode: branchCode,
-            orgId: orgId,
-            createdBy: loginUserName
-        };
-
-        // Add ID for update operation
-        if (isEditing && selectedAsset) {
-            saveData.id = selectedAsset.id;
-        }
-
-        console.log('DATA TO SAVE IS:', saveData);
-
-        try {
-            const response = await apiCalls('put', '/assetmanagement/CreateUpdateAssetMaster', saveData);
-
-            if (response.status === true) {
-                console.log('Response:', response);
-
-                // Refresh the expence list
-                await getAllExpence();
-
-                showSnackbar(`Asset ${isEditing ? 'updated' : 'added'} successfully!`, 'success');
-                handleCancel();
-            } else {
-                showSnackbar(response.paramObjectsMap?.errorMessage || `Asset ${isEditing ? 'update' : 'creation'} failed`, 'error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showSnackbar(`Asset ${isEditing ? 'update' : 'creation'} failed`, 'error');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleAdd = () => {
-        setIsAdding(true);
-        setIsEditing(false);
-        setFormData({
-            asset_code: '',
-            asset_name: '',
-            category: '',
-            brand: '',
-            model: '',
-            serial_number: '',
-            purchase_date: '',
-            purchase_cost: '',
-            warranty_expiry: '',
-            location: '',
-            notes: ''
-        });
-    };
-
-    const handleCancel = () => {
-        setIsAdding(false);
-        setIsEditing(false);
-        setSelectedAsset(null);
-        setFormData({
-            asset_code: '',
-            asset_name: '',
-            category: '',
-            brand: '',
-            model: '',
-            serial_number: '',
-            purchase_date: '',
-            purchase_cost: '',
-            warranty_expiry: '',
-            location: '',
-            notes: ''
-        });
-    };
-
     const handlePageChange = (event, value) => {
         setCurrentPage(value);
     };
@@ -311,36 +130,66 @@ const Approvals = () => {
     const showSnackbar = (message, severity) => {
         setSnackbar({ open: true, message, severity });
     };
-
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Available': return 'success';
-            case 'Allocated': return 'warning';
-            case 'Maintenance': return 'error';
-            case 'Retired': return 'default';
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return 'success';
+            case 'PENDING': return 'warning';
+            case 'REJECTED': return 'error';
             default: return 'info';
         }
     };
-
     const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
+        if (!dateString) return ''; // handle null or undefined
+        const parsedDate = dayjs(dateString, [
+            "DD-MM-YYYY hh:mm:ss A", // your current API format
+            "YYYY-MM-DDTHH:mm:ss",   // ISO format (just in case)
+            "YYYY-MM-DD"             // fallback for plain date
+        ]);
+        return parsedDate.isValid() ? parsedDate.format("DD-MM-YYYY") : '';
+    };
+    const handleApproveReject = async (request, action, approvedAmount) => {
+        setIsLoading(true);
         try {
-            return new Date(dateString).toLocaleDateString('en-GB');
-        } catch {
-            return dateString;
+            let result
+            console.log("approve", request);
+
+            if (request.type === 'EXPENSE CLAIMS') {
+                result = await apiCalls(
+                    'put',
+                    `/assetmanagement/createApprovalExpenseClaims?action=${action}&actionBy=${loginUserName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.type}&approvedAmount=${approvedAmount}`
+                );
+            } else {
+                result = await apiCalls(
+                    'put',
+                    `/assetmanagement/createApprovalTravelRequests?action=${action}&actionBy=${loginUserName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.type}&approvedAmount=${approvedAmount}`
+                );
+            }
+            if (result.status === true) {
+                setIsLoading(false);
+                // setFormData({ ...formData, approveStatus: result.paramObjectsMap.taxInvoiceVO.approveStatus });
+                getAllExpence();
+            } else {
+                setIsLoading(false);
+                console.error('API Error:', result.data);
+            }
+        } catch (error) {
+            setIsLoading(false);
+            console.error('Error fetching data:', error);
         }
     };
 
-    const formatDateForInput = (dateString) => {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            // ✅ For <input type="date" />
-            return date.toISOString().split('T')[0];
-        } catch {
-            return dateString;
-        }
+    // const [selectedAsset, setSelectedAsset] = useState(null);
+
+    const handleOpenDialog = (asset) => {
+        setSelectedAsset(asset);
+        setOpenDialog(true);
     };
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+        setSelectedAsset(null);
+    };
+
     return (
         <>
             <TableContainer
@@ -357,99 +206,137 @@ const Approvals = () => {
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: 'grey.50' }}>
-                            <TableCell sx={{ fontWeight: '600', py: 1, textAlign: 'center' }}>Actions</TableCell>
-                            <TableCell sx={{ fontWeight: '600', py: 1 }}>Type</TableCell>
-                            <TableCell sx={{ fontWeight: '600', py: 1 }}>Title</TableCell>
-                            <TableCell sx={{ fontWeight: '600', py: 1 }}>Employee</TableCell>
-                            <TableCell sx={{ fontWeight: '600', py: 1 }}>Amount</TableCell>
-                            <TableCell sx={{ fontWeight: '600', py: 1 }}>Submitted</TableCell>
-                            <TableCell sx={{ fontWeight: '600', py: 1 }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Type</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Title</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Employee</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Exp Limit</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Amount</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Submitted</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Approve/Reject</TableCell>
                         </TableRow>
                     </TableHead>
+
                     <TableBody>
                         {currentAssets.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                                     <Box sx={{ textAlign: 'center' }}>
                                         <Inventory2 sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
                                         <Typography variant="h6" color="textSecondary" gutterBottom>
                                             No Approval Requests Found
                                         </Typography>
                                         <Typography variant="body2" color="textSecondary">
-                                            Get started by adding your first Approval Request to the system
+                                            Get started by adding your first approval request
                                         </Typography>
                                     </Box>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            currentAssets.map((asset) => (
-                                <TableRow
-                                    key={asset.id}
-                                    sx={{
-                                        '&:hover': {
-                                            backgroundColor: 'grey.50',
-                                            transition: 'background-color 0.2s ease'
-                                        }
-                                    }}
-                                >
-                                    <TableCell sx={{ textAlign: 'center', py: 1 }}>
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
-                                            <Tooltip title="Edit Request">
-                                                <IconButton
+                            currentAssets.map((asset) => {
+                                const isExceeding = Number(asset.amount) > Number(asset.expenseLimit);
+
+                                return (
+                                    <TableRow
+                                        key={asset.id}
+                                        sx={{
+                                            '&:hover': {
+                                                backgroundColor: 'grey.50',
+                                                transition: 'background-color 0.2s ease'
+                                            }
+                                        }}
+                                    >
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Typography variant="body2" fontWeight={500}>{asset.type}</Typography>
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Typography variant="body2" color="text.secondary">{asset.title}</Typography>
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Typography variant="body2" fontWeight={500}>{asset.employeeName}</Typography>
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Typography variant="body2" fontWeight={500}>{asset.expenseLimit}</Typography>
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Typography
+                                                variant="body2"
+                                                fontWeight={600}
+                                                sx={{
+                                                    color: isExceeding ? 'error.main' : 'text.primary',
+                                                    backgroundColor: isExceeding ? 'rgba(255,0,0,0.08)' : 'transparent',
+                                                    px: 1,
+                                                    borderRadius: 1
+                                                }}
+                                            >
+                                                {Math.floor(Number(asset.amount))}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Typography variant="body2" fontWeight={500}>{formatDate(asset.submitted)}</Typography>
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Chip
+                                                label={asset.status}
+                                                color={getStatusColor(asset.status)}
+                                                size="small"
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    minWidth: 100,
+                                                    height: '24px',
+                                                    fontSize: '0.75rem',
+                                                    textTransform: 'capitalize'
+                                                }}
+                                            />
+                                        </TableCell>
+
+                                        <TableCell sx={{ py: 1 }}>
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
                                                     size="small"
-                                                    color="info"
-                                                    onClick={() => handleEditAsset(asset.id)}
+                                                    disabled={isLoading || asset.status !== 'PENDING'}
+                                                    onClick={() => handleOpenDialog(asset)}
+                                                    sx={{
+                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                                        '&:hover': {
+                                                            transform: 'scale(1.05)',
+                                                            boxShadow: 3
+                                                        }
+                                                    }}
                                                 >
-                                                    <Edit fontSize="small" />
-                                                </IconButton>
-                                            </Tooltip>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell sx={{ py: 1 }}>
-                                        <Box>
-                                            <Typography variant="body2" fontWeight="500">
-                                                {asset.asset_code}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {asset.asset_name}
-                                            </Typography>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell sx={{ py: 1 }}>
-                                        <Box>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {asset.category}
-                                            </Typography>
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell sx={{ py: 1 }}>
-                                        <Typography variant="body2" fontWeight="500">
-                                            {asset.brand}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {asset.model}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell sx={{ py: 1 }}>
-                                        <Typography variant="body2">
-                                            {asset.location || 'Not specified'}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell sx={{ py: 1 }}>
-                                        <Chip
-                                            label={asset.status}
-                                            color={getStatusColor(asset.status)}
-                                            size="small"
-                                            sx={{
-                                                fontWeight: '600',
-                                                minWidth: 100,
-                                                height: '24px',
-                                                fontSize: '0.75rem'
-                                            }}
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            ))
+                                                    <CheckCircleIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                                                    Approve
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    color="error"
+                                                    size="small"
+                                                    disabled={isLoading || asset.status !== 'PENDING'}
+                                                    onClick={() => handleApproveReject(asset, 'REJECTED', asset.amount)}
+                                                    sx={{
+                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                                        '&:hover': {
+                                                            transform: 'scale(1.05)',
+                                                            boxShadow: 3
+                                                        }
+                                                    }}
+                                                >
+                                                    <CancelIcon sx={{ mr: 0.5, fontSize: 18 }} />
+                                                    Reject
+                                                </Button>
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
                     </TableBody>
                 </Table>
@@ -480,6 +367,69 @@ const Approvals = () => {
                     </Typography>
                 </Box>
             )}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+            {/* 💬 Approval Dialog */}
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogTitle>Confirm Approval Decision</DialogTitle>
+                <DialogContent>
+                    {selectedAsset && (
+                        <>
+                            <Typography variant="body2" sx={{ mb: 2 }}>
+                                Claim amount: <b>₹{selectedAsset.amount}</b><br />
+                                Allocated limit: <b>₹{selectedAsset.expenseLimit}</b>
+                            </Typography>
+
+                            {Number(selectedAsset.amount) > Number(selectedAsset.expenseLimit) ? (
+                                <Typography color="error" variant="body2">
+                                    ⚠️ The claim exceeds the allocated limit. Please choose how to proceed.
+                                </Typography>
+                            ) : (
+                                <Typography variant="body2">
+                                    Are you sure want to approve this claim
+                                </Typography>
+                            )}
+                        </>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+                    {selectedAsset?.amount > selectedAsset?.expenseLimit && (
+                        <Button
+                            onClick={() => {
+                                handleApproveReject(selectedAsset, 'APPROVED', selectedAsset.expenseLimit);
+                                handleCloseDialog();
+                            }}
+                            color="warning"
+                            variant="contained"
+                        >
+                            Approve with Allocated Limit
+                        </Button>
+                    )}
+                    <Button
+                        onClick={() => {
+                            handleApproveReject(selectedAsset, 'APPROVED', selectedAsset.amount);
+                            handleCloseDialog();
+                        }}
+                        color="success"
+                        variant="contained"
+                    >
+                        Approve
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 };

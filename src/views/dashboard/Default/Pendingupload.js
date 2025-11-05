@@ -218,8 +218,8 @@ const PendingApproval = ({ isLoading }) => {
       const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
       const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
       const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
-      const expenseRequests = normalize(incrementResponse?.paramObjectsMap?.expenseClaimsVO);
-      const travelRequests = normalize(incrementResponse?.paramObjectsMap?.travelRequestsVO);
+      const expenseRequests = normalize(expenseClaims?.paramObjectsMap?.expenseClaimsVO);
+      const travelRequests = normalize(travelExpense?.paramObjectsMap?.travelRequestsVO);
 
       let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
         ...item,

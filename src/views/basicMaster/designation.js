@@ -22,13 +22,15 @@ export const Designation = () => {
   const [formData, setFormData] = useState({
     active: true,
     designationCode: '',
-    designationName: ''
+    designationName: '',
+    expenseLimit: '',
   });
   const [editId, setEditId] = useState('');
 
   const [fieldErrors, setFieldErrors] = useState({
     designationName: '',
-    designationCode: ''
+    designationCode: '',
+    expenseLimit: '',
   });
   const [listView, setListView] = useState(false);
   const listViewColumns = [
@@ -38,6 +40,7 @@ export const Designation = () => {
       header: 'Designation',
       size: 140
     },
+    { accessorKey: 'expenseLimit', header: 'Expense Limit', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
   ];
   const [listViewData, setListViewData] = useState([]);
@@ -67,6 +70,7 @@ export const Designation = () => {
         setFormData({
           designationCode: particularCountry.designationCode,
           designationName: particularCountry.designationName,
+          expenseLimit: particularCountry.expenseLimit,
           active: particularCountry.active === 'Active' ? true : false
         });
         setListView(false);
@@ -108,11 +112,13 @@ export const Designation = () => {
     setFormData({
       designationName: '',
       designationCode: '',
+      expenseLimit: '',
       active: true
     });
     setFieldErrors({
       designationName: '',
-      designationCode: ''
+      designationCode: '',
+      expenseLimit: '',
     });
     setEditId('');
   };
@@ -129,6 +135,9 @@ export const Designation = () => {
     } else if (formData.designationName.length <= 2) {
       errors.designationName = 'Min Length is 3';
     }
+    if (!formData.expenseLimit) {
+      errors.expenseLimit = 'Expense Limit is required';
+    }
 
     if (Object.keys(errors).length === 0) {
       setIsLoading(true);
@@ -137,6 +146,7 @@ export const Designation = () => {
         active: formData.active,
         designationCode: formData.designationCode,
         designationName: formData.designationName,
+        expenseLimit: formData.expenseLimit,
         orgId: orgId,
         createdBy: loginUserName
       };
@@ -230,6 +240,20 @@ export const Designation = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.designationCode}
                   helperText={fieldErrors.designationCode}
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <TextField
+                  label="Expense Limit"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  type='number'
+                  name="expenseLimit"
+                  value={formData.expenseLimit}
+                  onChange={handleInputChange}
+                  error={!!fieldErrors.expenseLimit}
+                  helperText={fieldErrors.expenseLimit}
                 />
               </div>
               <div className="col-md-3 mb-3">
