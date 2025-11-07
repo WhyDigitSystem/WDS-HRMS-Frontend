@@ -976,9 +976,6 @@ const PendingApproval = ({ isLoading }) => {
                             <Typography variant="subtitle1" fontWeight="600">
                               {request.employeeName || 'Unknown Employee'}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {request.department || 'No department specified'}
-                            </Typography>
                           </Box>
                         </Box>
                       </Grid>

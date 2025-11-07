@@ -26,6 +26,7 @@ import Interviews from './tabs/Interviews';
 import Offers from './tabs/Offers';
 import ReusableModal from './ModalManager';
 import { showToast } from 'utils/toast-component';
+import apiCalls from 'apicall';
 
 const defaultConfig = {
     background_color: "#f8fafc",
@@ -41,10 +42,14 @@ const defaultConfig = {
 
 const RecruitmentManagement = () => {
     const [currentTab, setCurrentTab] = useState('jobs');
-    const [records, setRecords] = useState([]);
+    const [jobs, setJobs] = useState([]);
+    const [candidates, setCandidates] = useState([]);
+    const [interviews, setInterviews] = useState([]);
+    const [offers, setOffers] = useState([]);
     const [config] = useState(defaultConfig);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalConfig, setModalConfig] = useState({});
+    const [loading, setLoading] = useState(true);
 
     // Icon colors for different tabs - always colored
     const iconColors = {
@@ -72,58 +77,165 @@ const RecruitmentManagement = () => {
 
     const initializeApp = async () => {
         try {
-            const initialData = [
-                {
-                    id: '1',
-                    type: 'job',
-                    job_title: 'Senior Frontend Developer',
-                    department: 'Engineering',
-                    location: 'Bengaluru, India',
-                    status: 'Active',
-                    created_at: new Date().toISOString(),
-                    applications: 24,
-                    salary: '₹120,000 - ₹150,000'
-                },
-                {
-                    id: '2',
-                    type: 'job',
-                    job_title: 'Product Manager',
-                    department: 'Product',
-                    location: 'Chennai, India',
-                    status: 'Active',
-                    created_at: new Date().toISOString(),
-                    applications: 18,
-                    salary: '₹130,000 - ₹160,000'
-                },
-                {
-                    id: '3',
-                    type: 'candidate',
-                    candidate_name: 'Sarah Johnson',
-                    candidate_email: 'sarah.j@example.com',
-                    position: 'Senior Frontend Developer',
-                    resume_score: 85,
-                    status: 'Screening',
-                    created_at: new Date().toISOString(),
-                },
-                {
-                    id: '4',
-                    type: 'candidate',
-                    candidate_name: 'Michael Chen',
-                    candidate_email: 'michael.c@example.com',
-                    position: 'Product Manager',
-                    resume_score: 92,
-                    status: 'Interview',
-                    created_at: new Date().toISOString(),
-                }
-            ];
-            setRecords(initialData);
+            setLoading(true);
+
+            // Fetch all data in parallel
+            await Promise.all([
+                fetchJobs(),
+                fetchCandidates(),
+                fetchInterviews(),
+                fetchOffers()
+            ]);
+
         } catch (error) {
             console.error("Failed to initialize app:", error);
+            showToast('error', 'Failed to load recruitment data');
+        } finally {
+            setLoading(false);
         }
     };
 
+    const fetchJobs = async () => {
+        try {
+            const orgId = localStorage.getItem('orgId');
+            const branchCode = localStorage.getItem('branchCode');
+
+            if (!orgId || !branchCode) {
+                console.warn('Missing orgId or branchCode');
+                setJobs([]);
+                return;
+            }
+
+            const response = await apiCalls('get', `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
+
+            if (response.status === true) {
+                const jobsData = response.paramObjectsMap.jobPostingsVO || [];
+                setJobs(jobsData);
+            } else {
+                console.error('API Error fetching jobs:', response);
+                setJobs([]);
+            }
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+            setJobs([]);
+        }
+    };
+
+    const fetchCandidates = async () => {
+        try {
+            const orgId = localStorage.getItem('orgId');
+            const branchCode = localStorage.getItem('branchCode');
+
+            if (!orgId || !branchCode) {
+                setCandidates([]);
+                return;
+            }
+
+            const response = await apiCalls('get', `recruitmentmanagement/getCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
+
+            if (response.status === true) {
+                const candidatesData = response.paramObjectsMap.candidatesVO || [];
+                setCandidates(candidatesData);
+            } else {
+                console.error('API Error fetching candidates:', response);
+                setCandidates([]);
+            }
+        } catch (error) {
+            console.error('Error fetching candidates:', error);
+            setCandidates([]);
+        }
+    };
+
+    const fetchInterviews = async () => {
+        try {
+            const orgId = localStorage.getItem('orgId');
+            const branchCode = localStorage.getItem('branchCode');
+
+            if (!orgId || !branchCode) {
+                console.warn('Missing orgId or branchCode for interviews');
+                setInterviews([]);
+                return;
+            }
+
+            setLoading(true);
+            console.log('Fetching interviews with:', { orgId, branchCode });
+
+            // ✅ Fixed endpoint (as requested)
+            const endpoint = `recruitmentmanagement/getSchedulerCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`;
+
+            // ✅ API Call
+            const response = await apiCalls('get', endpoint);
+
+            if (response.status === true) {
+                // Handle response structure safely
+                const interviewsData =
+                    response.paramObjectsMap?.schedulerCandidatesVO ||
+                    response.paramObjectsMap?.interviewsVO ||
+                    response.paramObjectsMap?.interviewVO ||
+                    response.paramObjectsMap?.interviewScheduleVO ||
+                    response.paramObjectsMap ||
+                    response.data ||
+                    [];
+
+                console.log('✅ Interviews data loaded:', interviewsData);
+                setInterviews(Array.isArray(interviewsData) ? interviewsData : [interviewsData]);
+            } else {
+                console.warn('⚠️ No valid interview data found:', response);
+                setInterviews([]);
+            }
+        } catch (error) {
+            console.error('❌ Error fetching interviews:', error);
+            setInterviews([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchOffers = async () => {
+        try {
+            const orgId = localStorage.getItem('orgId');
+            const branchCode = localStorage.getItem('branchCode');
+
+            if (!orgId || !branchCode) {
+                setOffers([]);
+                return;
+            }
+
+            const response = await apiCalls('get', `recruitmentmanagement/getCreateOfferByOrgIdAndDepartment?orgId=${orgId}&branchCode=${branchCode}&department=ALL&status=ALL`);
+
+            if (response.status === true) {
+                const offersData = response.paramObjectsMap.createOfferVO || [];
+                setOffers(offersData);
+            } else {
+                console.error('API Error fetching offers:', response);
+                setOffers([]);
+            }
+        } catch (error) {
+            console.error('Error fetching offers:', error);
+            setOffers([]);
+        }
+    };
+
+    // Refresh data when tab changes to ensure counts are updated
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
+        // Refresh data for the selected tab
+        switch (newValue) {
+            case 'jobs':
+                fetchJobs();
+                break;
+            case 'candidates':
+                fetchCandidates();
+                break;
+            case 'interviews':
+                fetchInterviews();
+                break;
+            case 'offers':
+                fetchOffers();
+                break;
+            default:
+                break;
+        }
     };
 
     // Generic modal handlers
@@ -137,11 +249,17 @@ const RecruitmentManagement = () => {
         setModalConfig({});
     };
 
-    // Filter records by type
-    const jobs = records.filter(r => r.type === 'job');
-    const candidates = records.filter(r => r.type === 'candidate');
-    const interviews = records.filter(r => r.type === 'interview');
-    const offers = records.filter(r => r.type === 'offer');
+    // Helper function to count active items
+    const countActiveItems = (items, statusField = 'active') => {
+        if (!items || !Array.isArray(items)) return 0;
+        return items.filter(item => item[statusField] === true || item[statusField] === 'Active').length;
+    };
+
+    // Calculate counts for each tab - FIXED to show total count instead of just active
+    const jobCount = jobs.length; // Show total jobs
+    const candidateCount = candidates.length; // Show total candidates
+    const interviewCount = interviews.length; // Show total interviews
+    const offerCount = offers.length; // Show total offers
 
     // Tab icons with colors - always colored
     const tabIcons = {
@@ -207,94 +325,89 @@ const RecruitmentManagement = () => {
                                 },
                             }}
                         >
+                            {/* Jobs Tab */}
                             <Tab
                                 icon={currentTab === 'jobs' ? activeTabIcons.jobs : tabIcons.jobs}
                                 iconPosition="start"
                                 label={
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span>Job Postings</span>
-                                        {jobs.length > 0 && (
-                                            <Chip
-                                                label={jobs.length}
-                                                size="small"
-                                                sx={{
-                                                    height: 20,
-                                                    fontSize: '0.75rem',
-                                                    backgroundColor: currentTab === 'jobs' ? iconColors.jobs.active : 'grey.300',
-                                                    color: currentTab === 'jobs' ? 'white' : 'grey.700',
-                                                }}
-                                            />
-                                        )}
+                                        <Chip
+                                            label={jobCount}
+                                            size="small"
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.75rem',
+                                                backgroundColor: currentTab === 'jobs' ? iconColors.jobs.active : 'grey.300',
+                                                color: currentTab === 'jobs' ? 'white' : 'grey.700',
+                                            }}
+                                        />
                                     </Box>
                                 }
                                 value="jobs"
                             />
 
-                            {/* Other Tabs */}
+                            {/* Candidates Tab */}
                             <Tab
                                 icon={currentTab === 'candidates' ? activeTabIcons.candidates : tabIcons.candidates}
                                 iconPosition="start"
                                 label={
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span>Candidates</span>
-                                        {candidates.length > 0 && (
-                                            <Chip
-                                                label={candidates.length}
-                                                size="small"
-                                                sx={{
-                                                    height: 20,
-                                                    fontSize: '0.75rem',
-                                                    backgroundColor: currentTab === 'candidates' ? iconColors.candidates.active : 'grey.300',
-                                                    color: currentTab === 'candidates' ? 'white' : 'grey.700',
-                                                }}
-                                            />
-                                        )}
+                                        <Chip
+                                            label={candidateCount}
+                                            size="small"
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.75rem',
+                                                backgroundColor: currentTab === 'candidates' ? iconColors.candidates.active : 'grey.300',
+                                                color: currentTab === 'candidates' ? 'white' : 'grey.700',
+                                            }}
+                                        />
                                     </Box>
                                 }
                                 value="candidates"
                             />
 
+                            {/* Interviews Tab */}
                             <Tab
                                 icon={currentTab === 'interviews' ? activeTabIcons.interviews : tabIcons.interviews}
                                 iconPosition="start"
                                 label={
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span>Interviews</span>
-                                        {interviews.length > 0 && (
-                                            <Chip
-                                                label={interviews.length}
-                                                size="small"
-                                                sx={{
-                                                    height: 20,
-                                                    fontSize: '0.75rem',
-                                                    backgroundColor: currentTab === 'interviews' ? iconColors.interviews.active : 'grey.300',
-                                                    color: currentTab === 'interviews' ? 'white' : 'grey.700',
-                                                }}
-                                            />
-                                        )}
+                                        <Chip
+                                            label={interviewCount}
+                                            size="small"
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.75rem',
+                                                backgroundColor: currentTab === 'interviews' ? iconColors.interviews.active : 'grey.300',
+                                                color: currentTab === 'interviews' ? 'white' : 'grey.700',
+                                            }}
+                                        />
                                     </Box>
                                 }
                                 value="interviews"
                             />
 
+                            {/* Offers Tab */}
                             <Tab
                                 icon={currentTab === 'offers' ? activeTabIcons.offers : tabIcons.offers}
                                 iconPosition="start"
                                 label={
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span>Offers</span>
-                                        {offers.length > 0 && (
-                                            <Chip
-                                                label={offers.length}
-                                                size="small"
-                                                sx={{
-                                                    height: 20,
-                                                    fontSize: '0.75rem',
-                                                    backgroundColor: currentTab === 'offers' ? iconColors.offers.active : 'grey.300',
-                                                    color: currentTab === 'offers' ? 'white' : 'grey.700',
-                                                }}
-                                            />
-                                        )}
+                                        <Chip
+                                            label={offerCount}
+                                            size="small"
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.75rem',
+                                                backgroundColor: currentTab === 'offers' ? iconColors.offers.active : 'grey.300',
+                                                color: currentTab === 'offers' ? 'white' : 'grey.700',
+                                            }}
+                                        />
                                     </Box>
                                 }
                                 value="offers"
@@ -313,6 +426,7 @@ const RecruitmentManagement = () => {
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
+                        onRefresh={fetchJobs}
                     />
                 )}
 
@@ -322,6 +436,7 @@ const RecruitmentManagement = () => {
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
+                        onRefresh={fetchCandidates}
                     />
                 )}
 
@@ -331,6 +446,7 @@ const RecruitmentManagement = () => {
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
+                        onRefresh={fetchInterviews}
                     />
                 )}
 
@@ -340,6 +456,7 @@ const RecruitmentManagement = () => {
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
+                        onRefresh={fetchOffers}
                     />
                 )}
             </Container>

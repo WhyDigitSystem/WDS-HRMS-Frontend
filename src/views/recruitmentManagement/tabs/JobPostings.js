@@ -17,7 +17,8 @@ import {
     Autocomplete,
     FormControlLabel,
     Checkbox,
-    Switch
+    Switch,
+    CircularProgress
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -39,6 +40,7 @@ const JobPostings = ({ config }) => {
     const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
     const [jobs, setJobs] = useState([]);
     const [departmentList, setDepartmentList] = useState([]);
+    const [branchList, setBranchList] = useState([]);
     const [addJobModalOpen, setAddJobModalOpen] = useState(false);
     const [viewJobModalOpen, setViewJobModalOpen] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
@@ -53,6 +55,7 @@ const JobPostings = ({ config }) => {
     useEffect(() => {
         getJobPostings();
         getAllDepartment();
+        getAllBranches();
     }, [orgId, branchCode]);
 
     const primaryColor = config.primary_action_color || '#2563eb';
@@ -86,6 +89,26 @@ const JobPostings = ({ config }) => {
             }
         } catch (error) {
             console.error('Error fetching departments:', error);
+        }
+    };
+
+    const getAllBranches = async () => {
+        try {
+            const response = await apiCalls('get', `/master/branch?orgid=${orgId}`);
+
+            if (response.status) {
+                const branches = response.paramObjectsMap?.branchVO || [];
+                const branchNames = branches.map(branch =>
+                    branch.branch || branch.branchName || branch.name || 'Unknown'
+                );
+                setBranchList(branchNames);
+            } else {
+                showToast('warning', 'Failed to fetch branches, using default list');
+            }
+        } catch (error) {
+            console.error('Error fetching branches:', error);
+            showToast('warning', 'Failed to fetch branches, using default list');
+            setBranchList(["ALL", "BANGALORE", "CHENNAI", "Hyderabad"]);
         }
     };
 
@@ -280,23 +303,36 @@ const JobPostings = ({ config }) => {
                         />
 
                         {/* Location */}
-                        <TextField
-                            label="Location"
-                            required
-                            fullWidth
-                            size="small"
-                            value={newJobData.location}
-                            onChange={(e) => handleInputChange('location', e.target.value)}
-                            placeholder="e.g., San Francisco, CA"
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: 1,
-                                    height: 40
-                                },
-                                '& .MuiInputLabel-root': {
-                                    fontSize: '0.875rem'
-                                }
+                        <Autocomplete
+                            options={branchList}
+                            value={newJobData.location} // ✅ Default to ALL
+                            onChange={(event, newValue) => {
+                                handleInputChange('location', newValue);
                             }}
+                            loading={loading} // optional if you track loading
+                            size="small"
+                            clearOnEscape
+                            disableClearable={false} // ✅ adds clear (X) icon
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Work Location"
+                                    placeholder="Select Location"
+                                    required
+                                    fullWidth
+                                    size="small"
+                                    variant="outlined"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
                         />
 
                         {/* Job Status Section */}

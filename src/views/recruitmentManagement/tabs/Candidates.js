@@ -43,6 +43,10 @@ const Candidates = ({ config }) => {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
+  // Pagination state - same as AssetMaster
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+
   // Form data
   const [candidateData, setCandidateData] = useState({
     candidatesName: '',
@@ -65,6 +69,14 @@ const Candidates = ({ config }) => {
     getJobPostings();
     getAllReportingPersonList();
   }, [orgId, branchCode]);
+
+  // Pagination configuration - EXACTLY like AssetMaster
+  const paginationConfig = {
+    currentPage,
+    totalPages: Math.ceil(candidates.length / itemsPerPage),
+    itemsPerPage,
+    onPageChange: (event, value) => setCurrentPage(value)
+  };
 
   const getJobPostings = async () => {
     try {
@@ -108,13 +120,13 @@ const Candidates = ({ config }) => {
     }
   };
 
-
   const getCandidates = async () => {
     try {
       setLoading(true);
       const response = await apiCalls('get', `recruitmentmanagement/getCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
       if (response.status === true) {
         setCandidates(response.paramObjectsMap.candidatesVO || []);
+        setCurrentPage(1); // Reset to first page when data loads
       } else {
         console.error('API Error:', response);
         setCandidates([]);
@@ -138,6 +150,7 @@ const Candidates = ({ config }) => {
       active: true
     });
     setOpenCandidateDialog(true);
+    setCurrentPage(1); // Reset to first page when adding new candidate
   };
 
   const handleOpenEditDialog = (candidate) => {
@@ -151,6 +164,7 @@ const Candidates = ({ config }) => {
       active: candidate.active === 'Active' || candidate.active === true
     });
     setOpenCandidateDialog(true);
+    setCurrentPage(1); // Reset to first page when editing
   };
 
   const handleCloseCandidateDialog = () => {
@@ -164,6 +178,7 @@ const Candidates = ({ config }) => {
       resumeScore: '',
       active: true
     });
+    setCurrentPage(1); // Reset to first page when canceling
   };
 
   const handleOpenScheduleDialog = (candidate) => {
@@ -433,7 +448,6 @@ const Candidates = ({ config }) => {
         </Button>
       </Box>
 
-      {/* Candidate List */}
       <CommonListView
         data={transformedCandidates}
         columns={columns}
@@ -441,8 +455,10 @@ const Candidates = ({ config }) => {
         emptyMessage="No candidates yet"
         emptyDescription="Add your first candidate to start the hiring process"
         loading={loading}
+        pagination={paginationConfig}
       />
 
+      {/* Rest of your dialogs remain exactly the same */}
       <Dialog
         open={openCandidateDialog}
         onClose={handleCloseCandidateDialog}

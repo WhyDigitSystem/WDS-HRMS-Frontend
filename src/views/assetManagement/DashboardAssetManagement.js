@@ -228,7 +228,7 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
     {
       title: 'Allocated',
       value: assetCounts.allocatedAssets,
-      subtitle: 'Ready for allocation',
+      subtitle: 'Assets in use',
       icon: <CheckCircle sx={{ fontSize: 32, color: 'white' }} />,
       gradientStart: '#43cea2',
       gradientEnd: '#185a9d'
@@ -236,7 +236,7 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
     {
       title: 'Available',
       value: assetCounts.availableAssets,
-      subtitle: 'Assets in use',
+      subtitle: 'Ready for allocation',
       icon: <TrendingUp sx={{ fontSize: 32, color: 'white' }} />,
       gradientStart: '#a8c0ff',
       gradientEnd: '#3f2b96'
