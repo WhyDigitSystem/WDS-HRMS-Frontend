@@ -73,6 +73,7 @@ const TravelRequest = () => {
     const [branch] = useState(localStorage.getItem("branch"));
     const [employeeCode] = useState(localStorage.getItem("employeeCode"));
     const [employeeName] = useState(localStorage.getItem("employeeName"));
+    const [department] = useState(localStorage.getItem("department"));
     const [formData, setFormData] = useState({
         travelTitle: '',
         from: '',
@@ -269,7 +270,8 @@ const TravelRequest = () => {
             createdBy: loginUserName,
             departureDate: formData.departureDate,
             employeeCode: employeeCode,
-            employeename: employeeName,
+            employeeName: employeeName,
+             department: department,
             estimatedCost: formData.estimatedCost,
             from: formData.from,
             orgId: orgId,

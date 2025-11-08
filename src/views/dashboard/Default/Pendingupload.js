@@ -202,11 +202,11 @@ const PendingApproval = ({ isLoading }) => {
         ),
         apiCalls(
           'get',
-          `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${EMPLOYEECODE}`
+          `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
         ),
         apiCalls(
           'get',
-          `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${EMPLOYEECODE}`
+          `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
         )
       ]);
 
@@ -603,7 +603,7 @@ const PendingApproval = ({ isLoading }) => {
     try {
       const response = await apiCalls(
         'put',
-        `/assetmanagement/createApprovalExpenseClaims?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}`
+        `/assetmanagement/createApprovalExpenseClaims?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}&approvedAmount=${request.amount}`
       );
 
       if (response.status === true) {
@@ -634,9 +634,8 @@ const PendingApproval = ({ isLoading }) => {
     try {
       const response = await apiCalls(
         'put',
-        `/assetmanagement/createApprovalTravelRequests?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}`
+        `/assetmanagement/createApprovalTravelRequests?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}&approvedAmount=${request.estimatedCost}`
       );
-
       if (response.status === true) {
         setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
 
@@ -686,7 +685,7 @@ const PendingApproval = ({ isLoading }) => {
           await handleCheckInOutApprove(request, 'APPROVED');
         } else if (request.screenName === 'EXPENSE CLAIMS') {
           await handleActionExpense(request, 'APPROVED');
-        }else if (request.screenName === 'TRAVEL REQUEST') {
+        } else if (request.screenName === 'TRAVEL REQUEST') {
           await handleActionTravel(request, 'APPROVED');
         }
       } catch (error) {
@@ -780,6 +779,8 @@ const PendingApproval = ({ isLoading }) => {
                 if (request.screenName === 'COMPENSATORY OFF') handleActionCompoOff(request, 'APPROVED');
                 if (request.screenName === 'CHECKINOUT') handleActionCheckout(request, 'APPROVED');
                 if (request.screenName === 'CHECKINOUTADJUSTMENT') handleCheckInOutApprove(request, 'APPROVED');
+                if (request.screenName === 'EXPENSE CLAIMS') handleActionExpense(request, 'APPROVED');
+                if (request.screenName === 'TRAVEL REQUEST') handleActionTravel(request, 'APPROVED');
               }}
               disabled={isProcessing}
             >
@@ -799,6 +800,8 @@ const PendingApproval = ({ isLoading }) => {
                 if (request.screenName === 'COMPENSATORY OFF') handleActionCompoOff(request, 'REJECTED');
                 if (request.screenName === 'CHECKINOUT') handleActionCheckout(request, 'REJECTED');
                 if (request.screenName === 'CHECKINOUTADJUSTMENT') handleCheckInOutApprove(request, 'REJECTED');
+                if (request.screenName === 'EXPENSE CLAIMS') handleActionExpense(request, 'REJECTED');
+                if (request.screenName === 'TRAVEL REQUEST') handleActionTravel(request, 'REJECTED');
               }}
               disabled={isProcessing}
             >
@@ -934,7 +937,7 @@ const PendingApproval = ({ isLoading }) => {
           >
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="h3" fontWeight="700">
-                All Pending Leave Requests
+                Pending Requests
               </Typography>
               <IconButton
                 onClick={handleCloseModal}
@@ -974,7 +977,10 @@ const PendingApproval = ({ isLoading }) => {
                           </Avatar>
                           <Box>
                             <Typography variant="subtitle1" fontWeight="600">
-                              {request.employeeName || 'Unknown Employee'}
+                              {`${request.employeeName || 'Unknown Employee'} - ${request.employeeCode || ''}`}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {request.department || 'No department specified'}
                             </Typography>
                           </Box>
                         </Box>
@@ -1155,60 +1161,75 @@ const PendingApproval = ({ isLoading }) => {
                               </Grid>
                             </>
                           )}
-
                           {screen === 'EXPENSE CLAIMS' && (
                             <>
                               <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">
-                                  Increment Cycle
+                                  Category
                                 </Typography>
                                 <Typography variant="body1" fontWeight="500">
-                                  {request.incrementCycle}
+                                  {request.category}
                                 </Typography>
                               </Grid>
                               <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">
-                                  Increase %
+                                  Amount
                                 </Typography>
                                 <Typography variant="body1" fontWeight="500">
-                                  {request.totalCtcPercentage}%
+                                  {`${request.amount}-${request.currency}`}
                                 </Typography>
                               </Grid>
-                              <Grid item xs={6} sm={4}>
+                              {/* <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">
-                                  New Designation
+                                  Exp Limit
                                 </Typography>
                                 <Typography variant="body1" fontWeight="500">
-                                  {request.newDesignation || '-'}
+                                  {`${request.expenseLimit}`}
+                                </Typography>
+                              </Grid> */}
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Expense Date
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.expenseDate ? dayjs(request.expenseDate).format('DD-MM-YYYY') : '-'}
                                 </Typography>
                               </Grid>
                             </>
                           )}
-
-                          {screen === 'TRAVEL REQUESTS' && (
+                          {screen === 'TRAVEL REQUEST' && (
                             <>
                               <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">
-                                  Increment Cycle
+                                  Category
                                 </Typography>
                                 <Typography variant="body1" fontWeight="500">
-                                  {request.incrementCycle}
+                                  {request.screenName}
                                 </Typography>
                               </Grid>
                               <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">
-                                  Increase %
+                                  Est. Amount
                                 </Typography>
                                 <Typography variant="body1" fontWeight="500">
-                                  {request.totalCtcPercentage}%
+                                  {`${request.estimatedCost}`}
                                 </Typography>
                               </Grid>
-                              <Grid item xs={6} sm={4}>
+                              {/* <Grid item xs={6} sm={4}>
                                 <Typography variant="body2" color="text.secondary">
-                                  New Designation
+                                  Exp Limit
                                 </Typography>
                                 <Typography variant="body1" fontWeight="500">
-                                  {request.newDesignation || '-'}
+                                  {`${request.expenseLimit}`}
+                                </Typography>
+                              </Grid> */}
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Date
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {`${request.departureDate ? dayjs(request.departureDate).format('DD/MM/YYYY') : '-'} to 
+                                  ${request.returnDate ? dayjs(request.returnDate).format('DD/MM/YYYY') : '-'}`}
                                 </Typography>
                               </Grid>
                             </>

@@ -62,6 +62,7 @@ const ExpenceTracking = () => {
     const [branch] = useState(localStorage.getItem("branch"));
     const [employeeCode] = useState(localStorage.getItem("employeeCode"));
     const [employeeName] = useState(localStorage.getItem("employeeName"));
+    const [department] = useState(localStorage.getItem("department"));
     const [formData, setFormData] = useState({
         expenseTitle: '',
         category: '',
@@ -262,7 +263,8 @@ const ExpenceTracking = () => {
             branchCode,
             orgId,
             employeeCode: employeeCode,
-            employeename: employeeName,
+            employeeName: employeeName,
+            department: department,
             createdBy: loginUserName
         };
 
@@ -942,7 +944,7 @@ const ExpenceTracking = () => {
                         {expenseData.length > 0 && (
                             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                                 <Typography variant="body2" color="textSecondary">
-                                    Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, expenseData.length)} of {expenseData.length} Expence
+                                    Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, expenseData.length)} of {expenseData.length} Expense
                                 </Typography>
                             </Box>
                         )}
