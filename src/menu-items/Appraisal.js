@@ -26,9 +26,9 @@ const hasScreenAccess = (screenId) => {
 const appraisalChildren = [
   hasScreenAccess('SG') && {
     id: 'SelfGoals',
-    title: 'Self Goals',
+    title: 'My Goals',
     type: 'item',
-    url: '/Appraisal/SelfGoals',
+    url: '/Appraisal/MyGoals',
     icon: IconTarget
   },
   hasScreenAccess('APE') && {
@@ -47,9 +47,9 @@ const appraisalChildren = [
   },
   hasScreenAccess('PG') && {
     id: 'PreGoals',
-    title: 'Pre Goals',
+    title: 'Set Goals',
     type: 'item',
-    url: '/Appraisal/PreGoals',
+    url: '/Appraisal/SetGoals',
     icon: IconListCheck
   },
   hasScreenAccess('AG') && {
@@ -61,23 +61,23 @@ const appraisalChildren = [
   },
   hasScreenAccess('PGA') && {
     id: 'PreGoalsApproval',
-    title: 'Pre Goals Approval',
+    title: 'Set Goals Approval',
     type: 'item',
-    url: '/Appraisal/PreGoalsApproval',
+    url: '/Appraisal/SetGoalsApproval',
     icon: IconThumbUp
   },
   hasScreenAccess('S1I') && {
     id: 'Supervisor1_Input',
-    title: 'Supervisor-1 Input',
+    title: 'First-Level Supervisor Input',
     type: 'item',
-    url: '/Appraisal/Supervisor1_Input',
+    url: '/Appraisal/First_LevelSupervisorInput',
     icon: IconUserCheck
   },
   hasScreenAccess('HRR') && {
     id: 'HR_Review',
-    title: 'HR Review',
+    title: 'HR Feedback',
     type: 'item',
-    url: '/Appraisal/HR_Review',
+    url: '/Appraisal/HRFeedback',
     icon: IconUserShield
   },
   hasScreenAccess('PGS') && {
@@ -126,7 +126,7 @@ const Appraisal =
         children: [
           {
             id: 'Appraisal',
-            title: 'Appraisal',
+            title: 'Performance Management',
             type: 'collapse',
             icon: IconCash,
             children: appraisalChildren

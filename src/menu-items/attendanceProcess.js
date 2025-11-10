@@ -54,9 +54,9 @@ const attendanceChildren = [
   },
   hasScreenAccess('TA') && {
     id: 'todayAttendance',
-    title: 'Today Attendance',
+    title: 'Daily Attendance',
     type: 'item',
-    url: '/team/TodayAttendance',
+    url: '/team/DailyAttendance',
     icon: IconCalendarEvent
   },
 ].filter(Boolean);
@@ -70,7 +70,7 @@ const attendanceProcess =
       children: [
         {
           id: 'attendanceProcessCollapse',
-          title: 'Attendance',
+          title: 'Attendance Tracker',
           type: 'collapse',
           icon: IconCalendarTime,
           children: attendanceChildren

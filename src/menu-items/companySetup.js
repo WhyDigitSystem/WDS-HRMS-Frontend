@@ -47,7 +47,7 @@ const companySetup =
         children: [
           {
             id: 'companySetupCollapse',
-            title: 'Company Setup',
+            title: 'Company Configuration',
             type: 'collapse',
             icon: IconCopyright,
             children: companySetupChildren

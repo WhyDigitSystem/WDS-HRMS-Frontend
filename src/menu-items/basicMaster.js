@@ -93,9 +93,9 @@ const basicMasterChildren = [
   },
   hasScreenAccess('OTM') && {
     id: 'overTimeMaster',
-    title: 'OverTime Master',
+    title: 'OT',
     type: 'item',
-    url: '/basicMaster/OverTimeMaster',
+    url: '/basicMaster/OT',
     icon: IconIdBadge2
   },
   // hasScreenAccess('OT') && {

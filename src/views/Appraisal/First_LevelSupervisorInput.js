@@ -32,7 +32,7 @@ function PaperComponent(props) {
   );
 }
 
-const Supervisor1_Input = () => {
+const First_LevelSupervisorInput = () => {
   const [listViewData, setListViewData] = useState([]);
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
   const [createdBy] = useState(localStorage.getItem('userName'));
@@ -847,4 +847,4 @@ const Supervisor1_Input = () => {
     </>
   );
 };
-export default Supervisor1_Input;
+export default First_LevelSupervisorInput;

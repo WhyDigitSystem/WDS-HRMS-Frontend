@@ -13,7 +13,7 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const TodayAttendance = () => {
+const DailyAttendance = () => {
   const [listViewData, setListViewData] = useState([]);
   const [branchName] = useState(localStorage.getItem('branch'));
   const [orgId] = useState(localStorage.getItem('orgId'));
@@ -94,7 +94,7 @@ const TodayAttendance = () => {
         <ToastContainer position="top-right" autoClose={5000} />
 
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6">Today's Attendance</Typography>
+          <Typography variant="h6">Daily Attendance</Typography>
           {listViewData.length > 0 && (
             <Box>
               <Tooltip title="Download Excel">
@@ -136,4 +136,4 @@ const TodayAttendance = () => {
   );
 };
 
-export default TodayAttendance;
+export default DailyAttendance;

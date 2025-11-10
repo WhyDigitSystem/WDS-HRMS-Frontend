@@ -14,7 +14,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 
-export const CompoOff = () => {
+export const Comp_Off = () => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [empCode, setEmpCode] = useState(localStorage.getItem('employeeCode'));
@@ -690,4 +690,4 @@ export const CompoOff = () => {
     </>
   );
 };
-export default CompoOff;
+export default Comp_Off;

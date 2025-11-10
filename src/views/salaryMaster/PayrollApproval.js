@@ -40,7 +40,7 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import SearchIcon from '@mui/icons-material/Search';
 import { getAllActiveBranches } from 'utils/CommonFunctions';
 
-const SalaryApproval = () => {
+const PayrollApproval = () => {
   const [salaryData, setSalaryData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -447,4 +447,4 @@ const SalaryApproval = () => {
   );
 };
 
-export default SalaryApproval;
+export default PayrollApproval;

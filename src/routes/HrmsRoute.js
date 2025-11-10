@@ -5,7 +5,7 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import { element } from 'prop-types';
 import PrivateRoute from './PrivateRoute';
-import SalaryApproval from 'views/salaryMaster/SalaryApproval';
+import PayrollApproval from 'views/salaryMaster/PayrollApproval';
 import ListOfValues from 'views/basicMaster/ListOfValues';
 // import Roles from 'views/basicMaster/roles';
 
@@ -27,16 +27,16 @@ const Department = Loadable(lazy(() => import('views/basicMaster/department')));
 const Designation = Loadable(lazy(() => import('views/basicMaster/designation')));
 const Region = Loadable(lazy(() => import('views/basicMaster/RegionMaster')));
 const Roles = Loadable(lazy(() => import('views/basicMaster/roles')));
-const ScreenNames = Loadable(lazy(() => import('views/basicMaster/ScreenNames')));
+const Screens = Loadable(lazy(() => import('views/basicMaster/Screens')));
 const ScreenAccess = Loadable(lazy(() => import('views/basicMaster/screenAccess')));
 const LeaveAssigned = Loadable(lazy(() => import('views/basicMaster/leaveAssigned')));
 const ProjectMaster = Loadable(lazy(() => import('views/basicMaster/ProjectMaster')));
 const ShiftMaster = Loadable(lazy(() => import('views/basicMaster/shiftMaster')));
 const ShiftAssign = Loadable(lazy(() => import('views/basicMaster/ShiftAssign')));
-const OverTimeMaster = Loadable(lazy(() => import('views/basicMaster/OverTimeMaster.js')));
+const OT = Loadable(lazy(() => import('views/basicMaster/OT')));
 const ContractMaster = Loadable(lazy(() => import('views/basicMaster/ContractMaster')));
 const OverTime = Loadable(lazy(() => import('views/basicMaster/OverTimeScreen.js')));
-const OverTimeApproval = Loadable(lazy(() => import('views/basicMaster/OverTimeApproval')));
+const OTApproval = Loadable(lazy(() => import('views/basicMaster/OTApproval')));
 const GroupMaster = Loadable(lazy(() => import('views/basicMaster/groupMaster')));
 // const AppraisalPeroid = Loadable(lazy(() => import('views/basicMaster/AppraisalPeroid')));
 // const KRAKPI = Loadable(lazy(() => import('views/basicMaster/KRAKPI')));
@@ -46,21 +46,21 @@ const GroupMaster = Loadable(lazy(() => import('views/basicMaster/groupMaster'))
 // const Score = Loadable(lazy(() => import('views/basicMaster/Score')));
 
 // Employee Master
-const EmployeeDetails = Loadable(lazy(() => import('views/employeeMaster/EmployeeDetails')));
+const EmployeeProfile = Loadable(lazy(() => import('views/employeeMaster/EmployeeProfile')));
 const EmployeeCodeGeneration = Loadable(lazy(() => import('views/employeeMaster/EmployeeCodeGeneration')));
 
 // Leave master
-const LeaveType = Loadable(lazy(() => import('views/leaveMaster/LeaveType')));
+const LeaveTypes = Loadable(lazy(() => import('views/leaveMaster/LeaveTypes')));
 const LeaveProcess = Loadable(lazy(() => import('views/leaveMaster/LeaveProcess')));
 const LeaveCreditControl = Loadable(lazy(() => import('views/leaveMaster/LeaveCreditControl')));
 const Holidays = Loadable(lazy(() => import('views/leaveMaster/Holidays')));
-const CompoOff = Loadable(lazy(() => import('views/me/CompoOff')));
+const Comp_Off = Loadable(lazy(() => import('views/me/Comp_Off')));
 
 // salary master
 const SalaryHeads = Loadable(lazy(() => import('views/salaryMaster/SalaryHeads')));
 const SalaryStructure = Loadable(lazy(() => import('views/salaryMaster/SalaryStructure')));
 const GroupSalaryStructure = Loadable(lazy(() => import('views/salaryMaster/GroupSalaryStructure')));
-const SalaryProcess = Loadable(lazy(() => import('views/salaryMaster/SalaryProcess')));
+const PayrollProcess = Loadable(lazy(() => import('views/salaryMaster/PayrollProcess')));
 const SalaryReport = Loadable(lazy(() => import('views/salaryMaster/SalaryReport')));
 // const Advance = Loadable(lazy(() => import('views/salaryMaster/Advance')));
 const AdvanceUpload = Loadable(lazy(() => import('views/salaryMaster/AdvanceUpload')));
@@ -69,10 +69,10 @@ const OtherPayments = Loadable(lazy(() => import('views/salaryMaster/OtherPaymen
 // me
 const PermissionRequest = Loadable(lazy(() => import('views/me/PermissionRequest')));
 const LeaveRequest = Loadable(lazy(() => import('views/me/LeaveRequest')));
-const SwipeInSwipeOut = Loadable(lazy(() => import('views/me/SwipeInSwipeOut')));
-const HolidayReport = Loadable(lazy(() => import('views/me/HolidayReport')));
+const CheckInOut= Loadable(lazy(() => import('views/me/CheckInOut')));
+const Holiday = Loadable(lazy(() => import('views/me/Holiday')));
 const TimeSheet = Loadable(lazy(() => import('views/me/TimeSheet')));
-const WorkFromHome = Loadable(lazy(() => import('views/me/WorkFromHome')));
+const WFM = Loadable(lazy(() => import('views/me/WFM')));
 const TravelRequest = Loadable(lazy(() => import('views/me/TravelRequest')));
 const Task = Loadable(lazy(() => import('views/me/Task')));
 
@@ -92,7 +92,7 @@ const AttendanceApproval = Loadable(lazy(() => import('views/attendanceProcess/A
 const LeaveApproval = Loadable(lazy(() => import('views/team/LeaveApproval')));
 const PermissionApproval = Loadable(lazy(() => import('views/team/PermissionApproval')));
 const AttendanceReport = Loadable(lazy(() => import('views/team/AttendanceReport')));
-const TodayAttendance = Loadable(lazy(() => import('views/team/TodayAttendance')));
+const DailyAttendance = Loadable(lazy(() => import('views/team/DailyAttendance')));
 const EmployeeAttanceReport = Loadable(lazy(() => import('views/team/EmployeeAttanceReport')));
 const ShiftAssignReport = Loadable(lazy(() => import('views/team/ShiftAssignReport')));
 const PayslipGenerate = Loadable(lazy(() => import('views/team/PayslipGeneration')));
@@ -107,11 +107,11 @@ const OverAllReport = Loadable(lazy(() => import('views/team/OverAllReport')));
 const Appraisee = Loadable(lazy(() => import('views/Appraisal/Appraisee')));
 const Appraiser = Loadable(lazy(() => import('views/Appraisal/Appraiser')));
 const AdditionalGoals = Loadable(lazy(() => import('views/Appraisal/AdditionalGoals')));
-const PreGoals = Loadable(lazy(() => import('views/Appraisal/PreGoals')));
-const PreGoalsApproval = Loadable(lazy(() => import('views/Appraisal/PreGoalsApproval')));
-const SelfGoals = Loadable(lazy(() => import('views/Appraisal/SelfGoals')));
-const Supervisor1_Input = Loadable(lazy(() => import('views/Appraisal/Supervisor1_Input')));
-const HR_Review = Loadable(lazy(() => import('views/Appraisal/HR_Review')));
+const SetGoals = Loadable(lazy(() => import('views/Appraisal/SetGoals')));
+const SetGoalsApproval = Loadable(lazy(() => import('views/Appraisal/SetGoalsApproval')));
+const MyGoals = Loadable(lazy(() => import('views/Appraisal/MyGoals')));
+const First_LevelSupervisorInput = Loadable(lazy(() => import('views/Appraisal/First_LevelSupervisorInput')));
+const HRFeedback = Loadable(lazy(() => import('views/Appraisal/HRFeedback')));
 const PerformanceGoals = Loadable(lazy(() => import('views/Appraisal/PerformanceGoals')));
 const AppraiserReview = Loadable(lazy(() => import('views/Appraisal/AppraisalReview')));
 const AppraisalReport = Loadable(lazy(() => import('views/Appraisal/AppraisalReport')));
@@ -210,16 +210,16 @@ const HrmsRoute = {
       element: <ContractMaster />
     },
     {
-      path: '/basicMaster/OverTimeMaster',
-      element: <OverTimeMaster />
+      path: '/basicMaster/OT',
+      element: <OT />
     },
     {
       path: '/basicMaster/OverTime',
       element: <OverTime />
     },
     {
-      path: '/basicMaster/OverTimeApproval',
-      element: <OverTimeApproval />
+      path: '/basicMaster/OTApproval',
+      element: <OTApproval />
     },
     {
       path: '/basicMaster/groupMaster',
@@ -258,8 +258,8 @@ const HrmsRoute = {
     //   element: <Score />
     // },
     {
-      path: '/companysetup/ScreenNames',
-      element: <ScreenNames />
+      path: '/companysetup/Screens',
+      element: <Screens />
     },
     {
       path: '/companysetup/ScreenAccess',
@@ -270,8 +270,8 @@ const HrmsRoute = {
       element: <LeaveAssigned />
     },
     {
-      path: '/employeeMaster/EmployeeDetails',
-      element: <EmployeeDetails />
+      path: '/employeeMaster/EmployeeProfile',
+      element: <EmployeeProfile />
     },
     {
       path: '/employeeMaster/EmployeeCodeGeneration',
@@ -290,8 +290,8 @@ const HrmsRoute = {
       element: <AttendanceApproval />
     },
     {
-      path: '/leaveMaster/LeaveType',
-      element: <LeaveType />
+      path: '/leaveMaster/LeaveTypes',
+      element: <LeaveTypes />
     },
     {
       path: '/leaveMaster/LeaveProcess',
@@ -326,12 +326,12 @@ const HrmsRoute = {
       element: <GroupSalaryStructure />
     },
     {
-      path: '/salaryMaster/SalaryProcess',
-      element: <SalaryProcess />
+      path: '/salaryMaster/PayrollProcess',
+      element: <PayrollProcess />
     },
     {
-      path: '/salaryMaster/SalaryApproval',
-      element: <SalaryApproval />
+      path: '/salaryMaster/PayrollApproval',
+      element: <PayrollApproval />
     },
     {
       path: '/salaryMaster/SalaryReport',
@@ -346,24 +346,24 @@ const HrmsRoute = {
       element: <LeaveRequest />
     },
     {
-      path: '/me/HolidayReport',
-      element: <HolidayReport />
+      path: '/me/Holiday',
+      element: <Holiday />
     },
     {
-      path: '/me/SwipeInSwipeOut',
-      element: <SwipeInSwipeOut />
+      path: '/me/CheckInOut',
+      element: <CheckInOut />
     },
     {
       path: '/me/TimeSheet',
       element: <TimeSheet />
     },
     {
-      path: '/me/CompoOff',
-      element: <CompoOff />
+      path: '/me/Comp_Off',
+      element: <Comp_Off />
     },
     {
-      path: '/me/WorkFromHome',
-      element: <WorkFromHome />
+      path: '/me/WFM',
+      element: <WFM />
     },
     {
       path: '/me/TravelRequest',
@@ -411,8 +411,8 @@ const HrmsRoute = {
       element: <AttendanceReport />
     },
     {
-      path: '/team/TodayAttendance',
-      element: <TodayAttendance />
+      path: '/team/DailyAttendance',
+      element: <DailyAttendance />
     },
     {
       path: '/team/EmployeeAttanceReport',
@@ -453,29 +453,29 @@ const HrmsRoute = {
       element: <AdditionalGoals />
     },
     {
-      path: '/Appraisal/PreGoals',
-      element: <PreGoals />
+      path: '/Appraisal/SetGoals',
+      element: <SetGoals />
     },
     {
-      path: '/Appraisal/PreGoalsApproval',
-      element: <PreGoalsApproval />
+      path: '/Appraisal/SetGoalsApproval',
+      element: <SetGoalsApproval />
     },
     {
-      path: '/Appraisal/SelfGoals',
-      element: <SelfGoals />
+      path: '/Appraisal/MyGoals',
+      element: <MyGoals />
     },
     {
-      path: '/Appraisal/Supervisor1_Input',
-      element: <Supervisor1_Input />
+      path: '/Appraisal/First_LevelSupervisorInput',
+      element: < First_LevelSupervisorInput/>
     },
     {
-      path: '/Appraisal/HR_Review',
-      element: <HR_Review />
+      path: '/Appraisal/HRFeedback',
+      element: <HRFeedback />
     },
-    {
-      path: '/Appraisal/HR_Review',
-      element: <HR_Review />
-    },
+    // {
+    //   path: '/Appraisal/HR_Review',
+    //   element: <HR_Review />
+    // },
     {
       path: '/Appraisal/performanceGoals',
       element: <PerformanceGoals />

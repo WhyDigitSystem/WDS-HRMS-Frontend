@@ -18,7 +18,7 @@ import emailjs from '@emailjs/browser';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material';
 import { message } from 'antd';
 
-const WorkFromHome = () => {
+const WFM = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
@@ -400,4 +400,4 @@ const WorkFromHome = () => {
   );
 };
 
-export default WorkFromHome;
+export default WFM;

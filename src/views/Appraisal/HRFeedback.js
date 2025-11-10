@@ -29,7 +29,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     />
   );
 });
-const HR_Review = () => {
+const HRFeedback= () => {
   // const paginationModel = { page: 0, pageSize: 5 };
   const Engagement = [{ value: 'Yes' }, { value: 'No' }];
   const Status = [{ value: 'Promoted' }, { value: 'Not Promoted' }];
@@ -450,4 +450,4 @@ const HR_Review = () => {
     </>
   );
 };
-export default HR_Review;
+export default HRFeedback;

@@ -12,7 +12,7 @@ const hasScreenAccess = (screenId) => {
 const assetManagementChildren = [
   hasScreenAccess('ASM') && {
     id: 'AssetManagement',
-    title: 'Asset',
+    title: 'Asset Management',
     type: 'item',
     url: '/AssetManagement/AssetManagement',
     icon: IconPackages

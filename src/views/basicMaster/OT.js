@@ -16,7 +16,7 @@ import { Select, MenuItem, InputLabel, FormControl, FormHelperText, IconButton, 
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 
-export const OverTimeMaster = () => {
+export const OT = () => {
   const [orgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName] = useState(localStorage.getItem('userName'));
   const [isLoading, setIsLoading] = useState(false);
@@ -493,4 +493,4 @@ export const OverTimeMaster = () => {
   );
 };
 
-export default OverTimeMaster;
+export default OT;

@@ -37,9 +37,9 @@ const adminChildren = [
   },
   hasScreenAccess('SN') && {
     id: 'screenNames',
-    title: 'Screen Names',
+    title: 'Screens',
     type: 'item',
-    url: '/companysetup/ScreenNames',
+    url: '/companysetup/Screens',
     icon: IconListDetails
   },
   hasScreenAccess('SCA') && {
@@ -67,7 +67,7 @@ const admin =
         children: [
           {
             id: 'admin',
-            title: 'User',
+            title: 'User Management',
             type: 'collapse',
             icon: IconShield,
             children: adminChildren

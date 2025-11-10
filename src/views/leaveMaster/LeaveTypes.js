@@ -21,7 +21,7 @@ import CommonListViewTable from 'views/basicMaster/CommonListViewTable';
 import { encryptPassword } from 'views/utilities/encryptPassword';
 import { Checkbox, FormHelperText, FormControlLabel, MenuItem, Autocomplete } from '@mui/material';
 
-const LeaveType = () => {
+const LeaveTypes = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
@@ -498,4 +498,4 @@ const LeaveType = () => {
   );
 };
 
-export default LeaveType;
+export default LeaveTypes;

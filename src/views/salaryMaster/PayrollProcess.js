@@ -1495,7 +1495,7 @@ const useDebounce = (value, delay) => {
   return debouncedValue;
 };
 
-const SalaryProcess = () => {
+const PayrollProcess = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
@@ -2968,4 +2968,4 @@ const SalaryProcess = () => {
   );
 };
 
-export default SalaryProcess;
+export default PayrollProcess;

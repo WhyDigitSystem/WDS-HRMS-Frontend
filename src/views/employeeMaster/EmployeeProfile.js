@@ -44,7 +44,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import DownloadIcon from '@mui/icons-material/Download';
 
-const EmployeeDetails = () => {
+const EmployeeProfile = () => {
   const [companyDetails, setCompanyDetails] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -2456,4 +2456,4 @@ const EmployeeDetails = () => {
   );
 };
 
-export default EmployeeDetails;
+export default EmployeeProfile;

@@ -34,7 +34,7 @@ const modalStyle = {
   width: 300
 };
 
-const SwipeInSwipeOut = () => {
+const CheckInOut = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userName] = useState(localStorage.getItem('userName'));
   const [empName, setEmpName] = useState(localStorage.getItem('employeeName'));
@@ -739,4 +739,4 @@ const SwipeInSwipeOut = () => {
   );
 };
 
-export default SwipeInSwipeOut;
+export default CheckInOut;

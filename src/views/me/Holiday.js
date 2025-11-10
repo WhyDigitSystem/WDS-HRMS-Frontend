@@ -18,7 +18,7 @@ import dayjs from 'dayjs';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-const HolidayReport = () => {
+const Holiday = () => {
   const [companyDetails, setCompanyDetails] = useState(null);
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [listViewData, setListViewData] = useState([]);
@@ -394,4 +394,4 @@ labelValuePairs.forEach((pair, idx) => {
   );
 };
 
-export default HolidayReport;
+export default Holiday;

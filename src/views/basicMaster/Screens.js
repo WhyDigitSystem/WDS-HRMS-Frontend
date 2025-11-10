@@ -13,7 +13,7 @@ import ActionButton from 'utils/ActionButton';
 import ToastComponent, { showToast } from 'utils/toast-component';
 import CommonListViewTable from '../basicMaster/CommonListViewTable';
 
-export const ScreenNames = () => {
+export const Screens = () => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [isLoading, setIsLoading] = useState(false);
@@ -241,4 +241,4 @@ export const ScreenNames = () => {
     </>
   );
 };
-export default ScreenNames;
+export default Screens;

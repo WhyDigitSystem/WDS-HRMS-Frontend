@@ -11,7 +11,7 @@ import ToastComponent, { showToast } from 'utils/toast-component';
 import CommonListViewTable from 'views/basicMaster/CommonListViewTable';
 import apiCalls from 'apicall';
 
-const PreGoals = () => {
+const SetGoals = () => {
   const [listViewData, setListViewData] = useState([]);
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
   const [createdBy] = useState(localStorage.getItem('userName'));
@@ -513,4 +513,4 @@ const PreGoals = () => {
   );
 };
 
-export default PreGoals;
+export default SetGoals;

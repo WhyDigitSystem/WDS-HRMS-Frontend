@@ -37,7 +37,7 @@ import 'jspdf-autotable';
 import DownloadIcon from '@mui/icons-material/Download';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
-const OverTimeApproval = () => {
+const OTApproval = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [reportData, setReportData] = useState([]);
   const [orgId] = useState(localStorage.getItem('orgId'));
@@ -584,4 +584,4 @@ const OverTimeApproval = () => {
   );
 };
 
-export default OverTimeApproval;
+export default OTApproval;

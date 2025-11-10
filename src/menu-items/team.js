@@ -46,9 +46,16 @@ const teamChildren = [
     id: 'holidayReport',
     title: 'Holiday',
     type: 'item',
-    url: '/me/HolidayReport',
+    url: '/me/Holiday',
     icon: IconBeach
   },
+  //   hasScreenAccess('HR') && {
+  //   id: 'holidays',
+  //   title: 'Holidays',
+  //   type: 'item',
+  //   url: '/leaveMaster/Holidays',
+  //   icon: IconBeach
+  // },
   hasScreenAccess('SR') && {
     id: 'SalaryReport',
     title: 'Salary',
@@ -58,9 +65,9 @@ const teamChildren = [
   },
   hasScreenAccess('OT') && {
     id: 'OverTimeApproval',
-    title: 'OverTime Approval',
+    title: 'OT Approval',
     type: 'item',
-    url: '/basicMaster/OverTimeApproval',
+    url: '/basicMaster/OTApproval',
     icon: IconIdBadge2
   },
   hasScreenAccess('ESIR') && {

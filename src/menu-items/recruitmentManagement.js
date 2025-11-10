@@ -12,7 +12,7 @@ const hasScreenAccess = (screenId) => {
 const recruitmentManagementChildren = [
   hasScreenAccess('ASM') && {
     id: 'RecruitmentManagement',
-    title: 'Recruitment',
+    title: 'Recruitment Management',
     type: 'item',
     url: '/RecruitmentManagement/RecruitmentManagement',
     icon: IconUserCheck

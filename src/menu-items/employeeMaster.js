@@ -22,37 +22,37 @@ const hasScreenAccess = (screenId) => {
 const employeeMasterChildren = [
   hasScreenAccess('ED') && {
     id: 'employeeDetails',
-    title: 'Employee Details',
+    title: 'Employee Profile',
     type: 'item',
-    url: '/employeeMaster/employeeDetails',
+    url: '/employeeMaster/employeeProfile',
     icon: IconUserSearch
   },
   hasScreenAccess('LT') && {
     id: 'leaveType',
-    title: 'Leave Type',
+    title: 'Leave Types',
     type: 'item',
-    url: '/leaveMaster/LeaveType',
+    url: '/leaveMaster/LeaveTypes',
     icon: IconBeach
   },
   hasScreenAccess('SP') && {
     id: 'salaryProcess',
-    title: 'Salary Process',
+    title: 'Payroll Process',
     type: 'item',
-    url: '/salaryMaster/SalaryProcess',
+    url: '/salaryMaster/PayrollProcess',
     icon: IconCalculator
   },
   hasScreenAccess('SAPP') && {
     id: 'salaryApproval',
-    title: 'Salary Approval',
+    title: 'Payroll Approval',
     type: 'item',
-    url: '/salaryMaster/SalaryApproval',
+    url: '/salaryMaster/PayrollApproval',
     icon: IconCalculator
   },
   hasScreenAccess('OT') && {
     id: 'overTime',
-    title: 'OverTime Approval',
+    title: 'OT Approval',
     type: 'item',
-    url: '/basicMaster/OverTime',
+    url: '/basicMaster/OTApproval',
     icon: IconIdBadge2
   },
   // hasScreenAccess('AD') && {

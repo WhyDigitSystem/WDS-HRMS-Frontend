@@ -17,7 +17,7 @@ import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
 import { ToastContainer } from 'react-toastify';
 
-const PreGoalsApproval = () => {
+const SetGoalsApproval = () => {
   const [listViewData, setListViewData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -117,7 +117,7 @@ const PreGoalsApproval = () => {
   return (
     <div style={{ padding: 20 }}>
       <ToastContainer />
-      <Typography variant="h6" gutterBottom>Pre Goals Approval</Typography>
+      <Typography variant="h6" gutterBottom>Set Goals Approval</Typography>
 
       {/* Status Legends */}
       <Box display="flex" alignItems="center" justifyContent="right" gap={2} mb={2}>
@@ -217,4 +217,4 @@ const PreGoalsApproval = () => {
   );
 };
 
-export default PreGoalsApproval;
+export default SetGoalsApproval;
