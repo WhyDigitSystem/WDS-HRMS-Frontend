@@ -128,6 +128,9 @@ const ExpenceManagement = Loadable(lazy(() => import('views/ExpenceManagement/Ex
 
 //Recruitment Management
 const RecruitmentManagement = Loadable(lazy(() => import('views/recruitmentManagement/RecruitmentManagement')));
+
+//Separation Management
+const EmployeeSeparationModule = Loadable(lazy(() => import('views/SeparationManagement/employeeSeparationModule')));
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
 const HrmsRoute = {
@@ -504,6 +507,10 @@ const HrmsRoute = {
     {
       path: '/RecruitmentManagement/RecruitmentManagement',
       element: <RecruitmentManagement />
+    },
+    {
+      path: '/SeparationManagement/SeparationManagement',
+      element: <EmployeeSeparationModule />
     },
   ]
 };

@@ -12,52 +12,84 @@ import {
     Autocomplete,
     CircularProgress,
     Alert,
+    IconButton,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import SendIcon from '@mui/icons-material/Send';
-import CommonListView from '../../../../utils/AssetCommonListViewTable';
+import CommonListView from '../../../utils/AssetCommonListViewTable';
 import apiCalls from 'apicall';
 
-const AllOffers = () => {
+const AllCasesSeparation = () => {
     const [status, setStatus] = useState('ALL');
     const [departmentList, setDepartmentList] = useState([]);
     const [search, setSearch] = useState('');
-    const [offers, setOffers] = useState([]);
+    const [separations, setSeparations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [orgId] = useState(localStorage.getItem('orgId'));
     const [branchCode] = useState(localStorage.getItem('branchCode'));
     const [formData, setFormData] = useState({
-        department: 'ALL', // code (short form)
-        departmentName: 'All' // full name
+        department: 'ALL',
+        departmentName: 'All',
+        separationType: 'ALL'
     });
 
-    // Pagination state - same as AssetMaster
+    // Pagination state - EXACTLY like Candidates component
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
 
     const statusOptions = [
         { value: 'ALL', label: 'All Status' },
-        { value: 'APPROVED', label: 'Approved' },
-        { value: 'PENDING', label: 'Pending' },
-        { value: 'REJECTED', label: 'Rejected' }
+        { value: 'ACTIVE', label: 'Active' },
+        { value: 'COMPLETED', label: 'Completed' },
+        { value: 'CANCELLED', label: 'Cancelled' }
     ];
 
+    const separationTypes = [
+        { value: 'ALL', label: 'All Types' },
+        { value: 'Resignation', label: 'Resignation' },
+        { value: 'Termination', label: 'Termination' },
+        { value: 'Retirement', label: 'Retirement' },
+        { value: 'Contract End', label: 'Contract End' },
+        { value: 'Voluntary', label: 'Voluntary' },
+        { value: 'Other', label: 'Other' }
+    ];
+
+    // Calculate filtered data - REMOVE manual pagination slicing
+    const filteredSeparations = separations.filter(separation => {
+        if (!search) return true;
+
+        const searchTerm = search.toLowerCase();
+        return (
+            separation.employeeName?.toLowerCase().includes(searchTerm) ||
+            separation.employeeCode?.toLowerCase().includes(searchTerm) ||
+            separation.position?.toLowerCase().includes(searchTerm) ||
+            separation.department?.toLowerCase().includes(searchTerm)
+        );
+    });
+
+    // Pagination configuration - EXACTLY like Candidates component
     const paginationConfig = {
         currentPage,
-        totalPages: Math.ceil(offers.length / itemsPerPage),
+        totalPages: Math.ceil(filteredSeparations.length / itemsPerPage), // Use filteredSeparations length
         itemsPerPage,
         onPageChange: (event, value) => setCurrentPage(value)
     };
+
+    // REMOVE manual pagination calculation - CommonListView handles this internally
+    // const indexOfLastItem = currentPage * itemsPerPage;
+    // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    // const currentItems = filteredSeparations.slice(indexOfFirstItem, indexOfLastItem);
 
     useEffect(() => {
         getAllDepartment();
     }, [orgId, branchCode]);
 
     useEffect(() => {
-        getAllOffers();
-    }, [status, formData.department, orgId, branchCode]);
+        getAllSeparations();
+    }, [status, formData.department, formData.separationType, orgId, branchCode]);
 
     const getAllDepartment = async () => {
         try {
@@ -88,29 +120,29 @@ const AllOffers = () => {
         }
     };
 
-    const getAllOffers = async () => {
+    const getAllSeparations = async () => {
         if (!orgId || !branchCode) return;
 
         setLoading(true);
         setError('');
         try {
-            const response = await apiCalls(
-                'get',
-                `recruitmentmanagement/getCreateOfferByOrgIdAndDepartment?branchCode=${branchCode}&department=${formData.departmentName}&orgId=${orgId}&status=${status}`
-            );
+            // Build API URL with all filters - use departmentName for API call
+            const apiUrl = `employeseparation/getInitiateSeparationByDepartment?branchCode=${branchCode}&department=${formData.department === 'ALL' ? 'ALL' : formData.departmentName}&orgId=${orgId}&type=${formData.separationType === 'ALL' ? status : formData.separationType}`;
+
+            const response = await apiCalls('get', apiUrl);
 
             if (response.status === true) {
-                const offersData = response.paramObjectsMap.createOfferVO || [];
-                setOffers(offersData);
-                setCurrentPage(1); // Reset to first page when data loads
+                const separationsData = response.paramObjectsMap.initiateSeparationVO || [];
+                setSeparations(separationsData);
+                setCurrentPage(1); // Reset to first page when data loads - EXACTLY like Candidates
             } else {
-                setError('Failed to load offers');
-                setOffers([]);
+                setError('Failed to load separation cases');
+                setSeparations([]);
             }
         } catch (error) {
-            console.error('Error fetching offers:', error);
-            setError('Error loading offers data');
-            setOffers([]);
+            console.error('Error fetching separations:', error);
+            setError('Error loading separation data');
+            setSeparations([]);
         } finally {
             setLoading(false);
         }
@@ -150,47 +182,39 @@ const AllOffers = () => {
         }
     };
 
-    // Calculate total CTC from compensation details
-    const calculateTotalCTC = (compensationDetails) => {
-        if (!compensationDetails || !Array.isArray(compensationDetails)) return '₹0';
+    // Calculate clearance progress
+    const calculateClearanceProgress = (clearanceItems) => {
+        if (!clearanceItems || !Array.isArray(clearanceItems)) return '0/0';
 
-        const total = compensationDetails.reduce((sum, comp) => {
-            return sum + (parseFloat(comp.amount) || 0);
-        }, 0);
+        const totalItems = clearanceItems.length;
+        const completedItems = clearanceItems.filter(item =>
+            item.status === 'COMPLETED' || item.completed
+        ).length;
 
-        return `₹${total.toLocaleString('en-IN')}`;
+        return `${completedItems}/${totalItems}`;
     };
 
-    const getStatusColor = (status) => {
+    const getStatusColor = (status, cancelFlag) => {
+        if (cancelFlag === 'T') return 'error';
+
         switch (status?.toUpperCase()) {
-            case 'APPROVED':
-                return 'success';
+            case 'ACTIVE':
             case 'PENDING':
                 return 'warning';
-            case 'REJECTED':
+            case 'COMPLETED':
+                return 'success';
+            case 'CANCELLED':
                 return 'error';
             default:
                 return 'default';
         }
     };
 
-    // Filter offers based on search term
-    const filteredOffers = offers.filter(offer => {
-        if (!search) return true;
-
-        const searchTerm = search.toLowerCase();
-        return (
-            offer.candidateName?.toLowerCase().includes(searchTerm) ||
-            offer.position?.toLowerCase().includes(searchTerm) ||
-            offer.department?.toLowerCase().includes(searchTerm)
-        );
-    });
-
     // Define columns for the list view
     const columns = [
         {
-            key: 'candidateName',
-            label: 'Candidate Name',
+            key: 'employeeName',
+            label: 'Employee Name',
             width: '200px',
             render: (value, row) => (
                 <Box>
@@ -198,7 +222,7 @@ const AllOffers = () => {
                         {value || 'N/A'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#64748b' }}>
-                        {row.position || 'No position'}
+                        {row.employeeCode || 'No code'}
                     </Typography>
                 </Box>
             )
@@ -221,13 +245,23 @@ const AllOffers = () => {
             )
         },
         {
-            key: 'approveStatus',
-            label: 'Status',
-            width: '100px',
+            key: 'position',
+            label: 'Position',
+            width: '150px',
             render: (value) => (
+                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
+                    {value || 'N/A'}
+                </Typography>
+            )
+        },
+        {
+            key: 'separationType',
+            label: 'Separation Type',
+            width: '130px',
+            render: (value, row) => (
                 <Chip
                     label={value || 'N/A'}
-                    color={getStatusColor(value)}
+                    color={getStatusColor(value, row.cancel)}
                     size="small"
                     sx={{
                         fontWeight: 600,
@@ -237,9 +271,9 @@ const AllOffers = () => {
             )
         },
         {
-            key: 'joiningDate',
-            label: 'Joining Date',
-            width: '120px',
+            key: 'resignation',
+            label: 'Resignation Date',
+            width: '130px',
             render: (value) => (
                 <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
                     {formatDate(value)}
@@ -247,48 +281,81 @@ const AllOffers = () => {
             )
         },
         {
-            key: 'workLocation',
-            label: 'Location',
-            width: '120px',
-            render: (value) => (
-                <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500 }}>
-                    {value || 'N/A'}
-                </Typography>
-            )
-        },
-        {
-            key: 'compensationDetailsVO',
-            label: 'Total CTC',
+            key: 'lastWorkingDate',
+            label: 'Last Working Date',
             width: '130px',
             render: (value) => (
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#059669' }}>
-                    {calculateTotalCTC(value)}
+                <Typography variant="body2" sx={{ fontWeight: 500, color: '#dc2626' }}>
+                    {formatDate(value)}
                 </Typography>
             )
         },
         {
-            key: 'templateType',
-            label: 'Template',
+            key: 'rehireEligible',
+            label: 'Rehire Eligible',
             width: '100px',
             render: (value) => (
                 <Chip
-                    label={value || 'Standard'}
+                    label={value || 'No'}
                     size="small"
+                    color={value === 'Yes' ? 'success' : 'default'}
                     variant="outlined"
-                    color="primary"
                     sx={{ fontWeight: 500 }}
                 />
             )
         },
+
+        // ✅ NEW STATUS COLUMN
         {
-            key: 'commonDate',
-            label: 'Last Updated',
+            key: 'status',
+            label: 'Status',
             width: '120px',
-            render: (value) => (
-                <Typography variant="caption" sx={{ color: '#64748b' }}>
-                    {value?.modifiedon || 'N/A'}
-                </Typography>
-            )
+            render: (value) => {
+                let color = 'default';
+                let bg = '#f1f5f9';
+                let textColor = '#334155';
+
+                switch (value?.toLowerCase()) {
+                    case 'approved':
+                        color = 'success';
+                        bg = '#dcfce7';
+                        textColor = '#166534';
+                        break;
+                    case 'pending':
+                        color = 'warning';
+                        bg = '#fef9c3';
+                        textColor = '#854d0e';
+                        break;
+                    case 'rejected':
+                        color = 'error';
+                        bg = '#fee2e2';
+                        textColor = '#991b1b';
+                        break;
+                    case 'cancelled':
+                        color = 'default';
+                        bg = '#e2e8f0';
+                        textColor = '#475569';
+                        break;
+                    default:
+                        color = 'default';
+                        bg = '#f1f5f9';
+                        textColor = '#334155';
+                }
+
+                return (
+                    <Chip
+                        label={value || 'N/A'}
+                        size="small"
+                        sx={{
+                            backgroundColor: bg,
+                            color: textColor,
+                            fontWeight: 600,
+                            borderRadius: 1,
+                            textTransform: 'capitalize'
+                        }}
+                    />
+                );
+            }
         }
     ];
 
@@ -296,34 +363,29 @@ const AllOffers = () => {
     const actions = [
         {
             icon: <RemoveRedEyeIcon fontSize="small" />,
-            tooltip: 'View Offer',
+            tooltip: 'View Separation Details',
             color: 'primary',
-            onClick: (row) => console.log('View offer:', row.id)
-        },
-        {
-            icon: <SendIcon fontSize="small" />,
-            tooltip: 'Send Offer',
-            color: 'warning',
-            onClick: (row) => console.log('Send offer:', row.id)
+            onClick: (row) => console.log('View separation:', row.id)
         },
     ];
 
-    const handleInputChange = (field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
-    const handleClearFilters = () => {
+    const handleClearAllFilters = () => {
         setStatus('ALL');
         setSearch('');
-        setFormData(prev => ({
-            ...prev,
-            department: 'ALL'
-        }));
+        setFormData({
+            department: 'ALL',
+            departmentName: 'All',
+            separationType: 'ALL'
+        });
         setCurrentPage(1); // Reset to first page when clearing filters
     };
+
+    // Check if any filter is active
+    const isAnyFilterActive =
+        status !== 'ALL' ||
+        formData.department !== 'ALL' ||
+        formData.separationType !== 'ALL' ||
+        search !== '';
 
     return (
         <Box sx={{ p: 3 }}>
@@ -341,7 +403,10 @@ const AllOffers = () => {
                         label="Status"
                         size="small"
                         value={status}
-                        onChange={(e) => setStatus(e.target.value)}
+                        onChange={(e) => {
+                            setStatus(e.target.value);
+                            setCurrentPage(1); // Reset to first page when filter changes
+                        }}
                     >
                         {statusOptions.map((opt) => (
                             <MenuItem key={opt.value} value={opt.value}>
@@ -364,10 +429,10 @@ const AllOffers = () => {
                         onChange={(event, newValue) => {
                             setFormData((prev) => ({
                                 ...prev,
-                                department: newValue ? newValue.value : 'ALL', // code
-                                departmentName: newValue ? newValue.label : 'All' // full name
+                                department: newValue ? newValue.value : 'ALL',
+                                departmentName: newValue ? newValue.label : 'All'
                             }));
-                            setCurrentPage(1); // Reset to first page when changing department
+                            setCurrentPage(1); // Reset to first page when filter changes
                         }}
                         renderInput={(params) => (
                             <TextField
@@ -384,45 +449,71 @@ const AllOffers = () => {
                     />
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={3}>
+                    <Autocomplete
+                        options={separationTypes}
+                        getOptionLabel={(option) => option.label}
+                        value={separationTypes.find(opt => opt.value === formData.separationType) || separationTypes[0]}
+                        onChange={(event, newValue) => {
+                            setFormData(prev => ({
+                                ...prev,
+                                separationType: newValue ? newValue.value : 'ALL'
+                            }));
+                            setCurrentPage(1); // Reset to first page when filter changes
+                        }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Separation Type"
+                                size="small"
+                                sx={{
+                                    '& .MuiOutlinedInput-root': { borderRadius: 1, height: 40 },
+                                    '& .MuiInputLabel-root': { fontSize: '0.875rem' }
+                                }}
+                            />
+                        )}
+                    />
+                </Grid>
+
+                <Grid item xs={12} sm={3}>
                     <TextField
                         fullWidth
                         size="small"
                         label="Search"
-                        placeholder="Search by name, position or department"
+                        placeholder="Search by name, code, position or department"
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => {
+                            setSearch(e.target.value);
+                            setCurrentPage(1); // Reset to first page when search changes
+                        }}
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
                                     <SearchIcon color="action" />
                                 </InputAdornment>
                             ),
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    {isAnyFilterActive && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={handleClearAllFilters}
+                                            edge="end"
+                                            sx={{ mr: -0.5 }}
+                                        >
+                                            <ClearIcon fontSize="small" color="action" />
+                                        </IconButton>
+                                    )}
+                                </InputAdornment>
+                            ),
+                        }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                                backgroundColor: '#fff',
+                            },
                         }}
                     />
-                </Grid>
-
-                <Grid item xs={12} sm={2}>
-                    <Button
-                        variant="outlined"
-                        color="inherit"
-                        fullWidth
-                        sx={{
-                            backgroundColor: '#f8fafc',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            borderRadius: 2,
-                            py: 1,
-                            borderColor: '#e2e8f0',
-                            '&:hover': {
-                                backgroundColor: '#f1f5f9',
-                                borderColor: '#cbd5e1'
-                            }
-                        }}
-                        onClick={handleClearFilters}
-                    >
-                        Clear Filters
-                    </Button>
                 </Grid>
             </Grid>
 
@@ -443,16 +534,14 @@ const AllOffers = () => {
             {/* ---------- List View Section ---------- */}
             {!loading && (
                 <CommonListView
-                    data={filteredOffers} // Full array - CommonListView handles pagination
+                    data={filteredSeparations} // Pass FULL filtered data - CommonListView handles pagination internally
                     columns={columns}
                     actions={actions}
-                    pagination={paginationConfig} // Same pagination config as AssetMaster
+                    pagination={paginationConfig} // Pass pagination config
                     onRowClick={(row) => console.log('Row clicked:', row)}
-                    emptyMessage="No offers found"
+                    emptyMessage="No separation cases found"
                     sx={{
                         border: '1px solid #e2e8f0',
-                        ml: 2,
-                        mr: -2,
                         borderRadius: 2,
                         '& .MuiTableCell-root': {
                             borderColor: '#f1f5f9'
@@ -471,7 +560,7 @@ const AllOffers = () => {
             {!loading && (
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
-                        Total {filteredOffers.length} offers • Use actions to manage offers
+                        Total {filteredSeparations.length} separation cases • Use actions to manage separations
                     </Typography>
                 </Box>
             )}
@@ -479,4 +568,4 @@ const AllOffers = () => {
     );
 };
 
-export default AllOffers;
+export default AllCasesSeparation;
