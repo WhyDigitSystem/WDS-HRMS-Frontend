@@ -397,26 +397,6 @@ const AllCasesSeparation = () => {
                 sx={{ mb: 3, p: 2 }}
             >
                 <Grid item xs={12} sm={3}>
-                    <TextField
-                        select
-                        fullWidth
-                        label="Status"
-                        size="small"
-                        value={status}
-                        onChange={(e) => {
-                            setStatus(e.target.value);
-                            setCurrentPage(1); // Reset to first page when filter changes
-                        }}
-                    >
-                        {statusOptions.map((opt) => (
-                            <MenuItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                </Grid>
-
-                <Grid item xs={12} sm={3}>
                     <Autocomplete
                         options={departmentList}
                         size="small"

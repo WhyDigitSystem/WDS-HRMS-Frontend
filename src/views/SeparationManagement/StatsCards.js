@@ -5,7 +5,7 @@ import HourglassBottomIcon from '@mui/icons-material/HourglassBottom';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import apiCalls from 'apicall';
 
-const StatsCards = () => {
+const StatsCards = ({ refreshTrigger }) => {
   const [counts, setCounts] = useState({
     totalCount: 0,
     pendingCount: 0,
@@ -43,7 +43,7 @@ const StatsCards = () => {
 
   useEffect(() => {
     getSeparationCounts();
-  }, []);
+  }, [refreshTrigger]);
 
   // 🧩 Card Config
   const stats = [

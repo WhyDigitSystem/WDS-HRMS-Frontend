@@ -14,7 +14,7 @@ import {
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import apiCalls from 'apicall';
 
-const InitiateSeparationForm = () => {
+const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [formData, setFormData] = useState({
         employeeId: '',
         employeeName: '',
@@ -213,6 +213,11 @@ const InitiateSeparationForm = () => {
 
             if (response.status === true) {
                 showSnackbar('Separation process initiated successfully!', 'success');
+
+                if (onSeparationCreated) {
+                    onSeparationCreated();
+                }
+
                 // Reset form after successful submission
                 setFormData({
                     employeeId: '',

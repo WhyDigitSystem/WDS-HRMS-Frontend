@@ -81,7 +81,7 @@ const CheckInOut = () => {
 
   useEffect(() => {
     getAllSwipeInandOut(selectedMonth);
-  }, []);
+  }, [selectedMonth]); // ✅ Added selectedMonth as dependency
 
   const getAllSwipeInandOut = async (monthIndex = selectedMonth) => {
     setLoading(true);
@@ -94,7 +94,12 @@ const CheckInOut = () => {
       );
 
       if (result?.paramObjectsMap?.Attendance) {
-        const transformed = result.paramObjectsMap.Attendance.map((item) => ({
+        // ✅ Filter out Holiday and WeekOff records
+        const filteredAttendance = result.paramObjectsMap.Attendance.filter(
+          item => item.attendancestatus !== "Holiday" && item.attendancestatus !== "WeekOff"
+        );
+
+        const transformed = filteredAttendance.map((item) => ({
           ...item,
           date: formatDate(item.entrydate),
           day: getDay(item.entrydate),
@@ -108,9 +113,14 @@ const CheckInOut = () => {
 
         setListViewData(sorted);
         setFilteredData(sorted);
+      } else {
+        // If no data or empty response, set empty arrays
+        setListViewData([]);
+        setFilteredData([]);
       }
     } catch (error) {
       console.error('Error:', error);
+      showToast('error', 'Failed to fetch attendance data');
     } finally {
       setLoading(false);
     }
@@ -167,21 +177,6 @@ const CheckInOut = () => {
     setPage(0);
   };
 
-  // const handleCheckInClick = (row) => {
-  //   const now = new Date().toTimeString().slice(0, 5);
-  //   setSelectedRow(row);
-  //   setCheckInTime(row.checkInTime !== '00:00' ? row.checkInTime : now);
-  //   setCheckOutTime(row.checkOutTime || '00:00');
-  //   setCheckInModalOpen(true);
-  // };
-
-  // const handleCheckOutClick = (row) => {
-  //   const now = new Date().toTimeString().slice(0, 5);
-  //   setSelectedRow(row);
-  //   setCheckOutTime(row.checkOutTime !== '00:00' ? row.checkOutTime : now);
-  //   setCheckOutModalOpen(true);
-  // };
-
   const handleCheckInClick = (row) => {
     const now = new Date().toTimeString().slice(0, 5);
     setSelectedRow(row);
@@ -220,7 +215,6 @@ const CheckInOut = () => {
       notifyCode: reportingPersonCode,
       notifyEmail: reportingPersonMail,
       orgId: orgId
-      // reportingPersonMail: reportingPersonMail
     };
 
     setIsLoading(true);
@@ -229,20 +223,14 @@ const CheckInOut = () => {
       const response = await apiCalls('put', '/basicmaster/createRequestCheckOut', payload);
 
       if (response.status === true) {
-        // const newId = response.paramObjectsMap.checkInVO?.id;
-        // if (newId) {
-        //   payload.id = newId;
-        // }
-        // showToast('success', 'Check-out time submitted successfully');
-        // await sendEmailNotification(payload); // ✅ payload contains notify fields
         const checkInVO = response.paramObjectsMap.checkInVO || {};
         showToast('success', 'Check-out time submitted successfully');
 
         await sendEmailNotification({
           ...payload,
-          ...checkInVO // ✅ Merge server data to include checkInDate and others
-          // email: reportingPersonMail // Ensure email is set
+          ...checkInVO
         });
+        
         const updatedData = listViewData.map((row) => (row.date === selectedRow.date ? { ...row, checkOutTime } : row));
         setListViewData(updatedData);
         setFilteredData(
@@ -269,16 +257,16 @@ const CheckInOut = () => {
 
   const sendEmailNotification = async (row) => {
     try {
-      const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage'; // 🔁 Replace with real backend URL
+      const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage';
       const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.empCode}&actionBy=${empName}&orgId=${orgId}&notifyCode=${reportingPersonCode}&notify=${reportingPerson}&screenName=${row.screenName}&checkInDate=${row.checkInDate}`;
       const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.empCode}&actionBy=${empName}&orgId=${orgId}&notifyCode=${reportingPersonCode}&notify=${reportingPerson}&screenName=${row.screenName}&checkInDate=${row.checkInDate}`;
 
       const emailParams = {
         date: row.checkInDate,
         checkInDate: row.checkInDate,
-        name: row.notify, // ensure 'notify' is part of `selectedRow`
+        name: row.notify,
         from_name: empName,
-        entryTime: row.entryTime, // should be `entryTime` not checkOutTime
+        entryTime: row.entryTime,
         email: reportingPersonMail,
         checkOut_id: row.id,
         approve_link: approveLink,
@@ -307,7 +295,6 @@ const CheckInOut = () => {
   const handleCheckInSave = async () => {
     if (!selectedRow) return;
 
-    // Convert from "dd/mm/yyyy" to "yyyy-mm-dd"
     let formattedDate = '';
     if (selectedRow.date.includes('/')) {
       const [day, month, year] = selectedRow.date.split('/');
@@ -344,7 +331,7 @@ const CheckInOut = () => {
 
         await sendEmailNotificationForCheckIn({
           ...payload,
-          ...checkInOutVO // ✅ now contains checkInDate, id etc.
+          ...checkInOutVO
         });
 
         const updatedData = listViewData.map((row) => (row.date === selectedRow.date ? { ...row, checkInTime, checkOutTime } : row));
@@ -374,7 +361,7 @@ const CheckInOut = () => {
 
   const sendEmailNotificationForCheckIn = async (row) => {
     try {
-      const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage'; // 🔁 Replace with real backend URL
+      const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage';
       const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.empCode}&actionBy=${empName}&orgId=${orgId}&notifyCode=${reportingPersonCode}&notify=${reportingPerson}&screenName=${row.screenName}&checkOutDate=${row.checkInDate}`;
       const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.empCode}&actionBy=${empName}&orgId=${orgId}&notifyCode=${reportingPersonCode}&notify=${reportingPerson}&screenName=${row.screenName}&checkOutDate=${row.checkInDate}`;
 
@@ -412,7 +399,7 @@ const CheckInOut = () => {
   const handleMonthChange = (e) => {
     const selected = e.target.value;
     setSelectedMonth(selected);
-    getAllSwipeInandOut(selected); // Trigger fetch with selected month
+    getAllSwipeInandOut(selected);
   };
 
   return (
@@ -447,119 +434,6 @@ const CheckInOut = () => {
           </Box>
         </Box>
       </Box>
-
-      {/* <TableContainer component={Paper}>
-        <Table>
-          <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-            <TableRow>
-              <TableCell>
-                <strong>Date</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Day</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Check-In</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Check-Out</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Gross Hours</strong>
-              </TableCell>
-              <TableCell>
-                <strong>Effective Hours</strong>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6}>
-                  <Box display="flex" justifyContent="center" alignItems="center" minHeight="150px" width="100%">
-                    <CircularProgress />
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                <TableRow key={row.id} hover>
-                  <TableCell>{row.date}</TableCell>
-                  <TableCell>{row.day}</TableCell>
-                  <TableCell
-                    onClick={() => {
-                      if (row.checkInTime === '00:00') {
-                        handleCheckInClick(row);
-                      }
-                    }}
-                    style={{
-                      color:
-                        row.checkInTime === '00:00'
-                          ? 'black'
-                          : row.approvalstatus === 'APPROVED'
-                            ? '#4F7942'
-                            : row.approvalstatus === 'PENDING'
-                              ? '#FFAC1C'
-                              : 'black',
-                      cursor: row.checkInTime === '00:00' ? 'pointer' : 'default',
-                      textDecoration: row.checkInTime === '00:00' ? 'underline' : 'none',
-                      fontWeight:
-                        row.checkInTime === '00:00' || row.approvalstatus === 'APPROVED' || row.approvalstatus === 'PENDING'
-                          ? 'bold'
-                          : 'normal'
-                    }}
-                  >
-                    {row.checkInTime}
-                  </TableCell>
-
-                  <TableCell
-                    onClick={() => {
-                      if (row.checkOutTime === '00:00') {
-                        handleCheckOutClick(row);
-                      }
-                    }}
-                    style={{
-                      color:
-                        row.checkOutTime === '00:00'
-                          ? 'black'
-                          : row.approvalstatus === 'APPROVED'
-                            ? '#4F7942'
-                            : row.approvalstatus === 'PENDING'
-                              ? '#FFAC1C'
-                              : 'black',
-                      cursor: row.checkOutTime === '00:00' ? 'pointer' : 'default',
-                      textDecoration: row.checkOutTime === '00:00' ? 'underline' : 'none',
-                      fontWeight:
-                        row.checkOutTime === '00:00' || row.approvalstatus === 'APPROVED' || row.approvalstatus === 'PENDING'
-                          ? 'bold'
-                          : 'normal'
-                    }}
-                  >
-                    {row.checkOutTime}
-                  </TableCell>
-
-                  <TableCell>{row.totalWorkingHours}</TableCell>
-                  <TableCell>{row.effectiveFrom}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) => {
-            setRowsPerPage(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-        />
-      </TableContainer> */}
 
       <TableContainer component={Paper}>
         <Table>
@@ -599,13 +473,23 @@ const CheckInOut = () => {
                   </Box>
                 </TableCell>
               </TableRow>
+            ) : filteredData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <Box display="flex" justifyContent="center" alignItems="center" minHeight="150px" width="100%">
+                    <Typography variant="h6" color="textSecondary">
+                      No attendance records found for the selected month
+                    </Typography>
+                  </Box>
+                </TableCell>
+              </TableRow>
             ) : (
               filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
                 <TableRow key={row.id} hover>
                   <TableCell>{row.date}</TableCell>
                   <TableCell>{row.day}</TableCell>
 
-                  {/* ✅ Check-In Cell */}
+                  {/* Check-In Cell */}
                   <TableCell
                     onClick={() => {
                       if (row.checkInTime === '00:00') {
@@ -632,7 +516,7 @@ const CheckInOut = () => {
                     {row.checkInTime === '00:00' ? 'Missing' : row.checkInTime}
                   </TableCell>
 
-                  {/* ✅ Check-Out Cell */}
+                  {/* Check-Out Cell */}
                   <TableCell
                     onClick={() => {
                       if (row.checkOutTime === '00:00') {

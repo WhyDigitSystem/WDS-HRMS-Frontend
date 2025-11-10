@@ -152,7 +152,7 @@ const ClearanceManagement = () => {
         return assignments[department] || 'Admin';
     };
 
-    const saveClearanceStatus = async () => {
+    const handleSave = async () => {
         if (!selectedEmployee) {
             showToast('error', 'Please select an employee first');
             return;
@@ -185,6 +185,7 @@ const ClearanceManagement = () => {
                 noticeDate: selectedEmployee.originalData?.noticeDate || 0,
                 orgId: parseInt(orgId),
                 position: selectedEmployee.position,
+                status: 'PENDING',
                 reasonCategory: selectedEmployee.originalData?.reasonCategory || "",
                 rehireEligible: selectedEmployee.originalData?.rehireEligible || "Yes",
                 reportingPerson: selectedEmployee.reportingManager,
@@ -417,7 +418,7 @@ const ClearanceManagement = () => {
                                     variant="contained"
                                     size="small"
                                     startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
-                                    onClick={saveClearanceStatus}
+                                    onClick={handleSave}
                                     disabled={saving || clearanceItems.length === 0}
                                     sx={{
                                         backgroundColor: '#10b981',

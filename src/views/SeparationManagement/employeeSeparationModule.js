@@ -31,16 +31,21 @@ const TabPanel = ({ children, value, index, ...other }) => (
 
 const EmployeeSeparationModule = () => {
     const [currentTab, setCurrentTab] = useState(0);
+    const [refreshStats, setRefreshStats] = useState(0);
 
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
+    };
+
+    const handleSeparationCreated = () => {
+        setRefreshStats(prev => prev + 1);
     };
 
     const tabs = [
         {
             label: 'Initiate Separation',
             icon: <InitiateSeparationIcon sx={{ color: '#ef4444' }} />,
-            component: InitiateSeparationForm
+            component: () => <InitiateSeparationForm onSeparationCreated={handleSeparationCreated} />
         },
         {
             label: 'All Cases',
@@ -77,7 +82,7 @@ const EmployeeSeparationModule = () => {
             }}
         >
             {/* Stats Cards */}
-            <StatsCards />
+            <StatsCards refreshTrigger={refreshStats} />
 
             {/* Main Tabs Section */}
             <Paper
