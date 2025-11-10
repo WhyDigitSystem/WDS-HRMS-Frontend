@@ -73,9 +73,9 @@ const meChildren = [
   },
   hasScreenAccess('WFH') && {
     id: 'WorkFromHome',
-    title: 'WFM',
+    title: 'WFH',
     type: 'item',
-    url: '/me/WFM',
+    url: '/me/WFH',
     icon: icons.IconDeviceLaptop
   },
   hasScreenAccess('TS') && {
