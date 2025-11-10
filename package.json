@@ -66,6 +66,7 @@
     "react-bootstrap": "^2.10.2",
     "react-calendar": "^5.1.0",
     "react-confetti": "^6.2.2",
+    "react-countup": "^6.5.3",
     "react-date-range": "^2.0.1",
     "react-datepicker": "^7.6.0",
     "react-device-detect": "^2.2.3",
