@@ -63,13 +63,13 @@ const teamChildren = [
     url: '/salaryMaster/SalaryReport',
     icon: IconChartBar
   },
-  hasScreenAccess('OT') && {
-    id: 'OverTimeApproval',
-    title: 'OT Approval',
-    type: 'item',
-    url: '/basicMaster/OTApproval',
-    icon: IconIdBadge2
-  },
+  // hasScreenAccess('OT') && {
+  //   id: 'OverTimeApproval',
+  //   title: 'OT Approval',
+  //   type: 'item',
+  //   url: '/basicMaster/OTApproval',
+  //   icon: IconIdBadge2
+  // },
   hasScreenAccess('ESIR') && {
     id: 'esi-report',
     title: 'ESI',
