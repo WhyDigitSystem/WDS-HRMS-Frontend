@@ -195,13 +195,20 @@ const ATS = () => {
                 )}
               />
 
-             <Controller
-       name="resumeFile"
+    <Controller
+  name="resumeFile"
   control={control}
   rules={{ required: "Resume File is required" }}
   render={({ field, fieldState: { error } }) => (
     <Box>
       {/* Hidden file input */}
+        <Typography
+        variant="body1"
+        color={error ? "error" : "text.primary"}
+        sx={{ mb: 1 }}
+      >
+        Resume File *
+      </Typography>
       <input
         type="file"
         ref={fileInputRef}
@@ -296,7 +303,7 @@ const ATS = () => {
                 color="primary"
                 fullWidth
                 type="submit"
-                sx={{ mt: 4.5, textTransform: "none", py: 1.5, borderRadius: 2 }}
+                sx={{ mt: 2.5, textTransform: "none", py: 1.5, borderRadius: 2 }}
               >
                 Analyze Resume & Calculate Score
               </Button>
