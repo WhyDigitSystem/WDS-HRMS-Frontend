@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Box,
     Paper,
-    Checkbox,
+    FormControl,
     FormControlLabel,
     Typography,
     Button,
@@ -32,6 +32,9 @@ import {
     Stack,
     Avatar
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import {
     Add,
     Delete,
@@ -271,7 +274,7 @@ const TravelRequest = () => {
             departureDate: formData.departureDate,
             employeeCode: employeeCode,
             employeeName: employeeName,
-             department: department,
+            department: department,
             estimatedCost: formData.estimatedCost,
             from: formData.from,
             orgId: orgId,
@@ -357,6 +360,10 @@ const TravelRequest = () => {
             case 'REJECTED': return 'error';
             default: return 'info';
         }
+    };
+    const handleDateChange = (field, date) => {
+        const formattedDate = dayjs(date).format('YYYY-MM-DD') || null;
+        setFormData((prevData) => ({ ...prevData, [field]: formattedDate }));
     };
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -485,6 +492,35 @@ const TravelRequest = () => {
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>
+                                        <FormControl fullWidth variant="filled" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Departure Date"
+                                                    value={formData.departureDate ? dayjs(formData.departureDate, 'YYYY-MM-DD') : null}
+                                                    onChange={(date) => handleDateChange('departureDate', date)}
+                                                    slotProps={{
+                                                        textField: { size: 'small', clearable: true }
+                                                    }}
+                                                    format="DD-MM-YYYY"
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <FormControl fullWidth variant="filled" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Return Date"
+                                                    value={formData.returnDate ? dayjs(formData.returnDate, 'YYYY-MM-DD') : null}
+                                                    onChange={(date) => handleDateChange('returnDate', date)}
+                                                    slotProps={{
+                                                        textField: { size: 'small', clearable: true}
+                                                    }}
+                                                    format="DD-MM-YYYY"
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl></Grid>
+                                    {/* <Grid item xs={12} sm={3}>
                                         <TextField
                                             fullWidth
                                             label="Departure Date"
@@ -509,7 +545,7 @@ const TravelRequest = () => {
                                             size="small"
                                             disabled={isLoading}
                                         />
-                                    </Grid>
+                                    </Grid> */}
                                     <Grid item xs={12} sm={3}>
                                         <Autocomplete
                                             options={transportModeList}

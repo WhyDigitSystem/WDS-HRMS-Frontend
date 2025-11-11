@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import dayjs from "dayjs";
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import {
     Box,
     Autocomplete,
     Paper,
-    Checkbox,
+    FormControl,
     FormControlLabel,
     Typography,
     Button,
@@ -103,22 +106,35 @@ const ExpenceTracking = () => {
         try {
             const currencyData = await getAllActiveCurrency(orgId);
 
-            // ✅ Remove duplicates (by currency + country)
+            // Remove duplicates (based on currency-country pair)
             const uniqueCurrencyList = Array.from(
                 new Map(
                     (currencyData || []).map((item) => [
-                        `${item.currency}-${item.country}`, // unique key
+                        `${item.currency}-${item.country}`,
                         item
                     ])
                 ).values()
             );
 
-            // ✅ Set the cleaned list to state
             setCurrencyList(uniqueCurrencyList);
+
+            // ✅ Find INR as default
+            const defaultCurrencyObj = uniqueCurrencyList.find(
+                (item) => item.currency === "INR"
+            );
+
+            // ✅ Set it properly into formData
+            setFormData((prev) => ({
+                ...prev,
+                currency: defaultCurrencyObj
+                    ? `${defaultCurrencyObj.currency} - ${defaultCurrencyObj.country}`
+                    : "INR - INDIA",
+            }));
         } catch (error) {
-            console.error('Error fetching currency data:', error);
+            console.error("Error fetching currency data:", error);
         }
     };
+
     // Calculate pagination values
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -348,26 +364,9 @@ const ExpenceTracking = () => {
             case 'REJECTED': return 'error';
             default: return 'info';
         }
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        try {
-            return new Date(dateString).toLocaleDateString('en-GB');
-        } catch {
-            return dateString;
-        }
-    };
-
-    const formatDateForInput = (dateString) => {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            // ✅ For <input type="date" />
-            return date.toISOString().split('T')[0];
-        } catch {
-            return dateString;
-        }
+    }; const handleDateChange = (field, date) => {
+        const formattedDate = dayjs(date).format('YYYY-MM-DD') || null;
+        setFormData((prevData) => ({ ...prevData, [field]: formattedDate }));
     };
     const [open, setOpen] = useState(false);
     const [logo, setLogo] = useState(null);
@@ -547,30 +546,28 @@ const ExpenceTracking = () => {
                                             getOptionLabel={(option) =>
                                                 option?.currency && option?.country
                                                     ? `${option.currency} - ${option.country}`
-                                                    : option?.currency || ''
+                                                    : option?.currency || ""
                                             }
-                                            disabled={isLoading || (selectedExpense.approveStatus === 'Approved' || selectedExpense.approveStatus === 'Rejected')}
                                             value={
-                                                currencyList.find((item) => item.currency === formData.currency) || null
+                                                currencyList.find(
+                                                    (item) =>
+                                                        `${item.currency} - ${item.country}` === formData.currency
+                                                ) || null
                                             }
                                             onChange={(event, newValue) =>
                                                 handleInputChange({
                                                     target: {
-                                                        name: 'currency',
-                                                        value: newValue, // pass the full object
+                                                        name: "currency",
+                                                        value: newValue
+                                                            ? `${newValue.currency} - ${newValue.country}`
+                                                            : "",
                                                     },
                                                 })
                                             }
-                                            isOptionEqualToValue={(option, value) =>
-                                                option?.currency === value?.currency
-                                            }
-                                            filterOptions={(options, { inputValue }) =>
-                                                options.filter((option) => {
-                                                    const currency = option?.currency?.toLowerCase() || '';
-                                                    const country = option?.country?.toLowerCase() || '';
-                                                    const search = inputValue.toLowerCase();
-                                                    return currency.includes(search) || country.includes(search);
-                                                })
+                                            disabled={
+                                                isLoading ||
+                                                (selectedExpense.approveStatus === "Approved" ||
+                                                    selectedExpense.approveStatus === "Rejected")
                                             }
                                             renderInput={(params) => (
                                                 <TextField {...params} label="Currency" variant="outlined" fullWidth />
@@ -578,17 +575,19 @@ const ExpenceTracking = () => {
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>
-                                        <TextField
-                                            fullWidth
-                                            label="Expense Date"
-                                            type="date"
-                                            name="expenseDate"
-                                            value={formatDateForInput(formData.expenseDate)}
-                                            onChange={handleInputChange}
-                                            InputLabelProps={{ shrink: true }}
-                                            size="small"
-                                            disabled={isLoading || (selectedExpense.approveStatus === 'Approved' || selectedExpense.approveStatus === 'Rejected')}
-                                        />
+                                        <FormControl fullWidth variant="filled" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Expense Date"
+                                                    value={formData.expenseDate ? dayjs(formData.expenseDate, 'YYYY-MM-DD') : null}
+                                                    onChange={(date) => handleDateChange('expenseDate', date)}
+                                                    slotProps={{
+                                                        textField: { size: 'small', clearable: true, }
+                                                    }}
+                                                    format="DD-MM-YYYY"
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl>
                                     </Grid>
                                     {/* <Grid item xs={12} sm={3}>
                                         <FormControlLabel
@@ -626,7 +625,7 @@ const ExpenceTracking = () => {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)',
+                                                // background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)',
                                                 borderRadius: '50px',
                                                 padding: '2px',
                                                 boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
@@ -704,8 +703,10 @@ const ExpenceTracking = () => {
                                                             }
                                                             alt="Attachment"
                                                             sx={{
-                                                                width: 150,
-                                                                height: 150,
+                                                                maxWidth: '100%',
+                                                                maxHeight: '100%',
+                                                                width: 'auto',
+                                                                height: 'auto',
                                                                 borderRadius: 2,
                                                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                                                             }}
@@ -889,13 +890,18 @@ const ExpenceTracking = () => {
                                                 <TableCell sx={{ py: 1 }}>
                                                     <Box>
                                                         <Typography variant="body2" color="text.secondary">
-                                                            {expense.expenseDate ? dayjs(expense.expenseDate).format("DD-MM-YYYY") : ""}
+                                                            {expense.expenseDate ? dayjs(expense.expenseDate).format("DD/MM/YYYY") : ""}
                                                         </Typography>
                                                     </Box>
                                                 </TableCell>
                                                 <TableCell sx={{ py: 1 }}>
                                                     <Typography variant="body2" fontWeight="500">
-                                                        {expense.amount}
+                                                        {expense.amount
+                                                            ? Number(expense.amount).toLocaleString("en-IN", {
+                                                                minimumFractionDigits: 0,
+                                                                maximumFractionDigits: 2
+                                                            })
+                                                            : "0"}
                                                     </Typography>
                                                 </TableCell>
                                                 <TableCell sx={{ py: 1 }}>
@@ -986,7 +992,9 @@ const ExpenceTracking = () => {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">Expense Date</Typography>
-                                <Typography variant="body1" gutterBottom>{formatDate(selectedExpense.expenseDate)}</Typography>
+                                <Typography variant="body1" gutterBottom>
+                                    {dayjs(selectedExpense.expenseDate).format("DD-MM-YYYY")}
+                                </Typography>
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">Receipt Attached</Typography>

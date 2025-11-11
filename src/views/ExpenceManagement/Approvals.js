@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ImageIcon from "@mui/icons-material/Image";
 import {
     Box,
     Paper,
@@ -76,6 +77,19 @@ const Approvals = () => {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
+    const [openAttachment, setOpenAttachment] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    const handleOpenAttachment = (base64Image) => {
+        if (!base64Image) return;
+        setSelectedImage(base64Image);
+        setOpenAttachment(true);
+    };
+
+    const handleCloseAttachment = () => {
+        setOpenAttachment(false);
+        setSelectedImage(null);
+    };
 
     // Fetch all expence on component mount
     useEffect(() => {
@@ -106,7 +120,8 @@ const Approvals = () => {
                     submitted: asset.submitted,
                     type: asset.type,
                     title: asset.title,
-                    status: asset.status
+                    status: asset.status,
+                    attachment: asset.attachment,
                 }));
                 setAssetsData(formattedAssets);
                 setCurrentPage(1); // Reset to first page when data changes
@@ -145,7 +160,7 @@ const Approvals = () => {
             "YYYY-MM-DDTHH:mm:ss",   // ISO format (just in case)
             "YYYY-MM-DD"             // fallback for plain date
         ]);
-        return parsedDate.isValid() ? parsedDate.format("DD-MM-YYYY") : '';
+        return parsedDate.isValid() ? parsedDate.format("DD/MM/YYYY") : '';
     };
     const handleApproveReject = async (request, action, approvedAmount) => {
         setIsLoading(true);
@@ -213,6 +228,7 @@ const Approvals = () => {
                             <TableCell sx={{ fontWeight: 600, py: 1 }}>Amount</TableCell>
                             <TableCell sx={{ fontWeight: 600, py: 1 }}>Submitted</TableCell>
                             <TableCell sx={{ fontWeight: 600, py: 1 }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Attachment</TableCell>
                             <TableCell sx={{ fontWeight: 600, py: 1 }}>Approve/Reject</TableCell>
                         </TableRow>
                     </TableHead>
@@ -259,21 +275,30 @@ const Approvals = () => {
                                         </TableCell>
 
                                         <TableCell sx={{ py: 1 }}>
-                                            <Typography variant="body2" fontWeight={500}>{asset.expenseLimit}</Typography>
+                                            <Typography variant="body2" fontWeight="500">
+                                                {asset.expenseLimit
+                                                    ? Number(asset.expenseLimit).toLocaleString("en-IN", {
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 2
+                                                    })
+                                                    : "0"}
+                                            </Typography>
                                         </TableCell>
 
                                         <TableCell sx={{ py: 1 }}>
-                                            <Typography
-                                                variant="body2"
-                                                fontWeight={600}
+                                            <Typography variant="body2" fontWeight="600"
                                                 sx={{
                                                     color: isExceeding ? 'error.main' : 'text.primary',
                                                     backgroundColor: isExceeding ? 'rgba(255,0,0,0.08)' : 'transparent',
                                                     px: 1,
                                                     borderRadius: 1
-                                                }}
-                                            >
-                                                {Math.floor(Number(asset.amount))}
+                                                }}>
+                                                {asset.amount
+                                                    ? Number(asset.amount).toLocaleString("en-IN", {
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 2
+                                                    })
+                                                    : "0"}
                                             </Typography>
                                         </TableCell>
 
@@ -295,7 +320,30 @@ const Approvals = () => {
                                                 }}
                                             />
                                         </TableCell>
-
+                                        <TableCell sx={{ py: 1 }}>
+                                            {asset.attachment ? (
+                                                <Tooltip title="View Attachment">
+                                                    <IconButton
+                                                        size="small"
+                                                        color="primary"
+                                                        onClick={() => handleOpenAttachment(asset.attachment)}
+                                                        sx={{
+                                                            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                                                            "&:hover": {
+                                                                transform: "scale(1.1)",
+                                                                boxShadow: 1,
+                                                            },
+                                                        }}
+                                                    >
+                                                        <ImageIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    
+                                                </Typography>
+                                            )}
+                                        </TableCell>
                                         <TableCell sx={{ py: 1 }}>
                                             <Box sx={{ display: 'flex', gap: 1 }}>
                                                 <Button
@@ -340,6 +388,46 @@ const Approvals = () => {
                         )}
                     </TableBody>
                 </Table>
+                <Dialog
+                    open={openAttachment}
+                    onClose={handleCloseAttachment}
+                    maxWidth="sm"
+                    fullWidth
+                >
+                    <DialogTitle sx={{ fontWeight: 700, textAlign: "center" }}>
+                        Attachment Preview
+                    </DialogTitle>
+                    <DialogContent
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            flexDirection: "column",
+                            gap: 2,
+                        }}
+                    >
+                        {selectedImage ? (
+                            <img
+                                src={
+                                    selectedImage.startsWith("data:")
+                                        ? selectedImage // Already has prefix
+                                        : `data:image/${selectedImage.startsWith("/") ? "png" : "jpeg"};base64,${selectedImage}`
+                                }
+                                alt="Attachment Preview"
+                                style={{
+                                    maxWidth: "100%",
+                                    maxHeight: "70vh",
+                                    borderRadius: "10px",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                                }}
+                            />
+                        ) : (
+                            <Typography variant="body2" color="text.secondary">
+                                No Image Available
+                            </Typography>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </TableContainer>
 
             {/* Pagination */}
