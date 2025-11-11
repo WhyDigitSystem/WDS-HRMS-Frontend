@@ -14,7 +14,8 @@ import {
     Autocomplete,
     CircularProgress,
     Snackbar,
-    Alert
+    Alert,
+    FormControl
 } from '@mui/material';
 import {
     Person as PersonIcon,
@@ -24,6 +25,9 @@ import {
     Save as SaveIcon
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const ExitInterviewManagement = () => {
     const [rating, setRating] = useState(0);
@@ -49,7 +53,7 @@ const ExitInterviewManagement = () => {
         setLoading(true);
         try {
             const response = await apiCalls('get', `/employeseparation/getInitiateSeparationByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
-            
+
             if (response.status === true && response.paramObjectsMap && response.paramObjectsMap.initiateSeparationVO) {
                 const employeeList = response.paramObjectsMap.initiateSeparationVO.map((emp) => ({
                     id: emp.id,
@@ -318,23 +322,52 @@ const ExitInterviewManagement = () => {
                                     >
                                         Interview Date *
                                     </Typography>
-                                    <TextField
-                                        type="date"
-                                        size="small"
-                                        value={interviewDate}
-                                        onChange={(e) => setInterviewDate(e.target.value)}
-                                        sx={{
-                                            width: 240,
-                                            '& .MuiOutlinedInput-root': {
-                                                height: 38,
-                                                fontSize: '0.9rem',
-                                                borderRadius: 2,
-                                            },
-                                            '& .MuiInputBase-input': {
-                                                padding: '6px 10px',
-                                            },
-                                        }}
-                                    />
+                                    <FormControl sx={{ width: 240 }} variant="outlined" size="small">
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DatePicker
+                                                label={
+                                                    <span>
+                                                        Interview Date<span style={{ color: 'red' }}> *</span>
+                                                    </span>
+                                                }
+                                                format="DD-MM-YYYY"
+                                                value={interviewDate ? dayjs(interviewDate, 'DD/MM/YYYY') : null}
+                                                onChange={(newValue) => {
+                                                    const formattedDate = newValue ? dayjs(newValue).format('DD/MM/YYYY') : '';
+                                                    setInterviewDate(formattedDate);
+                                                }}
+                                                slotProps={{
+                                                    textField: {
+                                                        size: 'small',
+                                                        fullWidth: true,
+                                                        error: false,
+                                                        helperText: '',
+                                                        sx: {
+                                                            '& .MuiInputBase-root': {
+                                                                backgroundColor: '#f9fafb',
+                                                                borderRadius: 2, // same rounded look
+                                                                height: 38, // match your previous height
+                                                                fontSize: '0.9rem',
+                                                            },
+                                                            '& .MuiOutlinedInput-notchedOutline': {
+                                                                borderColor: '#94a3b8',
+                                                            },
+                                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                                borderColor: '#94a3b8',
+                                                            },
+                                                            '& .Mui-disabled': {
+                                                                backgroundColor: '#f9fafb',
+                                                                color: '#334155',
+                                                            },
+                                                            '& .MuiInputBase-input': {
+                                                                padding: '6px 10px',
+                                                            },
+                                                        },
+                                                    },
+                                                }}
+                                            />
+                                        </LocalizationProvider>
+                                    </FormControl>
                                     <Typography
                                         variant="caption"
                                         color="text.secondary"
@@ -549,8 +582,8 @@ const ExitInterviewManagement = () => {
                         {loading ? 'Loading Employees...' : 'No Employee Selected'}
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
-                        {loading 
-                            ? 'Fetching employee data...' 
+                        {loading
+                            ? 'Fetching employee data...'
                             : 'Please select an employee from the dropdown above to begin the exit interview process.'
                         }
                     </Typography>

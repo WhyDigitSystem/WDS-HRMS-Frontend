@@ -9,10 +9,14 @@ import {
     MenuItem,
     Snackbar,
     Alert,
-    CircularProgress
+    CircularProgress,
+    FormControl
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import apiCalls from 'apicall';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [formData, setFormData] = useState({
@@ -276,10 +280,11 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
 
                 <Grid item xs={12} sm={4}>
                     <TextField
-                        label="Employee ID"
+                        label="Code"
                         variant="outlined"
                         size="small"
                         fullWidth
+                        disabled={!!formData.employeeId}
                         name="Code"
                         value={formData.employeeId}
                         InputProps={{ readOnly: true }}
@@ -292,6 +297,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         variant="outlined"
                         size="small"
                         fullWidth
+                        disabled={!!formData.department}
                         name="department"
                         value={formData.department}
                         InputProps={{ readOnly: true }}
@@ -304,6 +310,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         variant="outlined"
                         size="small"
                         fullWidth
+                        disabled={!!formData.position}
                         name="position"
                         value={formData.position}
                         InputProps={{ readOnly: true }}
@@ -316,24 +323,58 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         variant="outlined"
                         size="small"
                         fullWidth
+                        disabled={!!formData.reportingManager}
                         name="reportingManager"
                         value={formData.reportingManager}
                         InputProps={{ readOnly: true }}
                     />
                 </Grid>
-
                 <Grid item xs={12} sm={4}>
-                    <TextField
-                        label="Joining Date"
-                        type="date"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        name="joiningDate"
-                        value={formatDateForInput(formData.joiningDate)}
-                        InputLabelProps={{ shrink: true }}
-                        InputProps={{ readOnly: true }}
-                    />
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            <DatePicker
+                                label={
+                                    <span>
+                                        Joining Date<span style={{ color: 'red' }}> *</span>
+                                    </span>
+                                }
+                                format="DD-MM-YYYY"
+                                value={formData.joiningDate ? dayjs(formData.joiningDate) : null}
+                                onChange={(newValue) => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        joiningDate: newValue ? newValue.toISOString() : '',
+                                    }));
+                                }}
+                                readOnly
+                                disabled={!!formData.joiningDate}
+                                slotProps={{
+                                    textField: {
+                                        size: 'small',
+                                        fullWidth: true,
+                                        error: false,
+                                        helperText: '',
+                                        sx: {
+                                            '& .MuiInputBase-root': {
+                                                backgroundColor: '#f9fafb',
+                                                borderRadius: '8px',
+                                            },
+                                            '& .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: '#94a3b8',
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: '#94a3b8',
+                                            },
+                                            '& .Mui-disabled': {
+                                                backgroundColor: '#f9fafb',
+                                                color: '#334155',
+                                            },
+                                        },
+                                    },
+                                }}
+                            />
+                        </LocalizationProvider>
+                    </FormControl>
                 </Grid>
             </Grid>
 
@@ -367,31 +408,95 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     </Grid>
 
                     <Grid item xs={12} sm={4}>
-                        <TextField
-                            label="Resignation/Notice Date *"
-                            type="date"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            name="resignationDate"
-                            value={formData.resignationDate}
-                            onChange={handleInputChange}
-                            InputLabelProps={{ shrink: true }}
-                        />
+                        <FormControl fullWidth variant="outlined" size="small">
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label={
+                                        <span>
+                                            Resignation/Notice Date<span style={{ color: 'red' }}> *</span>
+                                        </span>
+                                    }
+                                    format="DD-MM-YYYY"
+                                    value={formData.resignationDate ? dayjs(formData.resignationDate) : null}
+                                    onChange={(newValue) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            resignationDate: newValue ? newValue.toISOString() : '',
+                                        }));
+                                    }}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            fullWidth: true,
+                                            error: false,
+                                            helperText: '',
+                                            sx: {
+                                                '& .MuiInputBase-root': {
+                                                    backgroundColor: '#f9fafb',
+                                                    borderRadius: '8px',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '& .Mui-disabled': {
+                                                    backgroundColor: '#f9fafb',
+                                                    color: '#334155',
+                                                },
+                                            },
+                                        },
+                                    }}
+                                />
+                            </LocalizationProvider>
+                        </FormControl>
                     </Grid>
 
                     <Grid item xs={12} sm={4}>
-                        <TextField
-                            label="Last Working Date *"
-                            type="date"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            name="lastWorkingDate"
-                            value={formData.lastWorkingDate}
-                            onChange={handleInputChange}
-                            InputLabelProps={{ shrink: true }}
-                        />
+                        <FormControl fullWidth variant="outlined" size="small">
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label={
+                                        <span>
+                                            Last Working Date<span style={{ color: 'red' }}> *</span>
+                                        </span>
+                                    }
+                                    format="DD-MM-YYYY"
+                                    value={formData.lastWorkingDate ? dayjs(formData.lastWorkingDate) : null}
+                                    onChange={(newValue) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            lastWorkingDate: newValue ? newValue.toISOString() : '',
+                                        }));
+                                    }}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            fullWidth: true,
+                                            error: false,
+                                            helperText: '',
+                                            sx: {
+                                                '& .MuiInputBase-root': {
+                                                    backgroundColor: '#f9fafb',
+                                                    borderRadius: '8px',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '& .Mui-disabled': {
+                                                    backgroundColor: '#f9fafb',
+                                                    color: '#334155',
+                                                },
+                                            },
+                                        },
+                                    }}
+                                />
+                            </LocalizationProvider>
+                        </FormControl>
                     </Grid>
 
                     <Grid item xs={12} sm={4}>

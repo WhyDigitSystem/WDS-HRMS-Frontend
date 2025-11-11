@@ -153,26 +153,29 @@ const AllCasesSeparation = () => {
         if (!dateString) return 'N/A';
 
         try {
-            // Check if the date is already in DD/MM/YYYY format
-            if (typeof dateString === 'string' && dateString.includes('/')) {
-                const [day, month, year] = dateString.split('/');
+            // Handle string dates like DD/MM/YYYY or DD-MM-YYYY
+            if (typeof dateString === 'string' && (dateString.includes('/') || dateString.includes('-'))) {
+                const separator = dateString.includes('/') ? '/' : '-';
+                const parts = dateString.split(separator);
 
-                // Validate the parts
-                if (day && month && year) {
-                    // Create a proper Date object (months are 0-indexed in JavaScript)
-                    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                // Case 1: Input like DD-MM-YYYY
+                if (parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+                    return `${parts[0]}-${parts[1]}-${parts[2]}`;
+                }
 
-                    // Check if the date is valid
-                    if (!isNaN(date.getTime())) {
-                        return date.toLocaleDateString('en-GB'); // DD/MM/YYYY format
-                    }
+                // Case 2: Input like YYYY-MM-DD (ISO or database format)
+                if (parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
                 }
             }
 
-            // Fallback for other date formats or invalid dates
+            // Handle full ISO datetime strings (e.g., 2025-11-11T00:00:00Z)
             const date = new Date(dateString);
             if (!isNaN(date.getTime())) {
-                return date.toLocaleDateString('en-GB');
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
             }
 
             return 'N/A';
@@ -210,7 +213,6 @@ const AllCasesSeparation = () => {
         }
     };
 
-    // Define columns for the list view
     const columns = [
         {
             key: 'employeeName',
@@ -265,7 +267,7 @@ const AllCasesSeparation = () => {
                     size="small"
                     sx={{
                         fontWeight: 600,
-                        borderRadius: 1,
+                        borderRadius: 1
                     }}
                 />
             )
@@ -276,7 +278,7 @@ const AllCasesSeparation = () => {
             width: '130px',
             render: (value) => (
                 <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
-                    {formatDate(value)}
+                    {formatDate(value)} {/* ✅ DD-MM-YYYY format */}
                 </Typography>
             )
         },
@@ -286,7 +288,7 @@ const AllCasesSeparation = () => {
             width: '130px',
             render: (value) => (
                 <Typography variant="body2" sx={{ fontWeight: 500, color: '#dc2626' }}>
-                    {formatDate(value)}
+                    {formatDate(value)} {/* ✅ DD-MM-YYYY format */}
                 </Typography>
             )
         },
@@ -304,40 +306,32 @@ const AllCasesSeparation = () => {
                 />
             )
         },
-
-        // ✅ NEW STATUS COLUMN
         {
             key: 'status',
             label: 'Status',
             width: '120px',
             render: (value) => {
-                let color = 'default';
                 let bg = '#f1f5f9';
                 let textColor = '#334155';
 
                 switch (value?.toLowerCase()) {
                     case 'approved':
-                        color = 'success';
                         bg = '#dcfce7';
                         textColor = '#166534';
                         break;
                     case 'pending':
-                        color = 'warning';
                         bg = '#fef9c3';
                         textColor = '#854d0e';
                         break;
                     case 'rejected':
-                        color = 'error';
                         bg = '#fee2e2';
                         textColor = '#991b1b';
                         break;
                     case 'cancelled':
-                        color = 'default';
                         bg = '#e2e8f0';
                         textColor = '#475569';
                         break;
                     default:
-                        color = 'default';
                         bg = '#f1f5f9';
                         textColor = '#334155';
                 }
@@ -358,6 +352,7 @@ const AllCasesSeparation = () => {
             }
         }
     ];
+
 
     // Define actions for the list view
     const actions = [

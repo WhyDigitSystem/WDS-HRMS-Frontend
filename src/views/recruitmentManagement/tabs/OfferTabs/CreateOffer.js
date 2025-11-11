@@ -19,7 +19,8 @@ import {
     Autocomplete,
     Snackbar,
     Alert,
-    CircularProgress
+    CircularProgress,
+    FormControl
 } from '@mui/material';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import SaveIcon from '@mui/icons-material/Save';
@@ -29,6 +30,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 
 const CreateOffer = () => {
@@ -539,24 +542,52 @@ const CreateOffer = () => {
                             />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                            <TextField
-                                required
-                                fullWidth
-                                type="date"
-                                label="Joining Date"
-                                variant="outlined"
-                                InputLabelProps={{ shrink: true }}
-                                value={
-                                    formData.joiningDate
-                                        ? dayjs(formData.joiningDate, 'DD/MM/YYYY').format('YYYY-MM-DD')
-                                        : dayjs().format('YYYY-MM-DD') // ✅ fallback to today
-                                }
-                                onChange={(e) => {
-                                    const formattedDate = dayjs(e.target.value, 'YYYY-MM-DD').format('DD/MM/YYYY');
-                                    handleInputChange('joiningDate', formattedDate);
-                                }}
-                                size="small"
-                            />
+                            <FormControl fullWidth variant="outlined" size="small">
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DatePicker
+                                        label={
+                                            <span>
+                                                Joining Date<span style={{ color: 'red' }}> *</span>
+                                            </span>
+                                        }
+                                        format="DD-MM-YYYY"
+                                        value={formData.joiningDate ? dayjs(formData.joiningDate, 'DD/MM/YYYY') : null}
+                                        onChange={(newValue) => {
+                                            const formattedDate = newValue ? dayjs(newValue).format('DD/MM/YYYY') : '';
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                joiningDate: formattedDate,
+                                            }));
+                                        }}
+                                        slotProps={{
+                                            textField: {
+                                                size: 'small',
+                                                fullWidth: true,
+                                                // ✅ Remove automatic red error highlight
+                                                required: false,
+                                                error: false,
+                                                helperText: '',
+                                                sx: {
+                                                    '& .MuiInputBase-root': {
+                                                        backgroundColor: '#f9fafb',
+                                                        borderRadius: '8px',
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#94a3b8',
+                                                    },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#94a3b8',
+                                                    },
+                                                    '& .Mui-disabled': {
+                                                        backgroundColor: '#f9fafb',
+                                                        color: '#334155',
+                                                    },
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </LocalizationProvider>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={4}>
                             <Autocomplete

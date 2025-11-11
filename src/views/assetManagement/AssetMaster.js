@@ -14,6 +14,9 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    FormControl,
+    FormControlLabel,
+    Checkbox,
 } from '@mui/material';
 import {
     Add,
@@ -28,6 +31,9 @@ import {
 import apiCalls from 'apicall';
 import CommonListView from '../../utils/AssetCommonListViewTable'; // Adjust path as needed
 import { showToast } from 'utils/toast-component';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const AssetMaster = ({ config }) => {
     const [isAdding, setIsAdding] = useState(false);
@@ -51,13 +57,15 @@ const AssetMaster = ({ config }) => {
         purchase_cost: '',
         warranty_expiry: '',
         location: '',
-        notes: ''
+        notes: '',
+        active: true
     });
     const [uploadedImages, setUploadedImages] = useState([]);
+    const [existingImages, setExistingImages] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
-    // Pagination state - same as AssetManagement
+    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
 
@@ -154,8 +162,7 @@ const AssetMaster = ({ config }) => {
         }
     ];
 
-    // Pagination configuration - EXACTLY like AssetManagement
-    // In AssetMaster component - simplified pagination config
+    // Pagination config
     const paginationConfig = {
         currentPage,
         totalPages: Math.ceil(assetsData.length / itemsPerPage),
@@ -185,7 +192,7 @@ const AssetMaster = ({ config }) => {
                     warranty_expiry: asset.warrantyExpiry,
                     location: asset.location,
                     notes: asset.notes,
-                    status: 'Available',
+                    status: asset.active ? 'Active' : 'InActive',
                     assigned_to: '',
                     employee_id: '',
                     allocation_date: '',
@@ -199,7 +206,7 @@ const AssetMaster = ({ config }) => {
                     createdBy: asset.createdBy
                 }));
                 setAssetsData(formattedAssets);
-                setCurrentPage(1); // Reset to first page when data loads
+                setCurrentPage(1);
             } else {
                 showToast('error', 'Failed to fetch assets');
                 setAssetsData([]);
@@ -236,10 +243,11 @@ const AssetMaster = ({ config }) => {
                     warranty_expiry: asset.warrantyExpiry,
                     location: asset.location,
                     notes: asset.notes,
-                    status: 'Available',
+                    status: asset.active ? 'Active' : 'InActive',
                     branch: asset.branch,
                     branchCode: asset.branchCode,
-                    orgId: asset.orgId
+                    orgId: asset.orgId,
+                    active: asset.active
                 };
 
                 setFormData({
@@ -253,8 +261,27 @@ const AssetMaster = ({ config }) => {
                     purchase_cost: asset.purchaseCost || '',
                     warranty_expiry: asset.warrantyExpiry || '',
                     location: asset.location || '',
-                    notes: asset.notes || ''
+                    notes: asset.notes || '',
+                    active: asset.active !== undefined ? asset.active : true
                 });
+
+                // Handle existing images
+                if (asset.assetImages && asset.assetImages.length > 0) {
+                    const existingImagesData = asset.assetImages.map((image, index) => ({
+                        id: `existing-${image.id}`,
+                        preview: `data:image/png;base64,${image.imageAttachment}`, // Convert base64 to data URL
+                        name: `asset-image-${index + 1}`,
+                        size: 0,
+                        isExisting: true,
+                        imageId: image.id
+                    }));
+                    setExistingImages(existingImagesData);
+                } else {
+                    setExistingImages([]);
+                }
+
+                // Clear any newly uploaded images when editing
+                setUploadedImages([]);
 
                 setSelectedAsset(assetDetails);
                 setIsEditing(true);
@@ -279,15 +306,27 @@ const AssetMaster = ({ config }) => {
     };
 
     const handleInputChange = (field) => (event) => {
+        const value = field === 'active' ? event.target.checked : event.target.value;
         setFormData(prev => ({
             ...prev,
-            [field]: event.target.value
+            [field]: value
         }));
     };
 
     // Image Upload Functions
     const handleImageUpload = (event) => {
         const files = Array.from(event.target.files);
+        
+        // Check total image limit (4 images max)
+        const totalImages = existingImages.length + uploadedImages.length;
+        const availableSlots = 4 - totalImages;
+        
+        if (files.length > availableSlots) {
+            showToast('warning', `You can only upload ${availableSlots} more image(s). Maximum 4 images allowed.`);
+            event.target.value = '';
+            return;
+        }
+
         const validFiles = files.filter(file =>
             file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024 // 5MB limit
         );
@@ -296,12 +335,18 @@ const AssetMaster = ({ config }) => {
             showToast('warning', 'Some files were skipped. Only images under 5MB are allowed.');
         }
 
+        if (validFiles.length === 0) {
+            event.target.value = '';
+            return;
+        }
+
         const newImages = validFiles.map(file => ({
             id: Date.now() + Math.random(),
             file,
             preview: URL.createObjectURL(file),
             name: file.name,
-            size: file.size
+            size: file.size,
+            isExisting: false
         }));
 
         setUploadedImages(prev => [...prev, ...newImages]);
@@ -309,13 +354,25 @@ const AssetMaster = ({ config }) => {
     };
 
     const handleRemoveImage = (imageId) => {
-        setUploadedImages(prev => {
-            const imageToRemove = prev.find(img => img.id === imageId);
-            if (imageToRemove) {
-                URL.revokeObjectURL(imageToRemove.preview);
+        // Check if it's an existing image or a new upload
+        if (imageId.startsWith('existing-')) {
+            // For existing images, show confirmation
+            const confirmDelete = window.confirm('Are you sure you want to remove this image?');
+            if (confirmDelete) {
+                setExistingImages(prev => prev.filter(img => img.id !== imageId));
+                // Optional: Call API to delete image from server
+                // deleteImageFromServer(imageId.replace('existing-', ''));
             }
-            return prev.filter(img => img.id !== imageId);
-        });
+        } else {
+            // For newly uploaded images
+            setUploadedImages(prev => {
+                const imageToRemove = prev.find(img => img.id === imageId);
+                if (imageToRemove) {
+                    URL.revokeObjectURL(imageToRemove.preview);
+                }
+                return prev.filter(img => img.id !== imageId);
+            });
+        }
     };
 
     const handleViewImage = (image) => {
@@ -326,6 +383,89 @@ const AssetMaster = ({ config }) => {
     const handleCloseImageViewer = () => {
         setImageViewerOpen(false);
         setSelectedImage(null);
+    };
+
+    // Function to get all images (existing + newly uploaded)
+    const getAllImages = () => {
+        return [
+            ...existingImages.map(img => ({ ...img, type: 'existing' })),
+            ...uploadedImages.map(img => ({ ...img, type: 'new' }))
+        ];
+    };
+
+    // Upload ALL images to API (both existing and new)
+    const uploadAllImages = async (assetMasterId) => {
+        const allImages = getAllImages();
+        
+        if (allImages.length === 0) {
+            console.log('No images to upload');
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            
+            // Upload only new images (existing ones are already on server)
+            const newImagesToUpload = uploadedImages;
+            
+            if (newImagesToUpload.length > 0) {
+                const uploadPromises = newImagesToUpload.map(async (image) => {
+                    const formData = new FormData();
+                    formData.append('files', image.file);
+                    formData.append('assetMasterId', assetMasterId);
+
+                    const response = await apiCalls(
+                        'post',
+                        `/assetmanagement/upload/${assetMasterId}`,
+                        formData,
+                        {},
+                        { 'Content-Type': 'multipart/form-data' }
+                    );
+
+                    return response;
+                });
+
+                const results = await Promise.all(uploadPromises);
+                const successfulUploads = results.filter(result => result?.status === true);
+
+                if (successfulUploads.length > 0) {
+                    console.log(`Successfully uploaded ${successfulUploads.length} new images`);
+                    showToast('success', `Successfully uploaded ${successfulUploads.length} images`);
+                } else {
+                    showToast('warning', 'No new images were uploaded successfully');
+                }
+
+                return results;
+            } else {
+                console.log('No new images to upload, existing images are preserved');
+                return [];
+            }
+        } catch (error) {
+            console.error('Error uploading images:', error);
+            showToast('error', 'Error uploading some images');
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Delete image from server (optional - for existing images)
+    const deleteImageFromServer = async (imageId) => {
+        try {
+            const response = await apiCalls(
+                'delete',
+                `/assetmanagement/deleteAssetImage?id=${imageId}`
+            );
+            
+            if (response.status === true) {
+                showToast('success', 'Image deleted successfully');
+            } else {
+                showToast('error', 'Failed to delete image');
+            }
+        } catch (error) {
+            console.error('Error deleting image:', error);
+            showToast('error', 'Error deleting image');
+        }
     };
 
     const formatFileSize = (bytes) => {
@@ -341,8 +481,8 @@ const AssetMaster = ({ config }) => {
 
         // Validate required fields
         const errors = {};
-        if (!formData.asset_code) errors.asset_code = 'Asset Code is required';
-        if (!formData.asset_name) errors.asset_name = 'Asset Name is required';
+        if (!formData.asset_code) errors.asset_code = 'Code is required';
+        if (!formData.asset_name) errors.asset_name = 'Asset is required';
         if (!formData.category) errors.category = 'Category is required';
 
         if (Object.keys(errors).length > 0) {
@@ -351,14 +491,6 @@ const AssetMaster = ({ config }) => {
         }
 
         setIsLoading(true);
-
-        // Prepare image data for upload (you'll need to implement actual file upload)
-        const imageData = uploadedImages.map(img => ({
-            name: img.name,
-            size: img.size,
-            type: img.file.type
-            // Add actual upload logic here
-        }));
 
         const saveData = {
             assetCode: formData.asset_code,
@@ -377,7 +509,7 @@ const AssetMaster = ({ config }) => {
             orgId: orgId,
             finyear: config.finyear || '2025',
             createdBy: loginUserName,
-            images: imageData // Add images data
+            active: formData.active
         };
 
         // Add ID for update operation
@@ -392,6 +524,14 @@ const AssetMaster = ({ config }) => {
 
             if (response.status === true) {
                 console.log('Response:', response);
+
+                // Get the created/updated asset ID
+                const assetId = response.paramObjectsMap?.assetMasterVO?.id || selectedAsset?.id;
+
+                // Upload ALL images (both existing and new) if we have an asset ID
+                if (assetId && getAllImages().length > 0) {
+                    await uploadAllImages(assetId);
+                }
 
                 // Refresh the assets list
                 await getAllAssets();
@@ -423,10 +563,12 @@ const AssetMaster = ({ config }) => {
             purchase_cost: '',
             warranty_expiry: '',
             location: '',
-            notes: ''
+            notes: '',
+            active: true
         });
         setUploadedImages([]);
-        setCurrentPage(1); // Reset to first page when adding new asset
+        setExistingImages([]);
+        setCurrentPage(1);
     };
 
     const handleCancel = () => {
@@ -444,32 +586,33 @@ const AssetMaster = ({ config }) => {
             purchase_cost: '',
             warranty_expiry: '',
             location: '',
-            notes: ''
+            notes: '',
+            active: true
         });
         // Clean up image URLs
         uploadedImages.forEach(img => URL.revokeObjectURL(img.preview));
         setUploadedImages([]);
-        setCurrentPage(1); // Reset to first page when canceling
+        setExistingImages([]);
+        setCurrentPage(1);
     };
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Available': return 'success';
-            case 'Allocated': return 'warning';
-            case 'Maintenance': return 'error';
-            case 'Retired': return 'default';
-            default: return 'info';
+            case 'Active': return 'success';
+            case 'InActive': return 'error';
+            default: return 'default';
         }
     };
 
-    const formatDateForInput = (dateString) => {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            return date.toISOString().split('T')[0];
-        } catch {
-            return dateString;
-        }
+    // Check if user can upload more images
+    const canUploadMoreImages = () => {
+        const totalImages = existingImages.length + uploadedImages.length;
+        return totalImages < 4;
+    };
+
+    const getRemainingImageSlots = () => {
+        const totalImages = existingImages.length + uploadedImages.length;
+        return 4 - totalImages;
     };
 
     return (
@@ -538,20 +681,20 @@ const AssetMaster = ({ config }) => {
                                     <Grid item xs={12} sm={3}>
                                         <TextField
                                             fullWidth
-                                            label="Asset Code"
+                                            label="Code"
                                             value={formData.asset_code}
                                             onChange={handleInputChange('asset_code')}
                                             required
                                             placeholder="e.g., ASSET-001"
                                             size="small"
                                             disabled={isLoading || isEditing}
-                                            helperText={isEditing ? "Asset Code cannot be edited" : ""}
+                                            helperText={isEditing ? "Code cannot be edited" : ""}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>
                                         <TextField
                                             fullWidth
-                                            label="Asset Name"
+                                            label="Asset"
                                             value={formData.asset_name}
                                             onChange={handleInputChange('asset_name')}
                                             required
@@ -615,17 +758,32 @@ const AssetMaster = ({ config }) => {
                                     </Grid>
 
                                     <Grid item xs={12} sm={3}>
-                                        <TextField
-                                            fullWidth
-                                            label="Purchase Date"
-                                            type="date"
-                                            value={formatDateForInput(formData.purchase_date)}
-                                            onChange={handleInputChange('purchase_date')}
-                                            InputLabelProps={{ shrink: true }}
-                                            size="small"
-                                            disabled={isLoading}
-                                        />
+                                        <FormControl fullWidth variant="outlined" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Purchase Date"
+                                                    format="DD-MM-YYYY"
+                                                    value={formData.purchase_date ? dayjs(formData.purchase_date) : null}
+                                                    onChange={(newValue) => {
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            purchase_date: newValue ? newValue.toISOString() : '',
+                                                        }));
+                                                    }}
+                                                    disabled={isLoading}
+                                                    slotProps={{
+                                                        textField: {
+                                                            size: 'small',
+                                                            fullWidth: true,
+                                                            error: false,
+                                                            helperText: '',
+                                                        },
+                                                    }}
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl>
                                     </Grid>
+
                                     <Grid item xs={12} sm={3}>
                                         <TextField
                                             fullWidth
@@ -639,16 +797,30 @@ const AssetMaster = ({ config }) => {
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>
-                                        <TextField
-                                            fullWidth
-                                            label="Warranty Expiry"
-                                            type="date"
-                                            value={formatDateForInput(formData.warranty_expiry)}
-                                            onChange={handleInputChange('warranty_expiry')}
-                                            InputLabelProps={{ shrink: true }}
-                                            size="small"
-                                            disabled={isLoading}
-                                        />
+                                        <FormControl fullWidth variant="outlined" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Warranty Expiry"
+                                                    format="DD-MM-YYYY"
+                                                    value={formData.warranty_expiry ? dayjs(formData.warranty_expiry) : null}
+                                                    onChange={(newValue) => {
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            warranty_expiry: newValue ? newValue.toISOString() : '',
+                                                        }));
+                                                    }}
+                                                    disabled={isLoading}
+                                                    slotProps={{
+                                                        textField: {
+                                                            size: 'small',
+                                                            fullWidth: true,
+                                                            error: false,
+                                                            helperText: '',
+                                                        },
+                                                    }}
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl>
                                     </Grid>
 
                                     <Grid item xs={12} sm={3}>
@@ -663,8 +835,8 @@ const AssetMaster = ({ config }) => {
                                         />
                                     </Grid>
 
-                                    {/* Notes and Image Upload Section */}
-                                    <Grid item xs={6}>
+                                    {/* Notes and Active Checkbox Section */}
+                                    <Grid item xs={12} sm={3}>
                                         <TextField
                                             fullWidth
                                             label="Notes"
@@ -672,13 +844,27 @@ const AssetMaster = ({ config }) => {
                                             rows={1}
                                             value={formData.notes}
                                             onChange={handleInputChange('notes')}
-                                            placeholder="Additional notes about the asset..."
+                                            placeholder="Additional notes"
                                             size="small"
                                             disabled={isLoading}
                                         />
                                     </Grid>
-                                    <Grid item xs={6}>
-                                        {/* Image Upload Section */}
+                                    <Grid item xs={12} sm={3}>
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    checked={formData.active}
+                                                    onChange={handleInputChange('active')}
+                                                    color="primary"
+                                                />
+                                            }
+                                            label="Active"
+                                            sx={{ mt: 1 }}
+                                        />
+                                    </Grid>
+
+                                    {/* Image Upload Section */}
+                                    <Grid item xs={12}>
                                         <Box>
                                             {/* Header */}
                                             <Typography
@@ -690,7 +876,17 @@ const AssetMaster = ({ config }) => {
                                                     fontSize: '0.95rem',
                                                 }}
                                             >
-                                                Asset Images ({uploadedImages.length} uploaded)
+                                                Asset Images ({getAllImages().length}/4 total)
+                                                {existingImages.length > 0 && (
+                                                    <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
+                                                        ({existingImages.length} existing, {uploadedImages.length} new)
+                                                    </Typography>
+                                                )}
+                                                {!canUploadMoreImages() && (
+                                                    <Typography variant="caption" sx={{ ml: 1, color: 'error.main', fontWeight: 'bold' }}>
+                                                        Maximum 4 images reached
+                                                    </Typography>
+                                                )}
                                             </Typography>
 
                                             {/* Upload Button */}
@@ -698,7 +894,7 @@ const AssetMaster = ({ config }) => {
                                                 component="label"
                                                 variant="contained"
                                                 startIcon={<CloudUpload />}
-                                                disabled={isLoading}
+                                                disabled={isLoading || !canUploadMoreImages()}
                                                 size="small"
                                                 sx={{
                                                     mb: 2,
@@ -714,29 +910,53 @@ const AssetMaster = ({ config }) => {
                                                         background: `linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`,
                                                         boxShadow: '0 3px 8px rgba(59, 130, 246, 0.35)',
                                                     },
+                                                    '&:disabled': {
+                                                        background: '#9ca3af',
+                                                        color: '#6b7280',
+                                                    }
                                                 }}
                                             >
-                                                Upload Images
+                                                {canUploadMoreImages() 
+                                                    ? `Upload Images`
+                                                    : 'Maximum 4 images reached'
+                                                }
                                                 <input
                                                     type="file"
                                                     multiple
                                                     accept="image/*"
                                                     onChange={handleImageUpload}
                                                     style={{ display: 'none' }}
+                                                    disabled={!canUploadMoreImages()}
                                                 />
                                             </Button>
 
-                                            {/* Uploaded Images Grid */}
-                                            {uploadedImages.length > 0 && (
-                                                <Grid container spacing={1.5}>
-                                                    {uploadedImages.map((image) => (
-                                                        <Grid item xs={4} key={image.id}>
+                                            {/* All Images Grid */}
+                                            {getAllImages().length > 0 && (
+                                                <Grid
+                                                    container
+                                                    spacing={0.8}
+                                                    justifyContent="flex-start"
+                                                >
+                                                    {getAllImages().map((image) => (
+                                                        <Grid
+                                                            item
+                                                            xs={6}
+                                                            sm={3}
+                                                            md={2.5}
+                                                            key={image.id}
+                                                            sx={{
+                                                                display: 'flex',
+                                                                flexDirection: 'column',
+                                                                alignItems: 'center',
+                                                            }}
+                                                        >
                                                             <Box
                                                                 sx={{
                                                                     position: 'relative',
                                                                     borderRadius: 2,
                                                                     overflow: 'hidden',
-                                                                    height: 90,
+                                                                    height: 120,
+                                                                    width: '100%',
                                                                     cursor: 'pointer',
                                                                     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
                                                                     transition: 'all 0.2s ease',
@@ -747,6 +967,7 @@ const AssetMaster = ({ config }) => {
                                                                     '&:hover .image-overlay': {
                                                                         opacity: 1,
                                                                     },
+                                                                    border: image.type === 'existing' ? '2px solid #10b981' : 'none',
                                                                 }}
                                                             >
                                                                 <img
@@ -756,9 +977,12 @@ const AssetMaster = ({ config }) => {
                                                                         width: '100%',
                                                                         height: '100%',
                                                                         objectFit: 'cover',
+                                                                        borderRadius: '8px',
                                                                     }}
                                                                     onClick={() => handleViewImage(image)}
                                                                 />
+
+                                                                {/* Overlay */}
                                                                 <Box
                                                                     className="image-overlay"
                                                                     sx={{
@@ -802,29 +1026,55 @@ const AssetMaster = ({ config }) => {
                                                                         <Delete fontSize="small" />
                                                                     </IconButton>
                                                                 </Box>
+
+                                                                {/* Badge */}
+                                                                {image.type === 'existing' && (
+                                                                    <Chip
+                                                                        label="Existing"
+                                                                        size="small"
+                                                                        sx={{
+                                                                            position: 'absolute',
+                                                                            top: 4,
+                                                                            left: 4,
+                                                                            height: 18,
+                                                                            fontSize: '0.55rem',
+                                                                            backgroundColor: '#10b981',
+                                                                            color: 'white',
+                                                                            fontWeight: 'bold',
+                                                                        }}
+                                                                    />
+                                                                )}
                                                             </Box>
 
-                                                            {/* Image Info */}
+                                                            {/* File Name */}
                                                             <Typography
                                                                 variant="caption"
                                                                 sx={{
                                                                     display: 'block',
-                                                                    mt: 0.5,
+                                                                    mt: 0.4,
                                                                     fontWeight: 500,
                                                                     color: '#334155',
+                                                                    textAlign: 'center',
                                                                 }}
                                                             >
                                                                 {image.name.length > 15
                                                                     ? image.name.substring(0, 15) + '...'
                                                                     : image.name}
                                                             </Typography>
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                {formatFileSize(image.size)}
-                                                            </Typography>
+                                                            {image.size > 0 && (
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    color="text.secondary"
+                                                                    sx={{ display: 'block', textAlign: 'center' }}
+                                                                >
+                                                                    {formatFileSize(image.size)}
+                                                                </Typography>
+                                                            )}
                                                         </Grid>
                                                     ))}
                                                 </Grid>
                                             )}
+
                                         </Box>
                                     </Grid>
 
@@ -869,15 +1119,14 @@ const AssetMaster = ({ config }) => {
                         </CardContent>
                     </Card>
                 ) : (
-                    // Pass the full assetsData array to CommonListView - let it handle pagination internally
                     <CommonListView
-                        data={assetsData} // Full array - CommonListView handles pagination
+                        data={assetsData}
                         columns={tableColumns}
                         actions={tableActions}
                         loading={isFetching}
                         emptyMessage="No Assets Found"
                         emptyDescription="Add your first asset"
-                        pagination={paginationConfig} // Same pagination config as AssetManagement
+                        pagination={paginationConfig}
                     />
                 )}
             </Box>
@@ -912,7 +1161,8 @@ const AssetMaster = ({ config }) => {
                                 }}
                             />
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                                Size: {formatFileSize(selectedImage.size)}
+                                {selectedImage.size > 0 && `Size: ${formatFileSize(selectedImage.size)}`}
+                                {selectedImage.type === 'existing' && ' • Existing Image'}
                             </Typography>
                         </Box>
                     )}

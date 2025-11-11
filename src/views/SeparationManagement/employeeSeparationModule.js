@@ -62,14 +62,14 @@ const EmployeeSeparationModule = () => {
             icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
             component: ExitInterviewManagement
         },
-        {
-            label: 'Final Settlement',
-            icon: <FinalSettlementIcon sx={{ color: '#10b981' }} />,
-        },
-        {
-            label: 'Analytics',
-            icon: <AnalyticsIcon sx={{ color: '#0ea5e9' }} />,
-        },
+        // {
+        //     label: 'Final Settlement',
+        //     icon: <FinalSettlementIcon sx={{ color: '#10b981' }} />,
+        // },
+        // {
+        //     label: 'Analytics',
+        //     icon: <AnalyticsIcon sx={{ color: '#0ea5e9' }} />,
+        // },
     ];
 
     return (

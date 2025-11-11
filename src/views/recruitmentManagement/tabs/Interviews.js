@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
+import dayjs from 'dayjs';
 
 const Interviews = ({ config }) => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
@@ -80,6 +81,12 @@ const Interviews = ({ config }) => {
       rating: 0,
       feedBack: ''
     });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = dayjs(dateString);
+    return date.isValid() ? date.format('DD-MM-YYYY') : 'N/A';
   };
 
   const handleFeedbackChange = (field, value) => {
@@ -240,7 +247,7 @@ const Interviews = ({ config }) => {
                         Date & Time
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {interview.interview_date} at {interview.interview_time}
+                        {formatDate(interview.interview_date)} at {interview.interview_time}
                       </Typography>
                     </Box>
                   </Box>

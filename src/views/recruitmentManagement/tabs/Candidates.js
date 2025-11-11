@@ -26,6 +26,7 @@ import {
 import CommonListView from '../../../utils/AssetCommonListViewTable';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
+import dayjs from 'dayjs';
 
 const Candidates = ({ config }) => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
@@ -321,7 +322,12 @@ const Candidates = ({ config }) => {
     active: candidate.active
   }));
 
-  // Table Columns
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not Scheduled';
+    const date = dayjs(dateString);
+    return date.isValid() ? date.format('DD-MM-YYYY') : 'Not Scheduled';
+  };
+  
   const columns = [
     {
       key: 'candidate',
@@ -398,7 +404,7 @@ const Candidates = ({ config }) => {
       label: 'Interview Date',
       render: (value) => (
         <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-          {value || 'Not Scheduled'}
+          {formatDate(value)} {/* ✅ now shows DD-MM-YYYY */}
         </Typography>
       )
     }

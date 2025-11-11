@@ -14,7 +14,10 @@ import {
     Card,
     CardContent,
     Autocomplete,
-    CircularProgress
+    CircularProgress,
+    FormControl,
+    FormControlLabel,
+    Checkbox
 } from '@mui/material';
 import {
     Add,
@@ -27,6 +30,9 @@ import {
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
 import CommonListView from '../../utils/AssetCommonListViewTable';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => {
     const [isAllocating, setIsAllocating] = useState(false);
@@ -40,7 +46,8 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         allocation_date: new Date().toISOString().split('T')[0],
         expected_return: '',
         condition: 'Excellent',
-        notes: ''
+        notes: '',
+        active: true
     });
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [assetOptions, setAssetOptions] = useState([]);
@@ -83,7 +90,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         },
         {
             key: 'employee_details',
-            label: 'Employee',
+            label: 'Name',
             render: (value, row) => (
                 <Box>
                     <Typography variant="body2" fontWeight="500">
@@ -100,7 +107,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
             label: 'Allocation Date',
             render: (value) => (
                 <Typography variant="body2">
-                    {value}
+                    {formatDate(value)} {/* ✅ now DD-MM-YYYY */}
                 </Typography>
             )
         },
@@ -109,7 +116,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
             label: 'Expected Return',
             render: (value, row) => (
                 <Typography variant="body2">
-                    {row.expectedreturndate || 'Not specified'}
+                    {row.expectedreturndate ? formatDate(row.expectedreturndate) : 'Not specified'} {/* ✅ formatted */}
                 </Typography>
             )
         },
@@ -120,9 +127,13 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 <Chip
                     label={value}
                     color={
-                        value === 'Excellent' ? 'success' :
-                            value === 'Good' ? 'primary' :
-                                value === 'Fair' ? 'warning' : 'error'
+                        value === 'Excellent'
+                            ? 'success'
+                            : value === 'Good'
+                                ? 'primary'
+                                : value === 'Fair'
+                                    ? 'warning'
+                                    : 'error'
                     }
                     size="small"
                     sx={{
@@ -137,8 +148,8 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
             label: 'Status',
             render: (value, row) => (
                 <Chip
-                    label={row.active ? "Active" : "Inactive"}
-                    color={row.active ? "success" : "error"}
+                    label={row.active ? 'Active' : 'Inactive'}
+                    color={row.active ? 'success' : 'error'}
                     size="small"
                     sx={{
                         fontWeight: '600',
@@ -167,6 +178,12 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         indexOfFirstItem: (currentPage - 1) * itemsPerPage,
         indexOfLastItem: Math.min(currentPage * itemsPerPage, allocations.length),
         onPageChange: (event, value) => setCurrentPage(value)
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = dayjs(dateString);
+        return date.isValid() ? date.format('DD-MM-YYYY') : 'N/A';
     };
 
     const getAssetOptions = async () => {
@@ -236,7 +253,8 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                     allocation_date: allocation.allocationDate || new Date().toISOString().split('T')[0],
                     expected_return: allocation.expectedreturndate || '',
                     condition: allocation.assetcondition || 'Excellent',
-                    notes: allocation.allocationnotes || ''
+                    notes: allocation.allocationnotes || '',
+                    active: allocation.active !== undefined ? allocation.active : true
                 });
 
                 // Set selected employee for Autocomplete
@@ -309,9 +327,10 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
     };
 
     const handleInputChange = (field) => (event) => {
+        const value = field === 'active' ? event.target.checked : event.target.value;
         setFormData(prev => ({
             ...prev,
-            [field]: event.target.value
+            [field]: value
         }));
     };
 
@@ -347,6 +366,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 expectedreturndate: formData.expected_return || formData.allocation_date,
                 finyear: config.finyear || '2025',
                 orgId: parseInt(orgId) || 0,
+                active: formData.active
             };
 
             // Add ID for update operation
@@ -401,6 +421,18 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         setIsAllocating(true);
         setIsEditing(false);
         setEditingId(null);
+        setFormData({
+            asset_id: '',
+            asset_name: '',
+            employee_id: '',
+            employee_name: '',
+            allocation_date: new Date().toISOString().split('T')[0],
+            expected_return: '',
+            condition: 'Excellent',
+            notes: '',
+            active: true
+        });
+        setSelectedEmployee(null);
         setCurrentPage(1); // Reset to first page when starting allocation
     };
 
@@ -416,7 +448,8 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
             allocation_date: new Date().toISOString().split('T')[0],
             expected_return: '',
             condition: 'Excellent',
-            notes: ''
+            notes: '',
+            active: true
         });
         setSelectedEmployee(null);
         setCurrentPage(1); // Reset to first page when canceling
@@ -621,48 +654,118 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
 
                                     {/* Row 3 - Three fields */}
                                     <Grid item xs={12} sm={3}>
-                                        <TextField
-                                            fullWidth
-                                            label="Allocation Date"
-                                            type="date"
-                                            value={formData.allocation_date}
-                                            onChange={handleInputChange('allocation_date')}
-                                            InputLabelProps={{ shrink: true }}
-                                            required
-                                            disabled={isSubmitting}
-                                            size="small"
-                                            InputProps={{
-                                                startAdornment: <CalendarMonth sx={{ color: 'text.secondary', mr: 1 }} />
-                                            }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={3}>
-                                        <TextField
-                                            fullWidth
-                                            label="Expected Return Date"
-                                            type="date"
-                                            value={formData.expected_return}
-                                            onChange={handleInputChange('expected_return')}
-                                            InputLabelProps={{ shrink: true }}
-                                            disabled={isSubmitting}
-                                            size="small"
-                                            InputProps={{
-                                                startAdornment: <CalendarMonth sx={{ color: 'text.secondary', mr: 1 }} />
-                                            }}
-                                        />
+                                        <FormControl fullWidth variant="outlined" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label={
+                                                        <span>
+                                                            Allocation Date<span style={{ color: 'red' }}> *</span>
+                                                        </span>
+                                                    }
+                                                    format="DD-MM-YYYY"
+                                                    value={formData.allocation_date ? dayjs(formData.allocation_date) : null}
+                                                    onChange={(newValue) => {
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            allocation_date: newValue ? newValue.toISOString() : '',
+                                                        }));
+                                                    }}
+                                                    disabled={isSubmitting}
+                                                    slotProps={{
+                                                        textField: {
+                                                            size: 'small',
+                                                            fullWidth: true,
+                                                            required: true,
+                                                            sx: {
+                                                                '& .MuiInputBase-root': {
+                                                                    backgroundColor: '#f9fafb',
+                                                                    borderRadius: '8px',
+                                                                },
+                                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                                    borderColor: '#94a3b8',
+                                                                },
+                                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                                    borderColor: '#94a3b8',
+                                                                },
+                                                                '& .Mui-disabled': {
+                                                                    backgroundColor: '#f9fafb',
+                                                                    color: '#334155',
+                                                                },
+                                                            },
+                                                        },
+                                                    }}
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl>
                                     </Grid>
 
-                                    {/* Row 4 - Notes (full width) */}
-                                    <Grid item xs={12} sm={9}>
+                                    <Grid item xs={12} sm={3}>
+                                        <FormControl fullWidth variant="outlined" size="small">
+                                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                <DatePicker
+                                                    label="Expected Return Date"
+                                                    format="DD-MM-YYYY"
+                                                    value={formData.expected_return ? dayjs(formData.expected_return) : null}
+                                                    onChange={(newValue) => {
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            expected_return: newValue ? newValue.toISOString() : '',
+                                                        }));
+                                                    }}
+                                                    disabled={isSubmitting}
+                                                    slotProps={{
+                                                        textField: {
+                                                            size: 'small',
+                                                            fullWidth: true,
+                                                            sx: {
+                                                                '& .MuiInputBase-root': {
+                                                                    backgroundColor: '#f9fafb',
+                                                                    borderRadius: '8px',
+                                                                },
+                                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                                    borderColor: '#94a3b8',
+                                                                },
+                                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                                    borderColor: '#94a3b8',
+                                                                },
+                                                                '& .Mui-disabled': {
+                                                                    backgroundColor: '#f9fafb',
+                                                                    color: '#334155',
+                                                                },
+                                                            },
+                                                        },
+                                                    }}
+                                                />
+                                            </LocalizationProvider>
+                                        </FormControl>
+                                    </Grid>
+
+                                    {/* Row 4 - Notes and Active Checkbox */}
+                                    <Grid item xs={12} sm={6}>
                                         <TextField
                                             fullWidth
                                             label="Allocation Notes"
                                             multiline
-                                            rows={2}
+                                            rows={1}
                                             value={formData.notes}
                                             onChange={handleInputChange('notes')}
                                             disabled={isSubmitting}
                                             size="small"
+                                        />
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={3}>
+                                        <FormControlLabel
+                                            control={
+                                                <Checkbox
+                                                    checked={formData.active}
+                                                    onChange={handleInputChange('active')}
+                                                    color="primary"
+                                                    disabled={isSubmitting}
+                                                />
+                                            }
+                                            label="Active"
+                                            sx={{ mt: 1 }}
                                         />
                                     </Grid>
                                 </Grid>
