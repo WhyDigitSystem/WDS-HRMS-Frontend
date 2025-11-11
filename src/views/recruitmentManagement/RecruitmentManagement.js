@@ -11,8 +11,10 @@ import {
     Container,
     Chip,
 } from '@mui/material';
+
 import {
-    Add as AddIcon,
+    // Add as AddIcon,
+    Psychology as PsychologyIcon,
     Work as WorkIcon,
     Person as PersonIcon,
     EventNote as EventIcon,
@@ -21,6 +23,7 @@ import {
 
 // Import tab components
 import JobPostings from './tabs/JobPostings';
+import ATS from './tabs/ATS';
 import Candidates from './tabs/Candidates';
 import Interviews from './tabs/Interviews';
 import Offers from './tabs/Offers';
@@ -43,6 +46,7 @@ const defaultConfig = {
 const RecruitmentManagement = () => {
     const [currentTab, setCurrentTab] = useState('jobs');
     const [jobs, setJobs] = useState([]);
+    const [Ats, setAts] = useState([]);
     const [candidates, setCandidates] = useState([]);
     const [interviews, setInterviews] = useState([]);
     const [offers, setOffers] = useState([]);
@@ -56,6 +60,10 @@ const RecruitmentManagement = () => {
         jobs: {
             active: '#3b82f6',
             inactive: '#3b82f6'
+        },
+        Ats: {    
+            active: '#023e8a',
+            inactive: '#023e8a'   
         },
         candidates: {
             active: '#10b981',
@@ -224,6 +232,9 @@ const RecruitmentManagement = () => {
             case 'jobs':
                 fetchJobs();
                 break;
+            case 'Ats':
+                // fetchJobs();
+                break;
             case 'candidates':
                 fetchCandidates();
                 break;
@@ -257,6 +268,7 @@ const RecruitmentManagement = () => {
 
     // Calculate counts for each tab - FIXED to show total count instead of just active
     const jobCount = jobs.length; // Show total jobs
+    const ATSCount = Ats.length;
     const candidateCount = candidates.length; // Show total candidates
     const interviewCount = interviews.length; // Show total interviews
     const offerCount = offers.length; // Show total offers
@@ -264,6 +276,7 @@ const RecruitmentManagement = () => {
     // Tab icons with colors - always colored
     const tabIcons = {
         jobs: <WorkIcon sx={{ fontSize: 20, color: iconColors.jobs.inactive }} />,
+        Ats: <PsychologyIcon sx={{ fontSize: 20, color: iconColors.Ats.inactive }} />,
         candidates: <PersonIcon sx={{ fontSize: 20, color: iconColors.candidates.inactive }} />,
         interviews: <EventIcon sx={{ fontSize: 20, color: iconColors.interviews.inactive }} />,
         offers: <OfferIcon sx={{ fontSize: 20, color: iconColors.offers.inactive }} />
@@ -272,6 +285,7 @@ const RecruitmentManagement = () => {
     // Active tab icons - slightly bolder
     const activeTabIcons = {
         jobs: <WorkIcon sx={{ fontSize: 20, color: iconColors.jobs.active }} />,
+        Ats: <PsychologyIcon sx={{ fontSize: 20, color: iconColors.Ats.active }} />,
         candidates: <PersonIcon sx={{ fontSize: 20, color: iconColors.candidates.active }} />,
         interviews: <EventIcon sx={{ fontSize: 20, color: iconColors.interviews.active }} />,
         offers: <OfferIcon sx={{ fontSize: 20, color: iconColors.offers.active }} />
@@ -345,6 +359,27 @@ const RecruitmentManagement = () => {
                                     </Box>
                                 }
                                 value="jobs"
+                            />
+                             {/* Ats Tab */}
+                            <Tab
+                                icon={currentTab === 'Ats' ? activeTabIcons.Ats : tabIcons.Ats}
+                                iconPosition="start"
+                                label={
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <span>ATS</span>
+                                        <Chip
+                                            label={ATSCount}
+                                            size="small"
+                                            sx={{
+                                                height: 20,
+                                                fontSize: '0.75rem',
+                                                backgroundColor: currentTab === 'Ats' ? iconColors.Ats.active : 'grey.300',
+                                                color: currentTab === 'Ats' ? 'white' : 'grey.700',
+                                            }}
+                                        />
+                                    </Box>
+                                }
+                                value="Ats"
                             />
 
                             {/* Candidates Tab */}
@@ -429,6 +464,16 @@ const RecruitmentManagement = () => {
                         onRefresh={fetchJobs}
                     />
                 )}
+                 {currentTab === 'Ats' && (
+                    <ATS
+                        candidates={candidates}
+                        onOpenModal={openModal}
+                        onCloseModal={closeModal}
+                        config={config}
+                        // onRefresh={fetchCandidates}
+                    />
+                )}
+
 
                 {currentTab === 'candidates' && (
                     <Candidates
