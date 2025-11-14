@@ -99,9 +99,9 @@ const PayslipGenerate = Loadable(lazy(() => import('views/team/PayslipGeneration
 const OverAllReport = Loadable(lazy(() => import('views/team/OverAllReport')));
 
 // manageTax
-// const ManageTax = Loadable(lazy(() => import('views/ManageTax/manageTax')));
-// const DeclarationDate = Loadable(lazy(() => import('views/ManageTax/DeclarationDate')));
-// const DeclarationInput = Loadable(lazy(() => import('views/ManageTax/DeclarationInput')));
+const ManageTax = Loadable(lazy(() => import('views/ManageTax/manageTax')));
+const DeclarationDate = Loadable(lazy(() => import('views/ManageTax/DeclarationDate')));
+const DeclarationInput = Loadable(lazy(() => import('views/ManageTax/DeclarationInput')));
 
 // PreGoals
 const Appraisee = Loadable(lazy(() => import('views/Appraisal/Appraisee')));
@@ -427,18 +427,18 @@ const HrmsRoute = {
       element: <PayslipGenerate />
     },
     // manageTax
-    // {
-    //   path: '/ManageTax/manageTax',
-    //   element: <ManageTax />
-    // },
-    // {
-    //   path: '/ManageTax/DeclarationDate',
-    //   element: <DeclarationDate />
-    // },
-    // {
-    //   path: '/ManageTax/DeclarationInput',
-    //   element: <DeclarationInput />
-    // },
+    {
+      path: '/ManageTax/manageTax',
+      element: <ManageTax />
+    },
+    {
+      path: '/ManageTax/DeclarationDate',
+      element: <DeclarationDate />
+    },
+    {
+      path: '/ManageTax/DeclarationInput',
+      element: <DeclarationInput />
+    },
     // PreGoals
     {
       path: '/Appraisal/Appraisee',
