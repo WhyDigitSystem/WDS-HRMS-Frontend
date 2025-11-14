@@ -10,7 +10,8 @@ import {
   IconMap,
   IconBuildingSkyscraper,
   IconSun,
-  IconListDetails 
+  IconListDetails,
+  IconBeach
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -97,6 +98,13 @@ const basicMasterChildren = [
     type: 'item',
     url: '/basicMaster/OT',
     icon: IconIdBadge2
+  },
+  hasScreenAccess('LT') && {
+    id: 'leaveType',
+    title: 'Leave Types',
+    type: 'item',
+    url: '/leaveMaster/LeaveTypes',
+    icon: IconBeach
   },
   // hasScreenAccess('OT') && {
   //   id: 'overTime',

@@ -307,7 +307,7 @@ const PendingApproval = ({ isLoading }) => {
       // 1. Make API call to approve/reject
       await apiCalls(
         'put',
-        `/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${request.employeeCode}&id=${request.id}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${request.screenName}`
+        `/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${request.employeeCode}&id=${request.id}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${request.screenName}&email=${request.email}`
       );
 
       setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));

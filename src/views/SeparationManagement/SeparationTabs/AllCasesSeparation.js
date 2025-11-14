@@ -216,7 +216,7 @@ const AllCasesSeparation = () => {
     const columns = [
         {
             key: 'employeeName',
-            label: 'Employee Name',
+            label: 'Name',
             width: '200px',
             render: (value, row) => (
                 <Box>

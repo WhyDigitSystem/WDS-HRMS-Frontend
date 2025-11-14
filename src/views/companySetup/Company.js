@@ -962,7 +962,7 @@ const Company = () => {
                     renderValue={(selected) => (Array.isArray(selected) ? selected.join(', ') : '')}
                   >
                     <MenuItem value="Files">Files</MenuItem>
-                    <MenuItem value="Software">Software</MenuItem>
+                    <MenuItem value="System">System</MenuItem>
                     <MenuItem value="Biometric">Biometric</MenuItem>
                   </Select>
                   {fieldErrors.attendanceMode && <FormHelperText>{fieldErrors.attendanceMode}</FormHelperText>}

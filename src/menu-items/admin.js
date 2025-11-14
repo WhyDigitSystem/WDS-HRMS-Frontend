@@ -9,7 +9,8 @@ import {
   IconUserPlus,
   IconShield,
   IconListDetails,
-  IconCalendarEvent
+  IconCalendarEvent,
+  IconUserSearch
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -55,7 +56,14 @@ const adminChildren = [
     type: 'item',
     url: '/companysetup/LeaveAssigned',
     icon: IconCalendarEvent
-  }
+  },
+  hasScreenAccess('ED') && {
+    id: 'employeeDetails',
+    title: 'Employee Profile',
+    type: 'item',
+    url: '/employeeMaster/employeeProfile',
+    icon: IconUserSearch
+  },
 ].filter(Boolean);
 
 // full admin menu

@@ -20,20 +20,20 @@ const hasScreenAccess = (screenId) => {
 
 // Define children with permission checks
 const employeeMasterChildren = [
-  hasScreenAccess('ED') && {
-    id: 'employeeDetails',
-    title: 'Employee Profile',
-    type: 'item',
-    url: '/employeeMaster/employeeProfile',
-    icon: IconUserSearch
-  },
-  hasScreenAccess('LT') && {
-    id: 'leaveType',
-    title: 'Leave Types',
-    type: 'item',
-    url: '/leaveMaster/LeaveTypes',
-    icon: IconBeach
-  },
+  // hasScreenAccess('ED') && {
+  //   id: 'employeeDetails',
+  //   title: 'Employee Profile',
+  //   type: 'item',
+  //   url: '/employeeMaster/employeeProfile',
+  //   icon: IconUserSearch
+  // },
+  // hasScreenAccess('LT') && {
+  //   id: 'leaveType',
+  //   title: 'Leave Types',
+  //   type: 'item',
+  //   url: '/leaveMaster/LeaveTypes',
+  //   icon: IconBeach
+  // },
   hasScreenAccess('SP') && {
     id: 'salaryProcess',
     title: 'Payroll Process',
