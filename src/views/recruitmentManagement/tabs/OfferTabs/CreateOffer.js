@@ -33,6 +33,7 @@ import { showToast } from 'utils/toast-component';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { ToastContainer } from 'react-toastify';
 
 const CreateOffer = () => {
     const [departmentList, setDepartmentList] = useState([]);
@@ -348,14 +349,15 @@ const CreateOffer = () => {
             );
 
             if (response.status === true) {
-                showToast('success',
-                    isDraft
-                        ? 'Offer saved as draft successfully!'
-                        : 'Offer created and approved successfully!'
-                );
+                // showToast('success',
+                //     isDraft
+                //         ? 'Offer saved as draft successfully!'
+                //         : 'Offer created and approved successfully!'
+                // );
+                showToast('success', 'Offer Created Successfully');
                 handleReset(); // Reset form after success
             } else {
-                showToast('error', response.message || 'Failed to create offer. Please try again.');
+                showToast('error', response.message || 'Offer creation failed');
             }
         } catch (error) {
             console.error('Error creating offer:', error);
@@ -955,6 +957,7 @@ const CreateOffer = () => {
                     </Button>
                 </Box>
             </Paper>
+            <ToastContainer />
 
             {/* Snackbar for notifications */}
             <Snackbar

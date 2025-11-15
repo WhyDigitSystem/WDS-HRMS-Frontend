@@ -27,6 +27,7 @@ import CommonListView from '../../../utils/AssetCommonListViewTable';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
 import dayjs from 'dayjs';
+import { ToastContainer } from 'react-toastify';
 
 const Candidates = ({ config }) => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
@@ -453,6 +454,7 @@ const Candidates = ({ config }) => {
           Add Candidate
         </Button>
       </Box>
+      <ToastContainer />
 
       <CommonListView
         data={transformedCandidates}

@@ -29,11 +29,12 @@ import {
     Close
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
-import CommonListView from '../../utils/AssetCommonListViewTable'; // Adjust path as needed
+import CommonListView from '../../utils/AssetCommonListViewTable';
 import { showToast } from 'utils/toast-component';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { ToastContainer } from 'react-toastify';
 
 const AssetMaster = ({ config }) => {
     const [isAdding, setIsAdding] = useState(false);
@@ -267,14 +268,21 @@ const AssetMaster = ({ config }) => {
 
                 // Handle existing images
                 if (asset.assetImages && asset.assetImages.length > 0) {
-                    const existingImagesData = asset.assetImages.map((image, index) => ({
-                        id: `existing-${image.id}`,
-                        preview: `data:image/png;base64,${image.imageAttachment}`, // Convert base64 to data URL
-                        name: `asset-image-${index + 1}`,
-                        size: 0,
-                        isExisting: true,
-                        imageId: image.id
-                    }));
+                    const existingImagesData = asset.assetImages.map((image, index) => {
+                        const base64 = `data:image/png;base64,${image.imageAttachment}`;
+                        const filename = `asset-image-${index + 1}.png`;
+
+                        return {
+                            id: `existing-${image.id}`,
+                            preview: base64,
+                            file: base64ToFile(base64, filename),
+                            name: filename,
+                            size: image.imageAttachment.length,
+                            isExisting: true,
+                            imageId: image.id,
+                            serverId: image.id
+                        };
+                    });
                     setExistingImages(existingImagesData);
                 } else {
                     setExistingImages([]);
@@ -313,34 +321,53 @@ const AssetMaster = ({ config }) => {
         }));
     };
 
-    // Image Upload Functions
+    const handleRemoveImage = (imageId) => {
+        setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+
+        setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
+
+        showToast("info", "Image removed");
+    };
+
     const handleImageUpload = (event) => {
         const files = Array.from(event.target.files);
-        
-        // Check total image limit (4 images max)
-        const totalImages = existingImages.length + uploadedImages.length;
-        const availableSlots = 4 - totalImages;
-        
-        if (files.length > availableSlots) {
-            showToast('warning', `You can only upload ${availableSlots} more image(s). Maximum 4 images allowed.`);
-            event.target.value = '';
-            return;
-        }
 
-        const validFiles = files.filter(file =>
-            file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024 // 5MB limit
+        const validFiles = files.filter(
+            (file) => file.type.startsWith("image/") && file.size <= 5 * 1024 * 1024
         );
 
-        if (validFiles.length !== files.length) {
-            showToast('warning', 'Some files were skipped. Only images under 5MB are allowed.');
-        }
-
         if (validFiles.length === 0) {
-            event.target.value = '';
+            showToast("warning", "Invalid image selected");
             return;
         }
 
-        const newImages = validFiles.map(file => ({
+        if (isEditing && existingImages.length === 4) {
+            const file = validFiles[0];
+            const updated = [...existingImages];
+
+            updated[0] = {
+                ...updated[0],
+                file: file,
+                preview: URL.createObjectURL(file),
+                name: file.name,
+                size: file.size,
+                isEdited: true
+            };
+
+            setExistingImages(updated);
+            event.target.value = "";
+            showToast("info", "Existing image replaced");
+            return;
+        }
+
+        const totalImages = existingImages.length + uploadedImages.length;
+
+        if (totalImages + validFiles.length > 4) {
+            showToast("warning", "Maximum 4 images allowed");
+            return;
+        }
+
+        const newImages = validFiles.map((file) => ({
             id: Date.now() + Math.random(),
             file,
             preview: URL.createObjectURL(file),
@@ -349,30 +376,8 @@ const AssetMaster = ({ config }) => {
             isExisting: false
         }));
 
-        setUploadedImages(prev => [...prev, ...newImages]);
-        event.target.value = ''; // Reset file input
-    };
-
-    const handleRemoveImage = (imageId) => {
-        // Check if it's an existing image or a new upload
-        if (imageId.startsWith('existing-')) {
-            // For existing images, show confirmation
-            const confirmDelete = window.confirm('Are you sure you want to remove this image?');
-            if (confirmDelete) {
-                setExistingImages(prev => prev.filter(img => img.id !== imageId));
-                // Optional: Call API to delete image from server
-                // deleteImageFromServer(imageId.replace('existing-', ''));
-            }
-        } else {
-            // For newly uploaded images
-            setUploadedImages(prev => {
-                const imageToRemove = prev.find(img => img.id === imageId);
-                if (imageToRemove) {
-                    URL.revokeObjectURL(imageToRemove.preview);
-                }
-                return prev.filter(img => img.id !== imageId);
-            });
-        }
+        setUploadedImages((prev) => [...prev, ...newImages]);
+        event.target.value = "";
     };
 
     const handleViewImage = (image) => {
@@ -385,7 +390,6 @@ const AssetMaster = ({ config }) => {
         setSelectedImage(null);
     };
 
-    // Function to get all images (existing + newly uploaded)
     const getAllImages = () => {
         return [
             ...existingImages.map(img => ({ ...img, type: 'existing' })),
@@ -393,78 +397,55 @@ const AssetMaster = ({ config }) => {
         ];
     };
 
-    // Upload ALL images to API (both existing and new)
     const uploadAllImages = async (assetMasterId) => {
-        const allImages = getAllImages();
-        
-        if (allImages.length === 0) {
-            console.log('No images to upload');
-            return;
+        const editedImages = existingImages.filter((img) => img.isEdited);
+        const newImages = uploadedImages;
+        console.log("Img", existingImages);
+        console.log("New Img", uploadedImages);
+
+
+        const imagesToUpload = [...existingImages, ...newImages];
+
+        if (imagesToUpload.length === 0) {
+            return { success: true };
         }
 
         try {
             setIsLoading(true);
-            
-            // Upload only new images (existing ones are already on server)
-            const newImagesToUpload = uploadedImages;
-            
-            if (newImagesToUpload.length > 0) {
-                const uploadPromises = newImagesToUpload.map(async (image) => {
-                    const formData = new FormData();
-                    formData.append('files', image.file);
-                    formData.append('assetMasterId', assetMasterId);
 
-                    const response = await apiCalls(
-                        'post',
-                        `/assetmanagement/upload/${assetMasterId}`,
-                        formData,
-                        {},
-                        { 'Content-Type': 'multipart/form-data' }
-                    );
+            const formData = new FormData();
+            imagesToUpload.forEach((img) => {
+                formData.append("files", img.file);
+            });
 
-                    return response;
-                });
+            formData.append("assetMasterId", assetMasterId);
 
-                const results = await Promise.all(uploadPromises);
-                const successfulUploads = results.filter(result => result?.status === true);
+            const response = await apiCalls(
+                "post",
+                `/assetmanagement/upload/${assetMasterId}`,
+                formData,
+                {},
+                { "Content-Type": "multipart/form-data" }
+            );
 
-                if (successfulUploads.length > 0) {
-                    console.log(`Successfully uploaded ${successfulUploads.length} new images`);
-                    showToast('success', `Successfully uploaded ${successfulUploads.length} images`);
-                } else {
-                    showToast('warning', 'No new images were uploaded successfully');
-                }
+            if (response?.status === true) {
+                showToast("success", "Images updated successfully");
 
-                return results;
+                setUploadedImages([]);
+                setExistingImages((prev) =>
+                    prev.map((i) => ({ ...i, isEdited: false }))
+                );
+
+                return { success: true };
             } else {
-                console.log('No new images to upload, existing images are preserved');
-                return [];
+                return { success: false };
             }
-        } catch (error) {
-            console.error('Error uploading images:', error);
-            showToast('error', 'Error uploading some images');
-            throw error;
+        } catch (err) {
+            console.error(err);
+            showToast("error", "Error uploading images");
+            return { success: false };
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    // Delete image from server (optional - for existing images)
-    const deleteImageFromServer = async (imageId) => {
-        try {
-            const response = await apiCalls(
-                'delete',
-                `/assetmanagement/deleteAssetImage?id=${imageId}`
-            );
-            
-            if (response.status === true) {
-                showToast('success', 'Image deleted successfully');
-            } else {
-                showToast('error', 'Failed to delete image');
-            }
-        } catch (error) {
-            console.error('Error deleting image:', error);
-            showToast('error', 'Error deleting image');
         }
     };
 
@@ -479,7 +460,6 @@ const AssetMaster = ({ config }) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        // Validate required fields
         const errors = {};
         if (!formData.asset_code) errors.asset_code = 'Code is required';
         if (!formData.asset_name) errors.asset_name = 'Asset is required';
@@ -512,7 +492,6 @@ const AssetMaster = ({ config }) => {
             active: formData.active
         };
 
-        // Add ID for update operation
         if (isEditing && selectedAsset) {
             saveData.id = selectedAsset.id;
         }
@@ -525,15 +504,12 @@ const AssetMaster = ({ config }) => {
             if (response.status === true) {
                 console.log('Response:', response);
 
-                // Get the created/updated asset ID
                 const assetId = response.paramObjectsMap?.assetMasterVO?.id || selectedAsset?.id;
 
-                // Upload ALL images (both existing and new) if we have an asset ID
-                if (assetId && getAllImages().length > 0) {
+                if (assetId) {
                     await uploadAllImages(assetId);
                 }
 
-                // Refresh the assets list
                 await getAllAssets();
 
                 showToast('success', `Asset ${isEditing ? 'updated' : 'added'} successfully!`);
@@ -604,19 +580,28 @@ const AssetMaster = ({ config }) => {
         }
     };
 
-    // Check if user can upload more images
     const canUploadMoreImages = () => {
         const totalImages = existingImages.length + uploadedImages.length;
         return totalImages < 4;
     };
 
-    const getRemainingImageSlots = () => {
-        const totalImages = existingImages.length + uploadedImages.length;
-        return 4 - totalImages;
+    const base64ToFile = (base64, filename) => {
+        const arr = base64.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+
+        return new File([u8arr], filename, { type: mime });
     };
 
     return (
         <>
+            <ToastContainer />
             <Box
                 sx={{
                     display: 'flex',
@@ -916,7 +901,7 @@ const AssetMaster = ({ config }) => {
                                                     }
                                                 }}
                                             >
-                                                {canUploadMoreImages() 
+                                                {canUploadMoreImages()
                                                     ? `Upload Images`
                                                     : 'Maximum 4 images reached'
                                                 }

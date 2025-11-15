@@ -18,6 +18,7 @@ import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import SendIcon from '@mui/icons-material/Send';
 import CommonListView from '../../../../utils/AssetCommonListViewTable';
 import apiCalls from 'apicall';
+import { useNavigate } from "react-router-dom";
 
 const AllOffers = () => {
     const [status, setStatus] = useState('ALL');
@@ -36,6 +37,8 @@ const AllOffers = () => {
     // Pagination state - same as AssetMaster
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5);
+
+    const navigate = useNavigate();
 
     const statusOptions = [
         { value: 'ALL', label: 'All Status' },
@@ -298,14 +301,15 @@ const AllOffers = () => {
             icon: <RemoveRedEyeIcon fontSize="small" />,
             tooltip: 'View Offer',
             color: 'primary',
-            onClick: (row) => console.log('View offer:', row.id)
-        },
-        {
-            icon: <SendIcon fontSize="small" />,
-            tooltip: 'Send Offer',
-            color: 'warning',
-            onClick: (row) => console.log('Send offer:', row.id)
-        },
+            onClick: (row) => {
+                navigate("/RecruitmentManagement/RecruitmentManagement", {
+                    state: {
+                        tab: 3,     // Preview tab index
+                        offer: row  // Pass selected row
+                    }
+                });
+            }
+        }
     ];
 
     const handleInputChange = (field, value) => {

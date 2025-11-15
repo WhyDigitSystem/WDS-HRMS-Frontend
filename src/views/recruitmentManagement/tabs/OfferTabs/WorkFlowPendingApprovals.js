@@ -25,6 +25,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt';
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt';
 import apiCalls from 'apicall';
+import { ToastContainer } from 'react-toastify';
 
 const WorkFlow = () => {
     const [offers, setOffers] = useState([]);
@@ -127,11 +128,13 @@ const WorkFlow = () => {
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+
+        // Split DD/MM/YYYY
+        const [day, month, year] = dateString.split('/');
+
+        if (!day || !month || !year) return 'N/A';
+
+        return `${day}-${month}-${year}`;  // Already in correct format
     };
 
     // Professional color variants for cards
@@ -516,6 +519,7 @@ const WorkFlow = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+            <ToastContainer />
         </Box>
     );
 };

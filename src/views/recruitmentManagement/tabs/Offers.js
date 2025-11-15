@@ -1,5 +1,5 @@
 // src/components/AdvancedOfferLetterSystem/MainComponent.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Paper,
@@ -23,6 +23,7 @@ import CreateOffer from './OfferTabs/CreateOffer';
 import AllOffers from './OfferTabs/AllOffer';
 import Preview from './OfferTabs/OfferPreview';
 import WorkFlow from './OfferTabs/WorkFlowPendingApprovals';
+import { useLocation } from "react-router-dom";
 
 const TabPanel = ({ children, value, index, ...other }) => (
   <div
@@ -38,6 +39,15 @@ const TabPanel = ({ children, value, index, ...other }) => (
 
 const AdvancedOfferLetterSystem = () => {
   const [currentTab, setCurrentTab] = useState(0);
+  const location = useLocation();
+  const selectedOffer = location.state?.offer || null;
+
+  useEffect(() => {
+    if (location.state?.tab !== undefined) {
+      setCurrentTab(location.state.tab);
+    }
+  }, [location.state]);
+
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
@@ -162,16 +172,10 @@ const AdvancedOfferLetterSystem = () => {
           const TabComponent = tab.component;
           return (
             <TabPanel key={index} value={currentTab} index={index}>
-              {TabComponent ? (
-                <TabComponent />
+              {index === 3 ? (
+                <TabComponent offer={selectedOffer} />
               ) : (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ p: 3, textAlign: 'center' }}
-                >
-                  {tab.label} content coming soon.
-                </Typography>
+                <TabComponent />
               )}
             </TabPanel>
           );

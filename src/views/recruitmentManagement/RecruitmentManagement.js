@@ -61,9 +61,9 @@ const RecruitmentManagement = () => {
             active: '#3b82f6',
             inactive: '#3b82f6'
         },
-        Ats: {    
+        Ats: {
             active: '#023e8a',
-            inactive: '#023e8a'   
+            inactive: '#023e8a'
         },
         candidates: {
             active: '#10b981',
@@ -168,31 +168,21 @@ const RecruitmentManagement = () => {
             setLoading(true);
             console.log('Fetching interviews with:', { orgId, branchCode });
 
-            // ✅ Fixed endpoint (as requested)
             const endpoint = `recruitmentmanagement/getSchedulerCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`;
 
-            // ✅ API Call
             const response = await apiCalls('get', endpoint);
 
             if (response.status === true) {
                 // Handle response structure safely
                 const interviewsData =
-                    response.paramObjectsMap?.schedulerCandidatesVO ||
-                    response.paramObjectsMap?.interviewsVO ||
-                    response.paramObjectsMap?.interviewVO ||
-                    response.paramObjectsMap?.interviewScheduleVO ||
-                    response.paramObjectsMap ||
-                    response.data ||
+                    response.paramObjectsMap?.candidatesVO ||
                     [];
 
-                console.log('✅ Interviews data loaded:', interviewsData);
                 setInterviews(Array.isArray(interviewsData) ? interviewsData : [interviewsData]);
             } else {
-                console.warn('⚠️ No valid interview data found:', response);
                 setInterviews([]);
             }
         } catch (error) {
-            console.error('❌ Error fetching interviews:', error);
             setInterviews([]);
         } finally {
             setLoading(false);
@@ -360,7 +350,7 @@ const RecruitmentManagement = () => {
                                 }
                                 value="jobs"
                             />
-                             {/* Ats Tab */}
+                            {/* Ats Tab */}
                             <Tab
                                 icon={currentTab === 'Ats' ? activeTabIcons.Ats : tabIcons.Ats}
                                 iconPosition="start"
@@ -464,13 +454,13 @@ const RecruitmentManagement = () => {
                         onRefresh={fetchJobs}
                     />
                 )}
-                 {currentTab === 'Ats' && (
+                {currentTab === 'Ats' && (
                     <ATS
                         candidates={candidates}
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
-                        // onRefresh={fetchCandidates}
+                    // onRefresh={fetchCandidates}
                     />
                 )}
 

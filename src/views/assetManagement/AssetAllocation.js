@@ -33,6 +33,7 @@ import CommonListView from '../../utils/AssetCommonListViewTable';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { ToastContainer } from 'react-toastify';
 
 const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => {
     const [isAllocating, setIsAllocating] = useState(false);
@@ -383,6 +384,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
 
                 // Refresh allocations list
                 await getAllAllocations();
+                getAssetOptions();
 
                 // Also update local assets state if needed
                 const localAsset = assets.find(a => a.asset_code === formData.asset_id);
@@ -785,6 +787,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                     />
                 )}
             </Box>
+            <ToastContainer />
 
             <Snackbar
                 open={snackbar.open}
