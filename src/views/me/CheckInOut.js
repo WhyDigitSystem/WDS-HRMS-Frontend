@@ -230,7 +230,7 @@ const CheckInOut = () => {
           ...payload,
           ...checkInVO
         });
-        
+
         const updatedData = listViewData.map((row) => (row.date === selectedRow.date ? { ...row, checkOutTime } : row));
         setListViewData(updatedData);
         setFilteredData(
@@ -494,21 +494,23 @@ const CheckInOut = () => {
                     onClick={() => {
                       if (row.checkInTime === '00:00') {
                         handleCheckInClick(row);
+                      } else {
+                        handleCheckInClick(row);
                       }
                     }}
                     style={{
                       color:
                         row.checkInTime === '00:00'
                           ? '#EE4B2B'
-                          : row.approvalstatus === 'APPROVED'
-                            ? '#4F7942'
-                            : row.approvalstatus === 'PENDING'
+                          : row.approvalstatus === 'Approved'
+                            ? '#154e04ff'
+                            : row.approvalstatus === 'Pending'
                               ? '#FFAC1C'
                               : 'black',
                       cursor: row.checkInTime === '00:00' ? 'pointer' : 'default',
                       textDecoration: row.checkInTime === '00:00' ? 'underline' : 'none',
                       fontWeight:
-                        row.checkInTime === '00:00' || row.approvalstatus === 'APPROVED' || row.approvalstatus === 'PENDING'
+                        row.checkInTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
                           ? 'bold'
                           : 'normal'
                     }}
@@ -521,21 +523,23 @@ const CheckInOut = () => {
                     onClick={() => {
                       if (row.checkOutTime === '00:00') {
                         handleCheckOutClick(row);
+                      } else {
+                        handleCheckInClick(row);
                       }
                     }}
                     style={{
                       color:
                         row.checkOutTime === '00:00'
                           ? '#EE4B2B'
-                          : row.approvalstatus === 'APPROVED'
-                            ? '#4F7942'
-                            : row.approvalstatus === 'PENDING'
+                          : row.approvalstatus === 'Approved'
+                            ? '#154e04ff'
+                            : row.approvalstatus === 'Pending'
                               ? '#FFAC1C'
                               : 'black',
                       cursor: row.checkOutTime === '00:00' ? 'pointer' : 'default',
                       textDecoration: row.checkOutTime === '00:00' ? 'underline' : 'none',
                       fontWeight:
-                        row.checkOutTime === '00:00' || row.approvalstatus === 'APPROVED' || row.approvalstatus === 'PENDING'
+                        row.checkOutTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
                           ? 'bold'
                           : 'normal'
                     }}
