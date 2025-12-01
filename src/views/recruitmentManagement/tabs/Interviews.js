@@ -15,7 +15,8 @@ import {
   DialogActions,
   TextField,
   Stack,
-  Rating
+  Rating,
+  MenuItem
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -30,17 +31,18 @@ import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
 import dayjs from 'dayjs';
 
-const Interviews = ({ config }) => {
+const Interviews = ({ interviews, setInterviews, config }) => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
-  const [interviews, setInterviews] = useState([]);
+  // const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
   const [selectedInterview, setSelectedInterview] = useState(null);
   const [feedbackData, setFeedbackData] = useState({
     rating: 0,
-    feedBack: ''
+    feedBack: '',
+    interviewStatus: '' 
   });
 
   useEffect(() => {
@@ -69,7 +71,8 @@ const Interviews = ({ config }) => {
     setSelectedInterview(interview);
     setFeedbackData({
       rating: interview.rating || 0,
-      feedBack: interview.feedBack || ''
+      feedBack: interview.feedBack || '',
+      interviewStatus: interview.interviewStatus || ''
     });
     setOpenFeedbackDialog(true);
   };
@@ -109,6 +112,7 @@ const Interviews = ({ config }) => {
         interviewer: selectedInterview.interviewer,
         rating: feedbackData.rating || 0,
         feedBack: feedbackData.feedBack || '',
+        interviewStatus: feedbackData.interviewStatus || '',
         orgId: parseInt(orgId),
         branch: selectedInterview.branch || 'BENGALURU',
         branchCode: selectedInterview.branchCode || branchCode,
@@ -348,11 +352,13 @@ const Interviews = ({ config }) => {
               </Typography>
               <Rating
                 value={feedbackData.rating}
-                onChange={(event, newValue) => handleFeedbackChange('rating', newValue || 0)}
+                onChange={(event, newValue) =>
+                  handleFeedbackChange('rating', newValue || 0)
+                }
                 max={10}
                 size="large"
               />
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+              <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
                 Selected: {feedbackData.rating}/10
               </Typography>
             </Box>
@@ -364,8 +370,20 @@ const Interviews = ({ config }) => {
               rows={4}
               value={feedbackData.feedBack}
               onChange={(e) => handleFeedbackChange('feedBack', e.target.value)}
-              placeholder="Enter your feedback about the candidate's performance..."
             />
+
+            <TextField
+              select
+              label="Interview Result"
+              fullWidth
+              size="small"
+              value={feedbackData.interviewStatus}
+              onChange={(e) => handleFeedbackChange('interviewStatus', e.target.value)}
+            >
+              <MenuItem value="SELECTED">Selected</MenuItem>
+              <MenuItem value="REJECTED">Rejected</MenuItem>
+              <MenuItem value="HOLD">Hold</MenuItem>
+            </TextField>
           </Stack>
         </DialogContent>
 

@@ -53,6 +53,8 @@ const RecruitmentManagement = () => {
     const [config] = useState(defaultConfig);
     const [modalOpen, setModalOpen] = useState(false);
     const [modalConfig, setModalConfig] = useState({});
+    const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
+    const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
     const [loading, setLoading] = useState(true);
 
     // Icon colors for different tabs - always colored
@@ -105,14 +107,6 @@ const RecruitmentManagement = () => {
 
     const fetchJobs = async () => {
         try {
-            const orgId = localStorage.getItem('orgId');
-            const branchCode = localStorage.getItem('branchCode');
-
-            if (!orgId || !branchCode) {
-                console.warn('Missing orgId or branchCode');
-                setJobs([]);
-                return;
-            }
 
             const response = await apiCalls('get', `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
 
@@ -131,13 +125,6 @@ const RecruitmentManagement = () => {
 
     const fetchCandidates = async () => {
         try {
-            const orgId = localStorage.getItem('orgId');
-            const branchCode = localStorage.getItem('branchCode');
-
-            if (!orgId || !branchCode) {
-                setCandidates([]);
-                return;
-            }
 
             const response = await apiCalls('get', `recruitmentmanagement/getCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
 
@@ -156,21 +143,10 @@ const RecruitmentManagement = () => {
 
     const fetchInterviews = async () => {
         try {
-            const orgId = localStorage.getItem('orgId');
-            const branchCode = localStorage.getItem('branchCode');
-
-            if (!orgId || !branchCode) {
-                console.warn('Missing orgId or branchCode for interviews');
-                setInterviews([]);
-                return;
-            }
 
             setLoading(true);
-            console.log('Fetching interviews with:', { orgId, branchCode });
 
-            const endpoint = `recruitmentmanagement/getSchedulerCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`;
-
-            const response = await apiCalls('get', endpoint);
+            const response = await apiCalls('get', `recruitmentmanagement/getSchedulerCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
 
             if (response.status === true) {
                 // Handle response structure safely
@@ -191,13 +167,6 @@ const RecruitmentManagement = () => {
 
     const fetchOffers = async () => {
         try {
-            const orgId = localStorage.getItem('orgId');
-            const branchCode = localStorage.getItem('branchCode');
-
-            if (!orgId || !branchCode) {
-                setOffers([]);
-                return;
-            }
 
             const response = await apiCalls('get', `recruitmentmanagement/getCreateOfferByOrgIdAndDepartment?orgId=${orgId}&branchCode=${branchCode}&department=ALL&status=ALL`);
 
@@ -448,6 +417,7 @@ const RecruitmentManagement = () => {
                 {currentTab === 'jobs' && (
                     <JobPostings
                         jobs={jobs}
+                        setJobs={setJobs}
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
@@ -463,11 +433,10 @@ const RecruitmentManagement = () => {
                     // onRefresh={fetchCandidates}
                     />
                 )}
-
-
                 {currentTab === 'candidates' && (
                     <Candidates
                         candidates={candidates}
+                        setCandidates={setCandidates}
                         onOpenModal={openModal}
                         onCloseModal={closeModal}
                         config={config}
@@ -479,6 +448,7 @@ const RecruitmentManagement = () => {
                     <Interviews
                         interviews={interviews}
                         onOpenModal={openModal}
+                        setInterviews={setInterviews}
                         onCloseModal={closeModal}
                         config={config}
                         onRefresh={fetchInterviews}

@@ -29,12 +29,12 @@ import { showToast } from 'utils/toast-component';
 import dayjs from 'dayjs';
 import { ToastContainer } from 'react-toastify';
 
-const Candidates = ({ config }) => {
+const Candidates = ({ candidates, setCandidates, config }) => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
   const [branch, setBranch] = useState(localStorage.getItem('branch'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
-  const [candidates, setCandidates] = useState([]);
+  // const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [jobPostings, setJobPostings] = useState([]);
   const [allReportingPersonList, setAllReportingPersonList] = useState([]);

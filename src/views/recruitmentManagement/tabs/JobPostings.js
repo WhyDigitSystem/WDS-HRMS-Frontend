@@ -33,12 +33,12 @@ import {
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
 
-const JobPostings = ({ config }) => {
+const JobPostings = ({ jobs, setJobs, config }) => {
     const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
     const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
     const [branch, setBranch] = useState(localStorage.getItem('branch'));
     const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
-    const [jobs, setJobs] = useState([]);
+    // const [jobs, setJobs] = useState([]);
     const [departmentList, setDepartmentList] = useState([]);
     const [branchList, setBranchList] = useState([]);
     const [addJobModalOpen, setAddJobModalOpen] = useState(false);
