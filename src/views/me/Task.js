@@ -688,7 +688,7 @@ const Task = () => {
           <div className="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-sm-down">
             <div className="modal-content shadow-xl">
               <div className="modal-header">
-                <h5 className="modal-title">Add Entry for {selectedDate.toDateString()}</h5>
+                <h5 className="modal-title">Work Summary {dayjs(selectedDate).format("MMM DD")}</h5>
                 <button type="button" className="btn-close" onClick={() => setModalOpen(false)}></button>
               </div>
 

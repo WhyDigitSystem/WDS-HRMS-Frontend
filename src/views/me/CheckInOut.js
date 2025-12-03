@@ -34,6 +34,8 @@ const modalStyle = {
   width: 300
 };
 
+
+
 const CheckInOut = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userName] = useState(localStorage.getItem('userName'));
@@ -50,7 +52,7 @@ const CheckInOut = () => {
   const [checkOutTime, setCheckOutTime] = useState('');
   const [checkInModalOpen, setCheckInModalOpen] = useState(false);
   const [checkOutModalOpen, setCheckOutModalOpen] = useState(false);
-
+const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
   const [searchText, setSearchText] = useState('');
   const [reportingPersonMail, setReportingPersonMail] = useState('');
   const [reportingPerson, setReportingPerson] = useState('');
@@ -72,12 +74,21 @@ const CheckInOut = () => {
     'November',
     'December'
   ];
+  const [todayStatus, setTodayStatus] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(dayjs().month()); // default current month (0-11)
 
   useEffect(() => {
     getAllSwipeInandOut();
     getReportingPerson();
   }, []);
+
+  useEffect(() => {
+  const timer = setInterval(() => {
+    setLiveTime(dayjs().format("HH:mm:ss"));
+  }, 1000); // updates every 30 seconds
+
+  return () => clearInterval(timer); // cleanup
+}, []);
 
   useEffect(() => {
     getAllSwipeInandOut(selectedMonth);
@@ -96,7 +107,7 @@ const CheckInOut = () => {
       if (result?.paramObjectsMap?.Attendance) {
         // ✅ Filter out Holiday and WeekOff records
         const filteredAttendance = result.paramObjectsMap.Attendance.filter(
-          item => item.attendancestatus !== "Holiday" && item.attendancestatus !== "WeekOff"
+          (item) => item.attendancestatus !== 'Holiday' && item.attendancestatus !== 'WeekOff'
         );
 
         const transformed = filteredAttendance.map((item) => ({
@@ -125,7 +136,19 @@ const CheckInOut = () => {
       setLoading(false);
     }
   };
+  const getTodayStatus = async () => {
+    try {
+      const res = await apiCalls('get', `basicmaster/chkStatus/${empCode}`);
+      const status = res?.paramObjectsMap?.EmployeeStatus?.status; // "In" or "Out"
+      setTodayStatus(status);
+    } catch (err) {
+      console.error('Error fetching status:', err);
+    }
+  };
 
+  useEffect(() => {
+    getTodayStatus();
+  }, []);
   const getReportingPerson = async () => {
     setLoading(true);
     try {
@@ -402,6 +425,16 @@ const CheckInOut = () => {
     getAllSwipeInandOut(selected);
   };
 
+  const getWorkingHours = (checkInTime) => {
+  const now = dayjs();
+  const start = dayjs(checkInTime, "HH:mm");
+
+  const diffMinutes = now.diff(start, "minute");
+  const hours = Math.floor(diffMinutes / 60);
+
+  return hours; // simple integer
+};
+
   return (
     <div style={{ padding: 20 }}>
       <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" mb={2} gap={2}>
@@ -484,73 +517,116 @@ const CheckInOut = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                <TableRow key={row.id} hover>
-                  <TableCell>{row.date}</TableCell>
-                  <TableCell>{row.day}</TableCell>
+              filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                const rowDate = dayjs(row.date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+                const today = dayjs().format('YYYY-MM-DD');
+                let displayCheckOut;
+                let displayWorkingHours;
+                let displayEffectiveHours;
 
-                  {/* Check-In Cell */}
-                  <TableCell
-                    onClick={() => {
-                      if (row.checkInTime === '00:00') {
-                        handleCheckInClick(row);
-                      } else {
-                        handleCheckInClick(row);
-                      }
-                    }}
-                    style={{
-                      color:
-                        row.checkInTime === '00:00'
-                          ? '#EE4B2B'
-                          : row.approvalstatus === 'Approved'
-                            ? '#154e04ff'
-                            : row.approvalstatus === 'Pending'
-                              ? '#FFAC1C'
-                              : 'black',
-                      cursor: row.checkInTime === '00:00' ? 'pointer' : 'default',
-                      textDecoration: row.checkInTime === '00:00' ? 'underline' : 'none',
-                      fontWeight:
-                        row.checkInTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
-                          ? 'bold'
-                          : 'normal'
-                    }}
-                  >
-                    {row.checkInTime === '00:00' ? 'Missing' : row.checkInTime}
-                  </TableCell>
+                // ----------- TODAY LOGIC -----------
+                if (rowDate === today) {
+                  if (todayStatus === 'In') {
+                    // Checkout
+                    displayCheckOut = dayjs().format('HH:mm:ss');
 
-                  {/* Check-Out Cell */}
-                  <TableCell
-                    onClick={() => {
-                      if (row.checkOutTime === '00:00') {
-                        handleCheckOutClick(row);
-                      } else {
-                        handleCheckInClick(row);
-                      }
-                    }}
-                    style={{
-                      color:
-                        row.checkOutTime === '00:00'
-                          ? '#EE4B2B'
-                          : row.approvalstatus === 'Approved'
-                            ? '#154e04ff'
-                            : row.approvalstatus === 'Pending'
-                              ? '#FFAC1C'
-                              : 'black',
-                      cursor: row.checkOutTime === '00:00' ? 'pointer' : 'default',
-                      textDecoration: row.checkOutTime === '00:00' ? 'underline' : 'none',
-                      fontWeight:
-                        row.checkOutTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
-                          ? 'bold'
-                          : 'normal'
-                    }}
-                  >
-                    {row.checkOutTime === '00:00' ? 'Missing' : row.checkOutTime}
-                  </TableCell>
+                    // Working hours = now - checkIn
+                    displayWorkingHours = getWorkingHours(row.checkInTime);
 
-                  <TableCell>{row.totalWorkingHours}</TableCell>
-                  <TableCell>{row.effectiveFrom}</TableCell>
-                </TableRow>
-              ))
+                    // Effective hours = (same logic as working hours or your rule)
+                    displayEffectiveHours = getWorkingHours(row.checkInTime);
+                  } else {
+                    // Today but already checked out
+                    displayCheckOut = row.checkOutTime;
+                    displayWorkingHours = row.totalWorkingHours;
+                    displayEffectiveHours = row.effectiveFrom;
+                  }
+                }
+
+                // ----------- PREVIOUS DATE LOGIC -----------
+                else {
+                  // Checkout
+                  displayCheckOut = row.checkOutTime === '00:00' ? 'Missing' : row.checkOutTime;
+
+                  // Working Hours
+                  displayWorkingHours = row.totalWorkingHours;
+
+                  // Effective Hours
+                  displayEffectiveHours = row.effectiveFrom;
+                }
+                return (
+                  <TableRow key={row.id} hover>
+                    <TableCell>{row.date}</TableCell>
+                    <TableCell>{row.day}</TableCell>
+
+                    {/* Check-In Cell */}
+                    <TableCell
+                      onClick={() => {
+                        if (row.checkInTime === '00:00') {
+                          handleCheckInClick(row);
+                        } else {
+                          handleCheckInClick(row);
+                        }
+                      }}
+                      style={{
+                        color:
+                          row.checkInTime === '00:00'
+                            ? '#EE4B2B'
+                            : row.approvalstatus === 'Approved'
+                              ? '#154e04ff'
+                              : row.approvalstatus === 'Pending'
+                                ? '#FFAC1C'
+                                : 'black',
+                        cursor: row.checkInTime === '00:00' ? 'pointer' : 'default',
+                        textDecoration: row.checkInTime === '00:00' ? 'underline' : 'none',
+                        fontWeight:
+                          row.checkInTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
+                            ? 'bold'
+                            : 'normal'
+                      }}
+                    >
+                      {row.checkInTime === '00:00' ? 'Missing' : row.checkInTime}
+                    </TableCell>
+
+                    {/* Check-Out Cell */}
+                    <TableCell
+                      onClick={() => {
+                        if (row.checkOutTime === '00:00') {
+                          handleCheckOutClick(row);
+                        } else {
+                          handleCheckInClick(row);
+                        }
+                      }}
+                      style={{
+                        color:
+                          row.checkOutTime === '00:00'
+                            ? '#EE4B2B'
+                            : row.approvalstatus === 'Approved'
+                              ? '#154e04ff'
+                              : row.approvalstatus === 'Pending'
+                                ? '#FFAC1C'
+                                : 'black',
+                        cursor: row.checkOutTime === '00:00' ? 'pointer' : 'default',
+                        textDecoration: row.checkOutTime === '00:00' ? 'underline' : 'none',
+                        fontWeight:
+                          row.checkOutTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
+                            ? 'bold'
+                            : 'normal'
+                      }}
+                    >
+                      {/* {row.checkOutTime === '00:00' ? 'Missing' : row.checkOutTime} */}
+                      {/* {row.checkOutTime === '00:00' ? (rowDate === today ? dayjs().format('HH:mm') : 'Missing') : row.checkOutTime} */}
+                      {displayCheckOut}
+                    </TableCell>
+
+                    {/* <TableCell>{row.totalWorkingHours}</TableCell>
+                    <TableCell>{row.effectiveFrom}</TableCell> */}
+                    <TableCell>{displayWorkingHours}</TableCell>
+                    {/* EFFECTIVE HOURS */}
+                    <TableCell>{displayEffectiveHours}</TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

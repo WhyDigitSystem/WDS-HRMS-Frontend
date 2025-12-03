@@ -501,6 +501,7 @@ export const Comp_Off = () => {
           compoOffDay: item.compOffDay || '',
           assignedBy: item.assignedBy || '',
           description: item.notes || '',
+          status:item.approvalStatus || '',
           notify: Array.isArray(item.compoffNotifyVO) ? item.compoffNotifyVO.map((n) => n.notify2 || '').filter(Boolean) : [],
           disabled: true
         }));
@@ -588,6 +589,9 @@ export const Comp_Off = () => {
                         <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
                           Notify
                         </th>
+                        <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
+                          Status
+                        </th>
                       </tr>
                     </thead>
 
@@ -602,7 +606,7 @@ export const Comp_Off = () => {
                               <DatePicker
                                 selected={row.compoOff ? new Date(row.compoOff) : null}
                                 onChange={(date) => handleDateChange(date, row.id)}
-                                dateFormat="yyyy-MM-dd"
+                                dateFormat="dd/MM/YYYY"
                                 filterDate={(date) => isDateEnabled(formatDate(date))} // use updated formatDate
                                 placeholderText="Select comp-off date"
                                 className={`form-control ${leaveTypeErrors[index]?.compoOff ? 'is-invalid' : ''}`}
@@ -673,6 +677,9 @@ export const Comp_Off = () => {
                                 </Select>
                                 {leaveTypeErrors[index]?.notify && <FormHelperText>{leaveTypeErrors[index].notify}</FormHelperText>}
                               </FormControl>
+                            </td>
+                            <td className="border px-2 py-2">
+                              <input type="text" className="form-control" value={row.status || ''} readOnly />
                             </td>
                           </tr>
                         ))}
