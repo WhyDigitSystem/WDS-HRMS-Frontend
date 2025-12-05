@@ -71,6 +71,13 @@ const basicMasterChildren = [
     url: '/basicMaster/Designation',
     icon: IconIdBadge2
   },
+  hasScreenAccess('PT') && {
+    id: 'project',
+    title: 'Project',
+    type: 'item',
+    url: '/basicMaster/ProjectMaster',
+    icon: IconIdBadge2
+  },
   hasScreenAccess('SM') && {
     id: 'shiftMaster',
     title: 'Shift',
