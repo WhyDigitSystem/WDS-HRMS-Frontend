@@ -286,7 +286,7 @@ const Payslip = () => {
 
     try {
       const [employeeRes, earningsRes, deductionsRes, payslipCompanydetails, payOnHandRes] = await Promise.all([
-        apiCalls('get', `/basicmaster/getpayslipemployeedetails?Employeecode=${empCode}&orgId=${orgId}`),
+        apiCalls('get', `/basicmaster/getpayslipemployeedetails?Employeecode=${empCode}&orgId=${orgId}&month=${selectedMonth}&year=${selectedYear}`),
         apiCalls(
           'get',
           `/basicmaster/getpayslipearningdetails?Employeecode=${empCode}&Month=${selectedMonth}&orgId=${orgId}&year=${selectedYear}`
