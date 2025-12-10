@@ -110,7 +110,7 @@ const appraisalChildren = [
   },
   hasScreenAccess('ICM') && {
     id: 'incrementManagement',
-    title: 'Increment Management',
+    title: 'Increment',
     type: 'item',
     url: '/Appraisal/incrementManagement',
     icon: IconUserShield
@@ -126,7 +126,7 @@ const Appraisal =
         children: [
           {
             id: 'Appraisal',
-            title: 'Performance Management',
+            title: 'Performance',
             type: 'collapse',
             icon: IconCash,
             children: appraisalChildren

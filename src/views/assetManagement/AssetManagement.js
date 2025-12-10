@@ -14,12 +14,14 @@ import {
     AssignmentInd,
     Dashboard,
     Star,
+    AssignmentReturn,
     BusinessCenter,
     TrackChanges
 } from '@mui/icons-material';
 import AssetMaster from './AssetMaster';
 import AssetAllocation from './AssetAllocation';
 import AssetManagement from './DashboardAssetManagement';
+import ReturnAsset from './ReturnAsset';
 
 const AssetManagementSystem = ({ config = {} }) => {
     const [activeTab, setActiveTab] = useState(0);
@@ -99,6 +101,13 @@ const AssetManagementSystem = ({ config = {} }) => {
             onReturnAsset={handleReturnAsset}
             config={mergedConfig}
         />,
+         <ReturnAsset
+            key="return"
+            assets={assets}
+            // onAllocateAsset={handleAllocateAsset}
+            // onReturnAsset={handleReturnAsset}
+            config={mergedConfig}
+        />,
         <AssetManagement
             key="management"
             assets={assets}
@@ -124,6 +133,13 @@ const AssetManagementSystem = ({ config = {} }) => {
             gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
             description: "Assign assets"
         },
+        {
+    label: "Return Asset",
+    icon: <AssignmentReturn />,
+    iconColor: "#0284c7", // Blue
+    gradient: "linear-gradient(135deg, #0284c7 0%, #3b82f6 100%)",
+    description: "Return assigned assets"
+},
         {
             label: "Dashboard",
             icon: <Dashboard />,

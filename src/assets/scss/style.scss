@@ -227,11 +227,10 @@
   padding-left: 0.25rem !important;
 }
 
-.css-kvip5o-MuiToolbar-root {
-  // background: linear-gradient(193deg, #8ea6a8 30%, #4d7fa7 90%); }
-  background: linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%) !important;
-  padding: 14px 10px 0px !important;
-}
+// .css-kvip5o-MuiToolbar-root {
+//   background: linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%) !important;
+//   padding: 14px 10px 0px !important;
+// }
 
 .ps {
   background: linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%) !important;
@@ -809,7 +808,7 @@
 }
 
 .css-h4y409-MuiList-root {
-  padding-top: 10px !important;
+  // padding-top: 10px !important;
   padding-bottom: 0px !important;
 }
 
@@ -1445,10 +1444,11 @@
 }
 
 .css-1weec88-MuiInputBase-root-MuiOutlinedInput-root {
-  width: 400px !important;
+  width: 350px !important;
   margin-left: 47px !important;
   border-radius: 17px !important;
   box-shadow: none !important;
+  height:40px;
 }
 
 // .css-4a5t8g-MuiInputBase-input-MuiOutlinedInput-input.MuiInputBase-inputSizeSmall {
@@ -1714,3 +1714,41 @@
     color: #fff !important;
     justify-content: center;
 }
+// 
+@media (min-width: 900px) {
+  .css-9d4wr9{
+margin-left: 62px;
+margin-right: 0px;
+    }
+  }
+
+// @media (min-width: 900px) {
+//     .css-ohi407{
+//       margin-left: -196px;
+//     }
+//   }
+
+// .css-9d4wr9 {
+//   margin-top: 60px
+// }
+// .css-ohi407 {
+//   margin-top: 60px;
+//   margin-right: 0px;
+// }
+.css-18hx7uj{
+  margin-top: 65px;
+  margin-right:0px;
+  margin-bottom: 0px;
+}
+.css-52yosb{
+  margin-top: 65px;
+  margin-right: 0px;
+}
+.css-h4y409-MuiList-root{
+  padding-bottom: 0px;
+  padding-top: 0px;
+}
+@media (min-width: 900px) {
+    .css-18hx7uj {
+      margin-left: -235px;
+    }}

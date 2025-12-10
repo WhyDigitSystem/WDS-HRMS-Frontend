@@ -63,6 +63,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
           minWidth: { xs: 'auto', md: 140 },
           display: 'flex',
           alignItems: 'center',
+          gap:'50px'
         }}
       >
         {/* <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
@@ -74,10 +75,10 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
         <ButtonBase
           sx={{
-            borderRadius: '12px',
+            borderRadius: '8px',
             overflow: 'hidden',
-            display: { xs: 'inline-flex', md: 'none' }, // Visible only on xs (mobile), hidden on sm and up
-            mr: 1
+            // display: { xs: 'inline-flex', md: 'none' }, // Visible only on xs (mobile), hidden on sm and up
+            // mr: 1
           }}
         >
           <Avatar

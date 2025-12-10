@@ -192,10 +192,12 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
         try {
             const response = await apiCalls(
                 "get",
-                `/assetmanagement/getAssetNameCodeByOrgId?branchCode=${branchCode}&orgId=${orgId}`
+                // `/assetmanagement/getAssetNameCodeByOrgId?branchCode=${branchCode}&orgId=${orgId}`
+                `/assetmanagement/getAssetAllocationDetails?branchCode=${branchCode}&orgId=${orgId}`
             );
 
-            const data = response?.paramObjectsMap?.assetMasterVO || [];
+            // const data = response?.paramObjectsMap?.assetMasterVO || [];
+            const data = response?.paramObjectsMap?.assetAllocationDetails || [];
 
             if (Array.isArray(data) && data.length > 0) {
                 setAssetOptions(data);

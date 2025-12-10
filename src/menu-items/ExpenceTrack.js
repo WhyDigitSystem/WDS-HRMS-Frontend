@@ -11,7 +11,7 @@ const hasScreenAccess = (screenId) => {
 const expenceManagementChildren = [
     hasScreenAccess('EXT') && {
         id: 'ExpenceManagement',
-        title: 'Expense Management',
+        title: 'Expense',
         type: 'item',
         url: '/ExpenceManagement/ExpenceManagement',
         icon: IconPackages

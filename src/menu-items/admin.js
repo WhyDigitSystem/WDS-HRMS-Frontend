@@ -75,7 +75,7 @@ const admin =
         children: [
           {
             id: 'admin',
-            title: 'User Management',
+            title: 'User Mgmt',
             type: 'collapse',
             icon: IconShield,
             children: adminChildren

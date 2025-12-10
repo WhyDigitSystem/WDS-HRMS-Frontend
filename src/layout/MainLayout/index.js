@@ -8,7 +8,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 // project imports
 import navigation from 'menu-items';
 import { SET_MENU } from 'store/actions';
-import { drawerWidth } from 'store/constant';
+import { drawerWidth} from 'store/constant';
 import Breadcrumbs from 'ui-component/extended/Breadcrumbs';
 import Customization from '../SupportCenter';
 import Header from './Header';
@@ -82,11 +82,12 @@ const MainLayout = () => {
         color="inherit"
         elevation={0}
         sx={{
-          bgcolor: theme.palette.background.default,
+          // bgcolor: theme.palette.background.default,
+           background: 'linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%)',
           transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ height: '70px'}}>
           <Header handleLeftDrawerToggle={handleLeftDrawerToggle} />
         </Toolbar>
       </AppBar>
