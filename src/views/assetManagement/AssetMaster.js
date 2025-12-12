@@ -138,14 +138,14 @@ const AssetMaster = ({ config }) => {
   ];
 
   // Table actions configuration
-  const tableActions = [
-    {
-      icon: <Edit fontSize="small" />,
-      tooltip: 'Edit Asset',
-      color: 'info',
-      onClick: (asset) => handleEditAsset(asset.id)
-    }
-  ];
+  // const tableActions = [
+  //   {
+  //     icon: <Edit fontSize="small" />,
+  //     tooltip: 'Edit Asset',
+  //     color: 'info',
+  //     onClick: (asset) => handleEditAsset(asset.id)
+  //   }
+  // ];
 
   // Pagination config
   const paginationConfig = {
@@ -206,6 +206,7 @@ const AssetMaster = ({ config }) => {
     setIsLoading(true);
     try {
       const response = await apiCalls('get', `/assetmanagement/getAssetMasterById?id=${assetId}`);
+      
 
       if (response.status === true && response.paramObjectsMap?.assetMasterVO) {
         const asset = response.paramObjectsMap.assetMasterVO;
@@ -1066,7 +1067,7 @@ const AssetMaster = ({ config }) => {
           <CommonListView
             data={assetsData}
             columns={tableColumns}
-            actions={tableActions}
+            // actions={tableActions}
             loading={isFetching}
             emptyMessage="No Assets Found"
             emptyDescription="Add your first asset"

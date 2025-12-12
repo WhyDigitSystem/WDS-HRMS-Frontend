@@ -59,6 +59,7 @@ import {
 import apiCalls from 'apicall';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 const Approvals = () => {
     const [openDialog, setOpenDialog] = useState(false);
@@ -76,7 +77,7 @@ const Approvals = () => {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
+    const [itemsPerPage] = useState(10);
     const [openAttachment, setOpenAttachment] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
 
@@ -145,14 +146,30 @@ const Approvals = () => {
     const showSnackbar = (message, severity) => {
         setSnackbar({ open: true, message, severity });
     };
-    const getStatusColor = (status) => {
-        switch (status?.toUpperCase()) {
-            case 'APPROVED': return 'success';
-            case 'PENDING': return 'warning';
-            case 'REJECTED': return 'error';
-            default: return 'info';
-        }
-    };
+    // const getStatusColor = (status) => {
+    //     switch (status?.toUpperCase()) {
+    //         case 'APPROVED': return 'success';
+    //         case 'PENDING': return 'warning';
+    //         case 'REJECTED': return 'error';
+    //         default: return 'info';
+    //     }
+    // };
+    const getStatusColor = (status, theme) => {
+  switch (status?.toUpperCase()) {
+    case 'APPROVED': return theme.palette.success.main;
+    case 'PENDING': return theme.palette.warning.main;
+    case 'REJECTED': return theme.palette.error.main;
+    default: return theme.palette.info.main;
+  }
+};
+const getStatusIcon = (status) => {
+  switch (status?.toUpperCase()) {
+    case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+    case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
+    case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
+    default: return null;
+  }
+};
     const formatDate = (dateString) => {
         if (!dateString) return ''; // handle null or undefined
         const parsedDate = dayjs(dateString, [
@@ -209,42 +226,49 @@ const Approvals = () => {
         <>
             <TableContainer
                 component={Paper}
-                variant="outlined"
-                sx={{
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    overflow: 'auto',
-                    mb: 2
-                }}
+                // variant="outlined"
+               sx={{
+    borderRadius: 3,
+    boxShadow: 3,
+    maxHeight: 400,       
+    overflowY: "auto",
+  }}
             >
-                <Table stickyHeader>
+                {/* <Table stickyHeader> */}
+                    <Table size='small'>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Type</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Title</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Employee</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Exp Limit</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Amount</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Submitted</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Status</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Attachment</TableCell>
-                            <TableCell sx={{ fontWeight: 600, py: 1 }}>Approve/Reject</TableCell>
+                        <TableRow  sx={{
+          background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+          "& .MuiTableCell-root": {
+            color: "white !important",
+            fontWeight: "700",
+            fontSize: "13px",
+          },
+        }}>
+                            <TableCell align='center'>Type</TableCell>
+                            <TableCell align='center'>Title</TableCell>
+                            <TableCell align='center'>Emp</TableCell>
+                            <TableCell align='center'>Limit</TableCell>
+                            <TableCell align='center'>Amount</TableCell>
+                            <TableCell align='center'>Submitted</TableCell>
+                            <TableCell align='center'>Status</TableCell>
+                            <TableCell align='center'>Attachment</TableCell>
+                            <TableCell align='center'>Actions</TableCell>
                         </TableRow>
                     </TableHead>
 
                     <TableBody>
                         {currentAssets.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                                <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                                     <Box sx={{ textAlign: 'center' }}>
                                         <Inventory2 sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
                                         <Typography variant="h6" color="textSecondary" gutterBottom>
-                                            No Approval Requests Found
+                                             Approval data not found
                                         </Typography>
-                                        <Typography variant="body2" color="textSecondary">
+                                        {/* <Typography variant="body2" color="textSecondary">
                                             Get started by adding your first approval request
-                                        </Typography>
+                                        </Typography> */}
                                     </Box>
                                 </TableCell>
                             </TableRow>
@@ -258,23 +282,25 @@ const Approvals = () => {
                                         sx={{
                                             '&:hover': {
                                                 backgroundColor: 'grey.50',
-                                                transition: 'background-color 0.2s ease'
+                                                transition: '0.2s ease'
                                             }
                                         }}
                                     >
-                                        <TableCell sx={{ py: 1 }}>
-                                            <Typography variant="body2" fontWeight={500}>{asset.type}</Typography>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
+                                            {/* <Typography variant="body2" fontWeight={500}>{asset.type}</Typography> */}
+                                            <Typography variant="body2" fontWeight={500}>{asset.type?.split(" ")[0]}</Typography>
+
                                         </TableCell>
 
-                                        <TableCell sx={{ py: 1 }}>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
                                             <Typography variant="body2" color="text.secondary">{asset.title}</Typography>
                                         </TableCell>
 
-                                        <TableCell sx={{ py: 1 }}>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
                                             <Typography variant="body2" fontWeight={500}>{asset.employeeName}</Typography>
                                         </TableCell>
 
-                                        <TableCell sx={{ py: 1 }}>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
                                             <Typography variant="body2" fontWeight="500">
                                                 {asset.expenseLimit
                                                     ? Number(asset.expenseLimit).toLocaleString("en-IN", {
@@ -285,13 +311,14 @@ const Approvals = () => {
                                             </Typography>
                                         </TableCell>
 
-                                        <TableCell sx={{ py: 1 }}>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
                                             <Typography variant="body2" fontWeight="600"
                                                 sx={{
                                                     color: isExceeding ? 'error.main' : 'text.primary',
-                                                    backgroundColor: isExceeding ? 'rgba(255,0,0,0.08)' : 'transparent',
+                                                    // backgroundColor: isExceeding ? 'rgba(255,0,0,0.08)' : 'transparent',
                                                     px: 1,
-                                                    borderRadius: 1
+                                                    borderRadius: 1,
+                                                   
                                                 }}>
                                                 {asset.amount
                                                     ? Number(asset.amount).toLocaleString("en-IN", {
@@ -302,11 +329,11 @@ const Approvals = () => {
                                             </Typography>
                                         </TableCell>
 
-                                        <TableCell sx={{ py: 1 }}>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
                                             <Typography variant="body2" fontWeight={500}>{formatDate(asset.submitted)}</Typography>
                                         </TableCell>
 
-                                        <TableCell sx={{ py: 1 }}>
+                                        {/* <TableCell sx={{ py: 0.5 }}>
                                             <Chip
                                                 label={asset.status}
                                                 color={getStatusColor(asset.status)}
@@ -319,8 +346,24 @@ const Approvals = () => {
                                                     textTransform: 'capitalize'
                                                 }}
                                             />
+                                        </TableCell> */}
+                                        <TableCell sx={{ textAlign: 'center', py: 0.5 }}>
+                                          <Box
+                                            sx={{
+                                              width: 28,
+                                              height: 28,
+                                              borderRadius: '50%',
+                                              backgroundColor: (theme) => getStatusColor(asset.status, theme),
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              mx: 'auto',
+                                            }}
+                                          >
+                                            {getStatusIcon(asset.status)}
+                                          </Box>
                                         </TableCell>
-                                        <TableCell sx={{ py: 1 }}>
+                                        <TableCell align='center' sx={{ py: 0.5 }}>
                                             {asset.attachment ? (
                                                 <Tooltip title="View Attachment">
                                                     <IconButton
@@ -344,44 +387,61 @@ const Approvals = () => {
                                                 </Typography>
                                             )}
                                         </TableCell>
-                                        <TableCell sx={{ py: 1 }}>
-                                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                                <Button
-                                                    variant="contained"
-                                                    color="success"
-                                                    size="small"
-                                                    disabled={isLoading || asset.status !== 'PENDING'}
-                                                    onClick={() => handleOpenDialog(asset)}
-                                                    sx={{
-                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                                                        '&:hover': {
-                                                            transform: 'scale(1.05)',
-                                                            boxShadow: 3
-                                                        }
-                                                    }}
-                                                >
-                                                    <CheckCircleIcon sx={{ mr: 0.5, fontSize: 18 }} />
-                                                    Approve
-                                                </Button>
+                                      <TableCell align='center' sx={{ py: 0.5 }}>
+                                            <Box sx={{ display: 'flex', gap: 1,mx:'auto' }}>
+                                               <Button
+  variant="contained"
+  color="success"
+  disabled={isLoading || asset.status !== 'PENDING'}
+  onClick={() => handleOpenDialog(asset)}
+  sx={{
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    borderRadius: '50%',
+    minWidth: 28,
+    minHeight: 28,
+    width: 28,
+    height: 28,
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&:hover': {
+      transform: 'scale(1.1)',
+      boxShadow: 3
+    }
+  }}
+>
+  <CheckCircleIcon sx={{ fontSize: 16,color:'black' }} />
+</Button>
+
                                                 <Button
                                                     variant="contained"
                                                     color="error"
                                                     size="small"
                                                     disabled={isLoading || asset.status !== 'PENDING'}
                                                     onClick={() => handleApproveReject(asset, 'REJECTED', asset.amount)}
-                                                    sx={{
-                                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                                                        '&:hover': {
-                                                            transform: 'scale(1.05)',
-                                                            boxShadow: 3
-                                                        }
-                                                    }}
+                                                     sx={{
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    borderRadius: '50%',
+    minWidth: 28,
+    minHeight: 28,
+    width: 28,
+    height: 28,
+    padding: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&:hover': {
+      transform: 'scale(1.1)',
+      boxShadow: 3
+    }
+  }}
                                                 >
-                                                    <CancelIcon sx={{ mr: 0.5, fontSize: 18 }} />
-                                                    Reject
+                                                    <CancelIcon sx={{ fontSize: 16 ,color:'black'}} />
+                                                    {/* Reject */}
                                                 </Button>
                                             </Box>
-                                        </TableCell>
+                                    </TableCell>  
                                     </TableRow>
                                 );
                             })

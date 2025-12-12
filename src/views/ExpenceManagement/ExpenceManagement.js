@@ -21,6 +21,20 @@ import DashboardExpenseTravel from './DashboardExpenseTravel';
 const ExpenceManagement = ({ config = {} }) => {
     const [activeTab, setActiveTab] = useState(0);
     const [assets, setAssets] = useState([]);
+    // 
+    const [userRole, setUserRole] = useState('');
+    const roles = localStorage.getItem("ROLES");
+    useEffect(() => {
+          if (roles) {
+  const parsedRoles = JSON.parse(roles);
+  const userRole = parsedRoles[0].role;
+
+   setUserRole(userRole); 
+}
+    },[])
+ 
+console.log(userRole);
+// 
 
     const defaultConfig = {
         systemTitle: "Expense Management System",
@@ -40,10 +54,14 @@ const ExpenceManagement = ({ config = {} }) => {
     }, []);
 
     const tabComponents = [
-        <ExpenceTracking key="exp" assets={assets} config={mergedConfig} />,
+         <ExpenceTracking key="exp" assets={assets} config={mergedConfig} />,
         <TravelRequest key="travel" assets={assets} config={mergedConfig} />,
+        ...(userRole === "ADMIN"
+    ? [
         <Approvals key="approval" assets={assets} config={mergedConfig} />,
-        <DashboardExpenseTravel key="dash" assets={assets} config={mergedConfig} />
+        <DashboardExpenseTravel key="dash" assets={assets} config={mergedConfig} />,
+      ]: [])
+       
     ];
 
     const tabs = [
@@ -59,6 +77,9 @@ const ExpenceManagement = ({ config = {} }) => {
             color: "#059669",
             gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)"
         },
+        ...(userRole === 'ADMIN'
+    ? [
+       
         {
             label: "Approvals",
             icon: <CheckCircleOutline />,
@@ -71,6 +92,11 @@ const ExpenceManagement = ({ config = {} }) => {
             color: "#7c3aed",
             gradient: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)"
         }
+           ]
+    : [])
+ 
+     
+  
     ];
 
     return (
@@ -86,7 +112,8 @@ const ExpenceManagement = ({ config = {} }) => {
                     boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
                     position: 'sticky',
                     top: 0,
-                    zIndex: 10
+                    zIndex: 10,
+                   
                 }}
             >
                 <Container maxWidth="xl">
@@ -104,9 +131,10 @@ const ExpenceManagement = ({ config = {} }) => {
                                 textTransform: 'none',
                                 fontSize: '1rem',
                                 fontWeight: 600,
+                                // borderRadius: 20,
                                 minHeight: 40,
                                 px: 3,
-                                py: 1.5,
+                                py: 0,
                                 color: '#374151',
                                 transition: 'all 0.3s ease',
                                 '&:hover': {
@@ -165,7 +193,7 @@ const ExpenceManagement = ({ config = {} }) => {
             </Box>
 
             {/* Main Content */}
-            <Container maxWidth="xl" sx={{ py: 3 }}>
+            <Container maxWidth="xl" sx={{ py: 1 }}>
                 {tabComponents[activeTab]}
             </Container>
         </Box>

@@ -162,14 +162,14 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
     ];
 
     // Table actions configuration
-    const tableActions = [
-        {
-            icon: <Edit fontSize="small" />,
-            tooltip: 'Edit Allocation',
-            color: 'primary',
-            onClick: (allocation) => handleEdit(allocation.id)
-        }
-    ];
+    // const tableActions = [
+    //     {
+    //         icon: <Edit fontSize="small" />,
+    //         tooltip: 'Edit Allocation',
+    //         color: 'primary',
+    //         onClick: (allocation) => handleEdit(allocation.id)
+    //     }
+    // ];
 
     // Pagination configuration - EXACTLY like AssetManagement
     const paginationConfig = {
@@ -781,7 +781,7 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                     <CommonListView
                         data={allocations} // Full array - CommonListView handles pagination
                         columns={tableColumns}
-                        actions={tableActions}
+                        // actions={tableActions}
                         loading={loading}
                         emptyMessage="No Allocations Found"
                         emptyDescription="Allocate assets to employees to track assignments"

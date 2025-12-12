@@ -167,7 +167,9 @@ const DashboardExpenseTravel = () => {
     if (error) return <Alert severity="error">{error}</Alert>;
 
     return (
-        <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: '#fafafa', borderRadius: 2 }}>
+        // <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: '#fafafa', borderRadius: 2 }}>
+        <Box sx={{ backgroundColor: '#fafafa', borderRadius: 2 }}>
+
             {/* HEADER */}
             <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Grid item>

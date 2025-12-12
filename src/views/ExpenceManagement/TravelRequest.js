@@ -59,6 +59,10 @@ import apiCalls from 'apicall';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
 import dayjs from 'dayjs';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+
 
 const TravelRequest = () => {
     const [isAdding, setIsAdding] = useState(false);
@@ -92,7 +96,7 @@ const TravelRequest = () => {
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
+    const [itemsPerPage] = useState(10);
     // Fetch all expence on component mount
     useEffect(() => {
         getAllRequest();
@@ -353,13 +357,30 @@ const TravelRequest = () => {
     const showSnackbar = (message, severity) => {
         setSnackbar({ open: true, message, severity });
     };
-    const getStatusColor = (status) => {
-        switch (status?.toUpperCase()) {
-            case 'APPROVED': return 'success';
-            case 'PENDING': return 'warning';
-            case 'REJECTED': return 'error';
-            default: return 'info';
-        }
+    // const getStatusColor = (status) => {
+    //     switch (status?.toUpperCase()) {
+    //         case 'APPROVED': return 'success';
+    //         case 'PENDING': return 'warning';
+    //         case 'REJECTED': return 'error';
+    //         default: return 'info';
+    //     }
+    // };
+    const getStatusColor = (status, theme) => {
+      switch (status?.toUpperCase()) {
+        case 'APPROVED': return theme.palette.success.main;
+        case 'PENDING': return theme.palette.warning.main;
+        case 'REJECTED': return theme.palette.error.main;
+        default: return theme.palette.info.main;
+      }
+    };
+    
+    const getStatusIcon = (status) => {
+      switch (status?.toUpperCase()) {
+        case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+        case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
+        case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
+        default: return null;
+      }
     };
     const handleDateChange = (field, date) => {
         const formattedDate = dayjs(date).format('YYYY-MM-DD') || null;
@@ -392,7 +413,7 @@ const TravelRequest = () => {
                     justifyContent: 'flex-end',
                     alignItems: 'center',
                     width: '100%',
-                    mb: 2
+                    mb: 0
                 }}
             >
                 {!isAdding && (
@@ -401,30 +422,33 @@ const TravelRequest = () => {
                         startIcon={<Add />}
                         onClick={handleAdd}
                         disabled={isLoading || isFetching}
-                        sx={{
-                            backgroundColor: '#2563eb',
-                            background: `linear-gradient(135deg, ${'#2563eb'} 0%, ${'#059669'} 100%)`,
-                            borderRadius: 2,
-                            px: 1,
-                            py: 0.8,
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
-                            textTransform: 'none',
-                            boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.3)',
-                            '&:hover': {
-                                boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.4)',
-                                transform: 'translateY(-1px)',
-                            },
-                            transition: 'all 0.3s ease',
-                        }}
+                                               sx={{
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    py: 0.55,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
                     >
-                        {isLoading ? 'Adding...' : 'Add New Request'}
+                        {isLoading ? 'Adding...' : 'Add New '}
                     </Button>
                 )}
             </Box>
 
             {/* Content Area */}
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ p: 1 }}>
                 {isFetching ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                         <CircularProgress />
@@ -633,7 +657,8 @@ const TravelRequest = () => {
                                                 disabled={isLoading}
                                                 sx={{
                                                     borderRadius: 2,
-                                                    px: 4,
+                                                    px: 1,
+                                                    py: 0.5,
                                                     textTransform: 'none'
                                                 }}
                                             >
@@ -644,19 +669,27 @@ const TravelRequest = () => {
                                                 variant="contained"
                                                 startIcon={<Save />}
                                                 disabled={isLoading}
-                                                sx={{
-                                                    background: `linear-gradient(135deg, ${'#2563eb'} 0%, ${'#059669'} 100%)`,
-                                                    borderRadius: 2,
-                                                    px: 4,
-                                                    textTransform: 'none',
-                                                    fontWeight: '600',
-                                                    boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.3)',
-                                                    '&:hover': {
-                                                        boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.4)',
-                                                    }
-                                                }}
+                                                                                            sx={{
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    py: 0.30,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
                                             >
-                                                {isLoading ? 'Saving...' : (isEditing ? 'Update Request' : 'Add Request')}
+                                                {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
                                             </Button>
                                         </Box>
                                     </Grid>
@@ -668,38 +701,45 @@ const TravelRequest = () => {
                     <>
                         <TableContainer
                             component={Paper}
-                            variant="outlined"
+                           
                             sx={{
-                                borderRadius: 2,
-                                border: '1px solid',
-                                borderColor: 'divider',
-                                overflow: 'auto',
-                                mb: 2
-                            }}
+    borderRadius: 3,
+    boxShadow: 3,
+    // overflow: "hidden",
+    maxHeight: 400,        
+    overflowY: "auto",
+  }}
                         >
-                            <Table stickyHeader>
+                            <Table size='small'>
                                 <TableHead>
-                                    <TableRow sx={{ backgroundColor: 'grey.50' }}>
-                                        <TableCell sx={{ fontWeight: '600', py: 1, textAlign: 'center' }}>Actions</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 1 }}>Travel Details</TableCell>
+                                    <TableRow sx={{
+          background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+          "& .MuiTableCell-root": {
+            color: "white !important",
+            fontWeight: "700",
+            fontSize: "13px",
+          },
+        }}>
+                                        <TableCell align='center'>Actions</TableCell>
+                                        <TableCell align='center'>Travel Details</TableCell>
                                         {/* <TableCell sx={{ fontWeight: '600', py: 1 }}>Employee</TableCell> */}
-                                        <TableCell sx={{ fontWeight: '600', py: 1 }}>Dates</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 1 }}>Route</TableCell>
-                                        <TableCell sx={{ fontWeight: '600', py: 1 }}>Status</TableCell>
+                                        <TableCell align='center'>Dates</TableCell>
+                                        <TableCell align='center'>Route</TableCell>
+                                        <TableCell align='center'>Status</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {currentRequest.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                                            <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                                                 <Box sx={{ textAlign: 'center' }}>
                                                     <Inventory2 sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
                                                     <Typography variant="h6" color="textSecondary" gutterBottom>
-                                                        No Travel Requests Found
+                                                         Travel requests data not found
                                                     </Typography>
-                                                    <Typography variant="body2" color="textSecondary">
+                                                    {/* <Typography variant="body2" color="textSecondary">
                                                         Get started by adding your first Travel Request to the system
-                                                    </Typography>
+                                                    </Typography> */}
                                                 </Box>
                                             </TableCell>
                                         </TableRow>
@@ -714,38 +754,40 @@ const TravelRequest = () => {
                                                     }
                                                 }}
                                             >
-                                                <TableCell sx={{ textAlign: 'center', py: 1 }}>
-                                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}>
+                                                <TableCell align="center" sx={{ py: 0.5 }}>
+                                                    {/* <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}> */}
                                                         <Tooltip title="Edit Request">
                                                             <IconButton
                                                                 size="small"
                                                                 color="info"
                                                                 onClick={() => handleEditRequest(request.id)}
+                                                                disabled={request.approveStatus === "APPROVED" || request.approveStatus === "REJECTED"}
+                                                                
                                                             >
                                                                 <Edit fontSize="small" />
                                                             </IconButton>
                                                         </Tooltip>
-                                                    </Box>
+                                                    {/* </Box> */}
                                                 </TableCell>
-                                                <TableCell sx={{ py: 1 }}>
+                                                <TableCell align="center" sx={{ py: 0.5 }}>
                                                     <Box>
                                                         <Typography variant="body2" fontWeight="500">
                                                             {request.travelTitle}
                                                         </Typography>
                                                     </Box>
                                                 </TableCell>
-                                                <TableCell sx={{ py: 1 }}>
+                                                <TableCell align="center"  sx={{ py: 0.5 }}>
                                                     <Typography variant="body2" fontWeight="500">
                                                         {request.departureDate ? dayjs(request.departureDate).format("DD-MM-YYYY") : ""} to {request.returnDate ? dayjs(request.returnDate).format("DD-MM-YYYY") : ""}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell sx={{ py: 1 }}>
+                                                <TableCell align="center"  sx={{ py: 0.5 }}>
                                                     <Typography variant="body2" fontWeight="500">
                                                         {request.from} - {request.to}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell sx={{ py: 1 }}>
-                                                    <Chip
+                                                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
+                                                    {/* <Chip
                                                         label={request.approveStatus}
                                                         color={getStatusColor(request.approveStatus)}
                                                         size="small"
@@ -755,7 +797,21 @@ const TravelRequest = () => {
                                                             height: '24px',
                                                             fontSize: '0.75rem'
                                                         }}
-                                                    />
+                                                    /> */}
+                                                     <Box
+                                                        sx={{
+                                                          width: 28,
+                                                          height: 28,
+                                                          borderRadius: '50%',
+                                                          backgroundColor: (theme) => getStatusColor(request.approveStatus, theme),
+                                                          display: 'flex',
+                                                          justifyContent: 'center',
+                                                          alignItems: 'center',
+                                                          mx: 'auto',
+                                                        }}
+                                                      >
+                                                        {getStatusIcon(request.approveStatus)}
+                                                      </Box>
                                                 </TableCell>
                                             </TableRow>
                                         ))
