@@ -38,6 +38,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
           component="div"
           style={{
             height: !matchUpMd ? 'calc(100vh - 56px)' : 'calc(100vh - 70px)',
+            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
             paddingLeft: '16px',
             paddingRight: '16px'
           }}
@@ -81,6 +82,7 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             [theme.breakpoints.up('md')]: {
               top: '70px'
             },
+            
           }
         }}
         ModalProps={{ keepMounted: true }}
