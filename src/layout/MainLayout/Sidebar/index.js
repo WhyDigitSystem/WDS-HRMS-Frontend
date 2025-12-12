@@ -22,11 +22,17 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
 
   const drawer = (
     <>
-      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+      {/* <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         <Box sx={{ display: 'flex', p: 2, mx: 'auto' }}>
           <LogoSection />
         </Box>
+      </Box> */}
+      {/* <Box sx={{ display: { xs: 'none', sm: 'none', md: 'none', lg: 'block' } }}>
+       <Box sx={{ display: 'flex', p: 2, mx: 'auto' }}>
+         <LogoSection />
       </Box>
+    </Box> */}
+
       <BrowserView>
         <PerfectScrollbar
           component="div"
@@ -71,9 +77,10 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             background: theme.palette.background.default,
             color: theme.palette.text.primary,
             borderRight: 'none',
+            top:'68px',
             [theme.breakpoints.up('md')]: {
               top: '70px'
-            }
+            },
           }
         }}
         ModalProps={{ keepMounted: true }}
