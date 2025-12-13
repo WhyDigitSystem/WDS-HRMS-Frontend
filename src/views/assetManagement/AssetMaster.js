@@ -56,7 +56,7 @@ const AssetMaster = ({ config }) => {
   const [existingImages, setExistingImages] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
-  const [imageFiles, setImageFiles] = useState([]);
+
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,10 +69,8 @@ const AssetMaster = ({ config }) => {
     getAllAssets();
   }, []);
 
-  const handleImageChange = (event) => {
-    const files = Array.from(event.target.files);
-    setImageFiles(files);
-  };
+
+
 
   // Table columns configuration
   const tableColumns = [
@@ -300,13 +298,22 @@ const AssetMaster = ({ config }) => {
     }));
   };
 
+  // const handleRemoveImage = (imageId) => {
+  //   setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+
+  //   setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
+
+  //   showToast('info', 'Image removed');
+  // };
   const handleRemoveImage = (imageId) => {
-    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+  setUploadedImages((prev) => {
+    const img = prev.find((i) => i.id === imageId);
+    if (img?.preview) URL.revokeObjectURL(img.preview);
+    return prev.filter((i) => i.id !== imageId);
+  });
 
-    setUploadedImages((prev) => prev.filter((img) => img.id !== imageId));
-
-    showToast('info', 'Image removed');
-  };
+  setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+};
 
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
@@ -479,11 +486,14 @@ const AssetMaster = ({ config }) => {
 
       // 2. Add all image files from your state/ref
       // Assuming you have images in state like imageFiles or file inputs
-      if (imageFiles && imageFiles.length > 0) {
-        imageFiles.forEach((file) => {
-          formDataToSend.append('files', file);
-        });
-      }
+
+const allImages = [...existingImages, ...uploadedImages];
+
+allImages.forEach((img) => {
+  if (img.file instanceof File) {
+    formDataToSend.append('files', img.file);
+  }
+});
 
       // If editing and you want to keep existing images, you might need to handle differently
       // This example assumes you have image files ready to upload
@@ -527,6 +537,7 @@ const AssetMaster = ({ config }) => {
     setUploadedImages([]);
     setExistingImages([]);
     setCurrentPage(1);
+    autoGenerateCode();
   };
 
   const handleCancel = () => {
@@ -582,6 +593,30 @@ const AssetMaster = ({ config }) => {
     }
 
     return new File([u8arr], filename, { type: mime });
+  };
+
+   const autoGenerateCode = async () => {
+    try {
+      const res = await apiCalls(
+        'get',
+        `/documenttypecontroller/getDocId?branchCode=${branchCode}&screenCode=AM`
+      );
+  
+      const generatedCode = res?.paramObjectsMap?.generatedDocId;
+  
+      if (generatedCode) {
+        setFormData((prev) => ({
+          ...prev,
+          asset_code: generatedCode
+        }));
+      } else {
+        showToast('Code generation failed', 'error');
+      }
+  
+    } catch (error) {
+      console.error(error);
+      showToast('Something went wrong while generating code', 'error');
+    }
   };
 
   return (
@@ -880,7 +915,7 @@ const AssetMaster = ({ config }) => {
                           type="file"
                           multiple
                           accept="image/*"
-                          onChange={handleImageChange}
+                          onChange={handleImageUpload}
                           style={{ display: 'none' }}
                           disabled={!canUploadMoreImages()}
                         />

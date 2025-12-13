@@ -1714,39 +1714,15 @@
     color: #fff !important;
     justify-content: center;
 }
-// 
-// @media (min-width: 900px) {
-//   .css-9d4wr9{
-// margin-left: 62px;
-// margin-right: 0px;
-//     }
-//   }
-
-
-// .css-18hx7uj{
-//   margin-top: 65px;
-//   margin-right:0px;
-//   margin-bottom: 0px;
-// }
-// .css-52yosb{
-//   margin-top: 65px;
-//   margin-right: 0px;
-// }
-// .css-h4y409-MuiList-root{
-//   padding-bottom: 0px;
-//   padding-top: 0px;
-// }
-// @media (min-width: 900px) {
-//     .css-18hx7uj {
-//       margin-left: -235px;
-//     }}
-
 .MuiDrawer-root {
   z-index: 900 !important;
 }
-
 .MuiDrawer-paper {
   z-index: 900 !important;
+}
+.MuiList-padding {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
 }
 
 

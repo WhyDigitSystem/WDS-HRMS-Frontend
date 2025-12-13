@@ -54,7 +54,7 @@ const WFH = () => {
     { accessorKey: 'workAccomplished', header: 'Work Accomplished', size: 140 },
     { accessorKey: 'reportingManager', header: 'Reporting Manager', size: 140 },
     { accessorKey: 'departmentHead', header: 'Department Head', size: 140 },
-    { accessorKey: 'status', header: 'Status', size: 140 }
+    { accessorKey: 'approveStatus', header: 'Status', size: 140 }
   ];
 
   const [listViewData, setListViewData] = useState([]);

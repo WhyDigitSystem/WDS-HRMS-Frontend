@@ -70,7 +70,8 @@ const PermissionRequest = () => {
     { accessorKey: 'toTime', header: 'To Time', size: 140 },
     { accessorKey: 'totalHours', header: 'Total Hrs', size: 140 },
     { accessorKey: 'notes', header: 'Notes', size: 140 },
-    { accessorKey: 'notify', header: 'Notify', size: 140 }
+    { accessorKey: 'notify', header: 'Notify', size: 140 },
+    {accessorKey:'approveStatus',header:'Status',size: 140 }
   ];
 
   const [listViewData, setListViewData] = useState([]);

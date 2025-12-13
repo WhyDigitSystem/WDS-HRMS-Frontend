@@ -51,7 +51,14 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         </PerfectScrollbar>
       </BrowserView>
       <MobileView>
-        <Box sx={{ px: 2 }}>
+        {/* <Box sx={{ px: 2 }}> */}
+         <Box
+    sx={{
+      px: 2,
+      height: '100vh',
+      background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)'
+    }}
+  >
           <MenuList />
           <MenuCard />
           <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
@@ -75,7 +82,9 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         sx={{
           '& .MuiDrawer-paper': {
             width: drawerWidth,
-            background: theme.palette.background.default,
+            // background: theme.palette.background.default,
+            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+
             color: theme.palette.text.primary,
             borderRight: 'none',
             top:'68px',
