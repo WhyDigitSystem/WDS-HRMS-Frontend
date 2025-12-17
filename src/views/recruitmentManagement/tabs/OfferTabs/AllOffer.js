@@ -30,8 +30,8 @@ const AllOffers = () => {
     const [orgId] = useState(localStorage.getItem('orgId'));
     const [branchCode] = useState(localStorage.getItem('branchCode'));
     const [formData, setFormData] = useState({
-        department: 'ALL', // code (short form)
-        departmentName: 'All' // full name
+        department: 'ALL', 
+        departmentName: 'All' 
     });
 
     // Pagination state - same as AssetMaster
@@ -42,9 +42,9 @@ const AllOffers = () => {
 
     const statusOptions = [
         { value: 'ALL', label: 'All Status' },
-        { value: 'APPROVED', label: 'Approved' },
-        { value: 'PENDING', label: 'Pending' },
-        { value: 'REJECTED', label: 'Rejected' }
+        { value: 'APPROVED', label: 'Approved'},
+        { value: 'PENDING', label: 'Pending'},
+        { value: 'REJECTED', label: 'Rejected'}
     ];
 
     const paginationConfig = {
@@ -304,8 +304,8 @@ const AllOffers = () => {
             onClick: (row) => {
                 navigate("/RecruitmentManagement/RecruitmentManagement", {
                     state: {
-                        tab: 3,     // Preview tab index
-                        offer: row  // Pass selected row
+                        tab: 3,     
+                        offer: row  
                     }
                 });
             }
@@ -326,7 +326,7 @@ const AllOffers = () => {
             ...prev,
             department: 'ALL'
         }));
-        setCurrentPage(1); // Reset to first page when clearing filters
+        setCurrentPage(1); 
     };
 
     return (

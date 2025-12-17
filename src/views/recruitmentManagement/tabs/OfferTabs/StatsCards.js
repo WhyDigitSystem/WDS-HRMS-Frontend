@@ -7,6 +7,8 @@ import {
   CheckCircle as AcceptedIcon
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+
 
 const StatsCards = () => {
   const [statsData, setStatsData] = useState(null);
@@ -65,6 +67,14 @@ const StatsCards = () => {
       color: '#2e7d32',
       gradient: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
     },
+   {
+  label: 'Rejected',
+  value: statsData?.rejectedCount || '0',
+  icon: <CancelRoundedIcon />,
+  color: '#dc2626', // strong red
+  gradient: 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
+}
+
   ];
 
   if (loading) {
@@ -86,7 +96,15 @@ const StatsCards = () => {
   return (
     <Grid container spacing={2} sx={{ mb: 2 }}>
       {stats.map((stat, index) => (
-        <Grid item xs={12} sm={4} key={index}>
+        // <Grid item xs={12} lg={4} key={index}>
+        <Grid
+  item
+  xs={12}   
+  sm={6}    
+  md={4}    
+  lg={3}  
+  key={index}  
+>
           <Card
             elevation={3}
             sx={{

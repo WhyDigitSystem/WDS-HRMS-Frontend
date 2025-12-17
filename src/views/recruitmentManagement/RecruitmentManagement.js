@@ -271,6 +271,7 @@ const RecruitmentManagement = () => {
                     sx={{
                         minHeight: 48,
                         px: 2,
+                        py:0,
                     }}
                 >
                     <Container

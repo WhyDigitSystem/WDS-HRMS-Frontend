@@ -297,7 +297,7 @@ const Preview = () => {
                                     size="small"
                                     renderOption={(props, option) => (
                                         <Box component="li" {...props}>
-                                            <Typography sx={{ fontWeight: 500 }}>{option.candidatesName}</Typography>
+                                            <Typography sx={{ fontWeight: 500 }}>{`${option.candidatesName}-${option.candidateId}`}</Typography>
                                         </Box>
                                     )}
                                     renderInput={(params) => (

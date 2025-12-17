@@ -108,7 +108,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
         'get',
         `master/getReportingNameForEmployee?branchCode=${branchCode}&employeeCode=Undefined&orgId=${orgId}`
       );
-      const employeeList = result?.paramObjectsMap?.employeeVO || [];
+      const employeeList = result?.paramObjectsMap?.employeeVO.reverse() || [];
       const mappedList = employeeList.map((emp) => ({
         label: emp.employeeName,
         code: emp.employeeCode,
@@ -127,8 +127,8 @@ const Candidates = ({ candidates, setCandidates, config }) => {
       setLoading(true);
       const response = await apiCalls('get', `recruitmentmanagement/getCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
       if (response.status === true) {
-        setCandidates(response.paramObjectsMap.candidatesVO || []);
-        setCurrentPage(1); // Reset to first page when data loads
+        setCandidates(response.paramObjectsMap.candidatesVO.reverse() || []);
+        setCurrentPage(1); 
       } else {
         console.error('API Error:', response);
         setCandidates([]);
@@ -228,7 +228,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
         resumeScore: parseInt(candidateData.resumeScore) || 0,
         active: candidateData.active,
         ...(isEditMode && {
-          id: selectedCandidate?.id,          // ✅ Include ID only when editing
+          id: selectedCandidate?.id,          
           updatedBy: loginUserName
         })
       };
@@ -320,6 +320,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
     interviewer: candidate.interviewer,
     rating: candidate.rating,
     feedBack: candidate.feedBack,
+    interviewStatus:candidate.interviewStatus,
     active: candidate.active
   }));
 
@@ -405,53 +406,68 @@ const Candidates = ({ candidates, setCandidates, config }) => {
       label: 'Interview Date',
       render: (value) => (
         <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-          {formatDate(value)} {/* ✅ now shows DD-MM-YYYY */}
+          {formatDate(value)} 
         </Typography>
       )
     }
   ];
 
+  const isActionDisabled = (candidates) =>
+  ['SELECTED', 'HOLD', 'REJECTED'].includes(candidates.interviewStatus);
+  console.log(candidates.approveStatus);
+
   const actions = [
+  
     {
       icon: <EditIcon fontSize="small" />,
       tooltip: 'Edit Candidate',
       onClick: (candidate) => handleOpenEditDialog(candidates.find(c => c.id === candidate.id)),
+      disabled: (row) => isActionDisabled(row),
       color: 'primary'
     },
     {
       icon: <ScheduleIcon fontSize="small" />,
       tooltip: 'Schedule Interview',
       onClick: (candidate) => handleOpenScheduleDialog(candidates.find(c => c.id === candidate.id)),
+      disabled: (row) => isActionDisabled(row),
       color: 'primary'
     },
   ];
 
+  
+
+
+
   return (
     <Box>
       {/* Add Candidate Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mb: 1 }}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={handleOpenAddDialog}
           size="small"
           sx={{
-            background: `linear-gradient(135deg, ${config.primary_action_color} 0%, #2563eb 100%)`,
-            boxShadow: '0 2px 6px rgba(59, 130, 246, 0.3)',
-            borderRadius: 1,
-            px: 1,
-            py: 1,
-            fontSize: '0.8rem',
-            minWidth: '110px',
-            textTransform: 'none',
-            fontWeight: 600,
-            '&:hover': {
-              background: `linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`,
-              boxShadow: '0 3px 8px rgba(59, 130, 246, 0.4)'
-            }
-          }}
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    // py: 0.55,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
         >
-          Add Candidate
+          Add New
         </Button>
       </Box>
       <ToastContainer />

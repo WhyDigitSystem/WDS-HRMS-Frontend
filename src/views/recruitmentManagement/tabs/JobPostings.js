@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
     Grid,
     Card,
@@ -28,12 +29,66 @@ import {
     LocationOn as LocationIcon,
     WorkOutline as WorkIcon,
     Schedule as ScheduleIcon,
-    Close as CloseIcon
+    Close as CloseIcon,
+    CastForEducationSharp
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
+import { ToastContainer } from 'react-toastify';
 
 const JobPostings = ({ jobs, setJobs, config }) => {
+   const educationOptions = [
+//   'SSLC',
+//   'HSC',
+//   'Diploma',
+//   'Any Graduate',
+  'B.E',
+  'B.Tech',
+  'B.Sc',
+  'BCA',
+//   'Any Post Graduate',
+  'M.E',
+  'M.Tech',
+  'M.Sc',
+  'MCA',
+  'MBA',
+  'PhD'
+];
+const skillsOptions = [
+  'HTML',
+  'CSS',
+  'JavaScript',
+  'TypeScript',
+  'React JS',
+  'Angular',
+  'Vue JS',
+  'Node.js',
+  'Express.js',
+  'Java',
+  'Spring Boot',
+  'Python',
+  'Django',
+  'MySQL',
+  'MongoDB',
+  'Git',
+  'REST API',
+  'AWS',
+  'Manual Testing',
+  'Selenium'
+];
+const experienceOptions = [
+  '0-1 Year',
+  '1-2 Year',
+  '2-3 Year',
+  '3-4 Year',
+  '4-5 Year',
+];
+
+
+
+
+   
+    const [searchText, setSearchText] = useState('');
     const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
     const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
     const [branch, setBranch] = useState(localStorage.getItem('branch'));
@@ -49,7 +104,12 @@ const JobPostings = ({ jobs, setJobs, config }) => {
         jobTitle: '',
         department: '',
         location: '',
-        active: true // Changed from isActive to active
+        education:[],
+        skills:[],
+        keywords:[],
+        experience:'',
+        description: '',
+        active: true 
     });
 
     useEffect(() => {
@@ -66,7 +126,7 @@ const JobPostings = ({ jobs, setJobs, config }) => {
             setLoading(true);
             const response = await apiCalls('get', `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
             if (response.status === true) {
-                setJobs(response.paramObjectsMap.jobPostingsVO || []);
+                setJobs(response.paramObjectsMap.jobPostingsVO.reverse() || []);
             } else {
                 console.error('API Error:', response);
                 setJobs([]);
@@ -132,6 +192,11 @@ const JobPostings = ({ jobs, setJobs, config }) => {
             jobTitle: '',
             department: '',
             location: '',
+            education: [],
+            skills: [],
+            keywords:[],
+            experience: '',
+            description:'',
             branch: branchCode || '',
             branchCode: branchCode || '',
             createdBy: localStorage.getItem('username') || 'admin',
@@ -140,7 +205,7 @@ const JobPostings = ({ jobs, setJobs, config }) => {
         });
     };
 
-    const handleInputChange = (field, value) => {
+    const handleInputChange = (field, value) => {   
         setNewJobData(prev => ({
             ...prev,
             [field]: value
@@ -182,7 +247,7 @@ const JobPostings = ({ jobs, setJobs, config }) => {
     }));
 
     // Transform API data to match component expectations
-    const transformedJobs = jobs.map(job => ({
+    const transformedJobs = jobs.reverse().map(job => ({
         id: job.id,
         job_title: job.jobTitle,
         department: job.department,
@@ -193,7 +258,16 @@ const JobPostings = ({ jobs, setJobs, config }) => {
         salary: '' // You might want to add this field to your API
     }));
 
+const handleRemoveKeyword = (index) => {
+  setNewJobData(prev => ({
+    ...prev,
+    keywords: prev.keywords.filter((_, i) => i !== index)
+  }));
+};
+
     return (
+        <>
+        <ToastContainer />
         <Box>
             {/* Header with Add New Button */}
             <Box sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', mb: 1 }}>
@@ -202,11 +276,24 @@ const JobPostings = ({ jobs, setJobs, config }) => {
                     startIcon={<AddIcon />}
                     onClick={handleAddJobClick}
                     sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        px: 1.5,
-                        py: 0.5
-                    }}
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    py: 0.55,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
                 >
                     Add New
                 </Button>
@@ -227,23 +314,35 @@ const JobPostings = ({ jobs, setJobs, config }) => {
             >
                 <DialogTitle
                     sx={{
-                        pb: 1,
+                       
+                        px:1,
+                        py: 0.5,
                         borderBottom: '1px solid #e2e8f0',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        mb: 1
+                        mb: 1,
+                         backgroundColor: '#f1f5f9',
                     }}
+                    
                 >
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        Create Job Posting
-                    </Typography>
+                 <Typography
+  variant="h6"
+  sx={{
+    fontWeight: 600,
+    // background: 'linear-gradient(90deg, #ff6a00, #ee0979)', 
+  
+   
+  }}
+>
+  Create Job Posting
+</Typography>
                     <IconButton
                         onClick={handleCloseAddJobModal}
                         size="small"
                         sx={{ color: 'text.secondary' }}
                     >
-                        <CloseIcon />
+                        <CloseIcon color='error' />
                     </IconButton>
                 </DialogTitle>
 
@@ -334,6 +433,175 @@ const JobPostings = ({ jobs, setJobs, config }) => {
                                 />
                             )}
                         />
+
+                        {/*education*/}
+                        <Autocomplete
+                            multiple  
+                            options={educationOptions}
+                            value={newJobData.education} 
+                            onChange={(event, newValue) => {
+                                handleInputChange('education', newValue);
+                            }}
+                            loading={loading} 
+                            size="small"
+                            clearOnEscape
+                            disableClearable={false} // ✅ adds clear (X) icon
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Education Qulication"
+                                    required
+                                    fullWidth
+                                    size="small"
+                                    variant="outlined"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
+                        />
+
+                        {/* skills */}
+                         <Autocomplete
+                            multiple  
+                            options={skillsOptions}
+                            value={newJobData.skills} 
+                            onChange={(event, newValue) => {
+                                handleInputChange('skills', newValue);
+                            }}
+                            loading={loading} 
+                            size="small"
+                            clearOnEscape
+                            disableClearable={false} 
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Skills"
+                                    required
+                                    fullWidth
+                                    size="small"
+                                    variant="outlined"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
+                        />
+                    {/* Ketwords */}
+     <TextField
+  label="Keywords"
+  placeholder="Type keyword and press Enter"
+  size="small"
+  fullWidth
+  value={searchText}
+  onChange={(e) => setSearchText(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && searchText.trim()) {
+      e.preventDefault();
+
+      setNewJobData(prev => {
+        if (prev.keywords.includes(searchText.trim())) return prev;
+        return {
+          ...prev,
+          keywords: [...prev.keywords, searchText.trim()]
+        };
+      });
+
+      setSearchText('');
+    }
+  }}
+/>
+
+<Box sx={{ display: 'flex', gap: 0.5, overflowX: 'auto' }}>
+  {newJobData.keywords.map((item, index) => (
+    <Card
+      key={index}
+      sx={{
+        px: 1,
+        py: 0.5,
+        borderRadius: 2,
+        backgroundColor: '#f5f5f5',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5
+      }}
+    >
+      <Typography variant="body2">{item}</Typography>
+
+      <CloseIcon
+        sx={{ fontSize: 16, cursor: 'pointer', color: 'red' }}
+        onClick={() => handleRemoveKeyword(index)}
+      />
+    </Card>
+  ))}
+</Box>
+
+{/* experience */}
+  <Autocomplete
+                          
+                            options={experienceOptions}
+                            value={newJobData.experience} 
+                            onChange={(event, newValue) => {
+                                handleInputChange('experience', newValue);
+                            }}
+                            loading={loading} 
+                            size="small"
+                            clearOnEscape
+                            disableClearable={false} 
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Experience"
+                                  
+                                    fullWidth
+                                    size="small"
+                                    variant="outlined"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
+                        />
+
+{/* description */}
+  <TextField
+  label="Description"
+
+  fullWidth
+  size="small"
+  value={newJobData.description}
+  onChange={(e) => handleInputChange('description', e.target.value)}
+  multiline // <-- allows multiple lines
+  rows={4}   // optional, sets visible rows
+  sx={{
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 1,
+      minHeight: 80, // optional, controls textarea height
+    },
+    '& .MuiInputLabel-root': {
+      fontSize: '0.875rem',
+    },
+  }}
+/>
+
 
                         {/* Job Status Section */}
                         <Box
@@ -751,6 +1019,7 @@ const JobPostings = ({ jobs, setJobs, config }) => {
                 )
             )}
         </Box>
+        </>
     );
 };
 

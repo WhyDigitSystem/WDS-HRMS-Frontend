@@ -29,7 +29,10 @@ import {
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
+import { ToastContainer } from 'react-toastify';
 import dayjs from 'dayjs';
+import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 
 const Interviews = ({ interviews, setInterviews, config }) => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
@@ -54,7 +57,7 @@ const Interviews = ({ interviews, setInterviews, config }) => {
       setLoading(true);
       const response = await apiCalls('get', `recruitmentmanagement/getSchedulerCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
       if (response.status === true) {
-        setInterviews(response.paramObjectsMap.candidatesVO || []);
+        setInterviews(response.paramObjectsMap.candidatesVO.reverse() || []);
       } else {
         console.error('API Error:', response);
         setInterviews([]);
@@ -151,6 +154,7 @@ const Interviews = ({ interviews, setInterviews, config }) => {
       status: interview.active === 'Active' || interview.active === true ? 'Scheduled' : 'Cancelled',
       email: interview.email,
       resumeScore: interview.resumeScore,
+      interviewStatus:interview.interviewStatus,
       active: interview.active
     }));
 
@@ -186,38 +190,79 @@ const Interviews = ({ interviews, setInterviews, config }) => {
 
   return (
     <>
+    <ToastContainer />
       <Grid container spacing={3}>
         {transformedInterviews.map((interview) => (
           <Grid item xs={12} md={6} lg={4} key={interview.id}>
-            <Card
-              sx={{
-                background: 'rgba(255, 255, 255, 0.8)',
-                backdropFilter: 'blur(10px)',
-                height: '100%',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: 3,
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '2px',
-                  background: `linear-gradient(90deg, ${config.primary_action_color} 0%, transparent 100%)`,
-                },
-                '&:hover': {
-                  transform: 'translateY(-5px)',
-                  boxShadow: '0 15px 40px rgba(0,0,0,0.15)',
-                },
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
+           <Card
+  sx={{
+    height: '100%',
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 4,
+
+   
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65))',
+    backdropFilter: 'blur(14px)',
+    border: '1px solid rgba(255,255,255,0.35)',
+
+    /* Base shadow */
+    boxShadow: `
+      0 10px 30px rgba(0,0,0,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.4)
+    `,
+
+    transition: 'all 0.35s ease',
+
+    /* Glow gradient border */
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      padding: '0px',
+      borderRadius: 4,
+      background: `linear-gradient(
+        120deg,
+        ${config.primary_action_color},
+        transparent,
+        ${config.primary_action_color}
+      )`,
+      WebkitMask:
+        'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+      WebkitMaskComposite: 'xor',
+      pointerEvents: 'none',
+      opacity: 0.6,
+    },
+
+    /* Shimmer overlay */
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      inset: 0,
+      // background:
+        // 'linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)',
+      transform: 'translateX(-100%)',
+      transition: 'transform 0.8s ease',
+      pointerEvents: 'none',
+    },
+
+    '&:hover': {
+      transform: 'translateY(-8px) scale(1.03)',
+      boxShadow: `
+        0 25px 60px rgba(0,0,0,0.18),
+        0 0 25px ${config.primary_action_color}55
+      `,
+    },
+
+    '&:hover::after': {
+      transform: 'translateX(100%)',
+    },
+  }}
+>
+
+              <CardContent sx={{ p: 1 }}>
                 {/* Header */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
                   <Avatar
                     sx={{
                       bgcolor: `${config.primary_action_color}20`,
@@ -238,11 +283,34 @@ const Interviews = ({ interviews, setInterviews, config }) => {
                       {interview.position}
                     </Typography>
                   </Box>
+                {/* Status Icon */}
+  <Box>
+    {interview.interviewStatus === 'SELECTED' && (
+      <CheckCircleRoundedIcon
+        sx={{
+          fontSize: 28,
+          color: '#16a34a',
+          filter: 'drop-shadow(0 0 6px rgba(22,163,74,0.6))',
+        }}
+      />
+    )}
+
+    {interview.interviewStatus === 'REJECTED' && (
+      <CancelRoundedIcon
+        sx={{
+          fontSize: 28,
+          color: '#dc2626',
+          filter: 'drop-shadow(0 0 6px rgba(220,38,38,0.6))',
+        }}
+      />
+    )}
+  </Box>
                 </Box>
+                <Box sx={{borderBottom: 1, borderBottom: 1, borderColor: 'divider'}}></Box>
 
                 {/* Details */}
-                <Stack spacing={2} sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Stack spacing={2} sx={{ mb: 0 ,mt:0.5}}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: `${config.primary_action_color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <ScheduleIcon sx={{ fontSize: 16, color: config.primary_action_color }} />
                     </Box>
@@ -256,7 +324,7 @@ const Interviews = ({ interviews, setInterviews, config }) => {
                     </Box>
                   </Box>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: `${config.primary_action_color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <PersonIcon sx={{ fontSize: 16, color: config.primary_action_color }} />
                     </Box>
@@ -270,7 +338,7 @@ const Interviews = ({ interviews, setInterviews, config }) => {
                     </Box>
                   </Box>
 
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 32, height: 32, borderRadius: 2, bgcolor: `${config.primary_action_color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <BusinessIcon sx={{ fontSize: 16, color: config.primary_action_color }} />
                     </Box>
@@ -290,10 +358,13 @@ const Interviews = ({ interviews, setInterviews, config }) => {
                   <Chip
                     label={interview.status}
                     size="small"
+                    
                     sx={{
                       backgroundColor: interview.status === 'Scheduled' ? '#dcfce7' : '#fef2f2',
                       color: interview.status === 'Scheduled' ? '#166534' : '#dc2626',
                       fontWeight: 600,
+                      fontSize: 11,
+                        // height: 22,
                     }}
                   />
                   <Box sx={{ display: 'flex', gap: 1 }}>
@@ -309,7 +380,7 @@ const Interviews = ({ interviews, setInterviews, config }) => {
                         }
                       }}
                     >
-                      <CommentIcon fontSize="small" />
+                      <CommentIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Box>
                 </Box>

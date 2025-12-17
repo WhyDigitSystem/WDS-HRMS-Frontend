@@ -84,7 +84,8 @@ export const Department = () => {
 
   const handleInputChange = (e) => {
     const { name, value, selectionStart, selectionEnd, type } = e.target;
-    const codeRegex = /^[a-zA-Z ]*$/;
+    // const codeRegex = /^[a-zA-Z ]*$/;
+      const codeRegex = /^[a-zA-Z &\p{Extended_Pictographic}]*$/u;  
 
     if (name === 'department' && !codeRegex.test(value)) {
       setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });

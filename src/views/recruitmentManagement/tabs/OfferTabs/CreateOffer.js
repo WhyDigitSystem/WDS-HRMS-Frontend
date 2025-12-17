@@ -51,7 +51,7 @@ const CreateOffer = () => {
     const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
 
     const [formData, setFormData] = useState({
-        candidateCode: '',
+        candidateId: '',
         candidateName: '',
         department: '',
         reportingTo: '',
@@ -121,7 +121,7 @@ const CreateOffer = () => {
     const getCandidates = async () => {
         try {
             setLoading(true);
-            const response = await apiCalls('get', `recruitmentmanagement/getCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
+            const response = await apiCalls('get', `/recruitmentmanagement/getSelectedCandidates?branchCode=${branchCode}&orgId=${orgId}`);
             if (response.status === true) {
                 setCandidates(response.paramObjectsMap.candidatesVO || []);
             } else {
@@ -311,7 +311,7 @@ const CreateOffer = () => {
 
         // ✅ Step 3: Prepare API Data
         const apiData = {
-            candidateCode: formData.candidateCode,
+            candidateId: formData.candidateId,
             candidateName: formData.candidateName.trim(),
             position: formData.positionApplied,
             department: formData.department,
@@ -369,7 +369,7 @@ const CreateOffer = () => {
 
     const handleReset = () => {
         setFormData({
-            candidateCode: '',
+            candidateId: '',
             candidateName: '',
             department: '',
             reportingTo: '',
@@ -434,7 +434,8 @@ const CreateOffer = () => {
                                 }
                                 onChange={(event, newValue) => {
                                     handleInputChange('candidateName', newValue ? newValue.candidatesName : '');
-                                    handleInputChange('candidateCode', newValue ? newValue.candidateId : ''); // ✅ auto-fill candidate code
+                                    handleInputChange('candidateId', newValue ? newValue.candidateId : ''); 
+                                    handleInputChange('positionApplied', newValue ? newValue.positionApplied : '');
                                 }}
                                 loading={loading}
                                 size="small"
@@ -469,15 +470,15 @@ const CreateOffer = () => {
                                 variant="outlined"
                                 size="small"
                                 disabled
-                                value={formData.candidateCode}
-                                onChange={(e) => handleInputChange('candidateCode', e.target.value)}
+                                value={formData.candidateId}
+                                onChange={(e) => handleInputChange('candidateId', e.target.value)}
                                 InputProps={{
-                                    readOnly: true, // ✅ makes it non-editable (optional)
+                                    readOnly: true, 
                                 }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={4}>
-                            <Autocomplete
+                            {/* <Autocomplete
                                 options={jobPostings}
                                 loading={loading}
                                 getOptionLabel={(option) => option.jobTitle || ''}
@@ -489,6 +490,8 @@ const CreateOffer = () => {
                                 onChange={(event, newValue) => {
                                     handleInputChange('positionApplied', newValue ? newValue.jobTitle : '');
                                 }}
+                                // onChange={(e) => handleInputChange('candidateId', e.target.value)}
+
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
@@ -508,6 +511,19 @@ const CreateOffer = () => {
                                         }}
                                     />
                                 )}
+                            /> */}
+                             <TextField
+                                required
+                                fullWidth
+                                label="Position"
+                                variant="outlined"
+                                size="small"
+                                disabled
+                                value={formData.positionApplied}
+                                onChange={(e) => handleInputChange('positionApplied', e.target.value)}
+                                InputProps={{
+                                    readOnly: true, 
+                                }}
                             />
                         </Grid>
                         <Grid item xs={12} sm={4}>
