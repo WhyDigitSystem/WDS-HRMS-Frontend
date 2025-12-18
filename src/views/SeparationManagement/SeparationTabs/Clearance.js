@@ -265,7 +265,7 @@ const ClearanceManagement = () => {
     };
 
     return (
-        <Box sx={{ p: 2, margin: '0 auto' }}>
+        <Box sx={{ p: 0, margin: '0 auto' }}>
             {/* Employee Selector */}
             <Card sx={{ mb: 2, backgroundColor: '#f8fafc' }}>
                 <CardContent sx={{ p: 2 }}>
@@ -420,12 +420,27 @@ const ClearanceManagement = () => {
                                     startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
                                     onClick={handleSave}
                                     disabled={saving || clearanceItems.length === 0}
-                                    sx={{
-                                        backgroundColor: '#10b981',
-                                        '&:hover': { backgroundColor: '#059669' }
-                                    }}
+                                     sx={{
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    py: 0.55,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
                                 >
-                                    {saving ? 'Saving...' : 'Save Clearance'}
+                                    {saving ? 'Saving...' : 'Save'}
                                 </Button>
                             </Box>
                         </Box>

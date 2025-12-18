@@ -17,6 +17,11 @@ import apiCalls from 'apicall';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import {
+    Save as SaveIcon,
+} from '@mui/icons-material';
+import { showToast } from 'utils/toast-component';
+import { ToastContainer } from 'react-toastify';
 
 const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [formData, setFormData] = useState({
@@ -217,6 +222,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
 
             if (response.status === true) {
                 showSnackbar('Separation process initiated successfully!', 'success');
+                showToast('success','Created Successfully')
 
                 if (onSeparationCreated) {
                     onSeparationCreated();
@@ -251,15 +257,14 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     };
 
     return (
-        <Box sx={{ p: 2 }}>
+        <>        <ToastContainer />
+        <Box sx={{ p: 2,backgroundColor: '#f8fafc', borderRadius: 2  }}>
             {/* Employee Info Section */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                    Employee Details
-                </Typography>
-            </Box>
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} sm={4}>
+            <Typography sx={{ fontWeight: 700, mb: 1, color: '#1e293b' }}>
+              👤 Employee Details
+            </Typography>
+            <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={4} lg={3}>
                     <Autocomplete
                         options={employees}
                         getOptionLabel={(option) => option.label}
@@ -278,7 +283,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     />
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
                     <TextField
                         label="Code"
                         variant="outlined"
@@ -291,7 +296,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     />
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+                 <Grid item xs={12} sm={6} md={4} lg={3}>
                     <TextField
                         label="Department"
                         variant="outlined"
@@ -304,7 +309,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     />
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+              <Grid item xs={12} sm={6} md={4} lg={3}>
                     <TextField
                         label="Position"
                         variant="outlined"
@@ -317,7 +322,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     />
                 </Grid>
 
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6} md={4} lg={3}>
                     <TextField
                         label="Reporting Manager"
                         variant="outlined"
@@ -329,7 +334,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         InputProps={{ readOnly: true }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+         <Grid item xs={12} sm={6} md={4} lg={3}>
                     <FormControl fullWidth variant="outlined" size="small">
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
@@ -379,16 +384,13 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
             </Grid>
 
             {/* Separation Details */}
-            <Box sx={{ mb: 4, p: 2, pl: 0, pr: 0 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <CalendarMonthIcon sx={{ color: '#2563eb', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                        Separation Details
-                    </Typography>
-                </Box>
+             <Typography sx={{ fontWeight: 700, mt: 2, mb: 1, color: '#1e293b' }}>
+               🚪 Separation Details
+             </Typography>
 
                 <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
+                 <Grid item xs={12} sm={6} md={4} lg={3}>
+
                         <Autocomplete
                             options={separationTypes}
                             value={formData.separationType || null}
@@ -398,7 +400,12 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
-                                    label="Separation Type *"
+                                    // label="Type *"
+                                      label={
+                                        <span>
+                                            Type<span style={{ color: 'red' }}> *</span>
+                                        </span>
+                                    }
                                     variant="outlined"
                                     size="small"
                                     fullWidth
@@ -407,7 +414,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6} md={4} lg={3}>
                         <FormControl fullWidth variant="outlined" size="small">
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
@@ -453,7 +460,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+                       <Grid item xs={12} sm={6} md={4} lg={3}>
+
                         <FormControl fullWidth variant="outlined" size="small">
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 <DatePicker
@@ -499,7 +507,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+                       <Grid item xs={12} sm={6} md={4} lg={3}>
+                   
                         <TextField
                             label="Notice Period (Days)"
                             select
@@ -518,7 +527,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         </TextField>
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={6} md={4} lg={3}>
+
                         <Autocomplete
                             options={reasonCategories}
                             value={formData.reasonCategory || null}
@@ -528,7 +538,12 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
-                                    label="Reason Category *"
+                                    // label="Reason Category *"
+                                      label={
+                                        <span>
+                                            Reason Category <span style={{ color: 'red' }}> *</span>
+                                        </span>
+                                    }
                                     variant="outlined"
                                     size="small"
                                     fullWidth
@@ -537,7 +552,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         />
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+               <Grid item xs={12} sm={6} md={4} lg={3}>
+           
                         <TextField
                             label="Rehire Eligible"
                             select
@@ -571,25 +587,39 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         />
                     </Grid>
                 </Grid>
-            </Box>
+           
 
             {/* Submit */}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
                 <Button
                     variant="contained"
-                    sx={{
-                        backgroundColor: '#dc2626',
-                        '&:hover': { backgroundColor: '#b91c1c' },
-                        px: 4,
-                        minWidth: 200
-                    }}
+                    startIcon={<SaveIcon />}
+ sx={{
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    py: 0.55,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
                     onClick={handleSubmit}
                     disabled={!formData.employeeId || submitting}
                 >
                     {submitting ? (
                         <CircularProgress size={24} sx={{ color: 'white' }} />
                     ) : (
-                        'Initiate Separation Process'
+                        'Save'
                     )}
                 </Button>
             </Box>
@@ -610,6 +640,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                 </Alert>
             </Snackbar>
         </Box>
+        </>
+
     );
 };
 

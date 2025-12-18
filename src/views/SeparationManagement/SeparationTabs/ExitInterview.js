@@ -104,8 +104,10 @@ const ExitInterviewManagement = () => {
                 employeeCode: selectedEmployee.employeeCode,
                 employeeName: selectedEmployee.employeeName,
                 exitInterviewFeedback: feedback,
-                experienceRating: rating,
-                interviewDate: interviewDate,
+              interviewDate: dayjs(interviewDate, 'YYYY-MM-DD', true).isValid()
+  ? interviewDate
+  : '',
+                // interviewDate: interviewDate
                 joiningDate: selectedEmployee.joiningDate,
                 lastWorkingDate: selectedEmployee.originalData?.lastWorkingDate || "",
                 noticeDate: selectedEmployee.originalData?.noticeDate || 0,
@@ -331,9 +333,10 @@ const ExitInterviewManagement = () => {
                                                     </span>
                                                 }
                                                 format="DD-MM-YYYY"
-                                                value={interviewDate ? dayjs(interviewDate, 'DD/MM/YYYY') : null}
+                                                value={interviewDate ? dayjs(interviewDate, 'DD-MM-YYYY') : null}
+                                                
                                                 onChange={(newValue) => {
-                                                    const formattedDate = newValue ? dayjs(newValue).format('DD/MM/YYYY') : '';
+                                                    const formattedDate = newValue ? dayjs(newValue).format('DD-MM-YYYY') : '';
                                                     setInterviewDate(formattedDate);
                                                 }}
                                                 slotProps={{
@@ -547,26 +550,27 @@ const ExitInterviewManagement = () => {
                                         onClick={handleSubmit}
                                         disabled={!isFormValid || saving}
                                         startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
-                                        sx={{
-                                            backgroundColor: '#059669', // Changed to green
-                                            color: '#fff',
-                                            fontWeight: 700,
-                                            borderRadius: 2,
-                                            px: 4,
-                                            py: 1.2,
-                                            textTransform: 'none',
-                                            fontSize: '1rem',
-                                            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.2)', // Green shadow
-                                            '&:hover': {
-                                                backgroundColor: '#047857', // Darker green on hover
-                                                boxShadow: '0 6px 16px rgba(5, 150, 105, 0.25)',
-                                            },
-                                            '&:disabled': {
-                                                backgroundColor: '#9ca3af',
-                                            },
-                                        }}
+                                         sx={{
+    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+    color: "white",
+    fontWeight: 600,
+    px: 1,
+    py: 0.55,
+    borderRadius: 2,
+    letterSpacing: "0.5px",
+    fontSize: "14px",
+
+    "&:hover": {
+      transform: "scale(1.06)",
+      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+    },
+
+    "&:active": {
+      transform: "scale(0.97)",
+    }
+  }}
                                     >
-                                        {saving ? 'Saving...' : 'Complete Exit Interview'}
+                                        {saving ? 'Saving...' : 'Save'}
                                     </Button>
                                 </Box>
                             </CardContent>

@@ -13,7 +13,12 @@ import {
     CircularProgress,
     Alert,
     IconButton,
+     Dialog,
+  DialogTitle,
+  DialogContent,
+  Slide
 } from '@mui/material';
+import InfoIcon from '@mui/icons-material/Info';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
@@ -21,7 +26,13 @@ import SendIcon from '@mui/icons-material/Send';
 import CommonListView from '../../../utils/AssetCommonListViewTable';
 import apiCalls from 'apicall';
 
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="down" ref={ref} {...props} />;
+});
+
 const AllCasesSeparation = () => {
+  const [open, setOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [status, setStatus] = useState('ALL');
     const [departmentList, setDepartmentList] = useState([]);
     const [search, setSearch] = useState('');
@@ -132,7 +143,7 @@ const AllCasesSeparation = () => {
             const response = await apiCalls('get', apiUrl);
 
             if (response.status === true) {
-                const separationsData = response.paramObjectsMap.initiateSeparationVO || [];
+                const separationsData = response.paramObjectsMap.initiateSeparationVO.reverse() || [];
                 setSeparations(separationsData);
                 setCurrentPage(1); // Reset to first page when data loads - EXACTLY like Candidates
             } else {
@@ -217,7 +228,7 @@ const AllCasesSeparation = () => {
         {
             key: 'employeeName',
             label: 'Name',
-            width: '200px',
+            width: '100px',
             render: (value, row) => (
                 <Box>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b' }}>
@@ -229,27 +240,27 @@ const AllCasesSeparation = () => {
                 </Box>
             )
         },
-        {
-            key: 'department',
-            label: 'Department',
-            width: '120px',
-            render: (value) => (
-                <Chip
-                    label={value || 'N/A'}
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                        fontWeight: 500,
-                        backgroundColor: '#f8fafc',
-                        borderColor: '#e2e8f0'
-                    }}
-                />
-            )
-        },
+        // {
+        //     key: 'department',
+        //     label: 'Department',
+        //     width: '100px',
+        //     render: (value) => (
+        //         <Chip
+        //             label={value || 'N/A'}
+        //             size="small"
+        //             variant="outlined"
+        //             sx={{
+        //                 fontWeight: 500,
+        //                 backgroundColor: '#f8fafc',
+        //                 borderColor: '#e2e8f0'
+        //             }}
+        //         />
+        //     )
+        // },
         {
             key: 'position',
             label: 'Position',
-            width: '150px',
+            width: '100px',
             render: (value) => (
                 <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
                     {value || 'N/A'}
@@ -258,8 +269,8 @@ const AllCasesSeparation = () => {
         },
         {
             key: 'separationType',
-            label: 'Separation Type',
-            width: '130px',
+            label: 'Sep Type',
+            width: '100px',
             render: (value, row) => (
                 <Chip
                     label={value || 'N/A'}
@@ -272,20 +283,20 @@ const AllCasesSeparation = () => {
                 />
             )
         },
-        {
-            key: 'resignation',
-            label: 'Resignation Date',
-            width: '130px',
-            render: (value) => (
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
-                    {formatDate(value)} {/* ✅ DD-MM-YYYY format */}
-                </Typography>
-            )
-        },
+        // {
+        //     key: 'resignation',
+        //     label: 'Resign Dt',
+        //     width: '100px',
+        //     render: (value) => (
+        //         <Typography variant="body2" sx={{ fontWeight: 500, color: '#1e293b' }}>
+        //             {formatDate(value)} {/* ✅ DD-MM-YYYY format */}
+        //         </Typography>
+        //     )
+        // },
         {
             key: 'lastWorkingDate',
-            label: 'Last Working Date',
-            width: '130px',
+            label: 'Last Wk Dt',
+            width: '100px',
             render: (value) => (
                 <Typography variant="body2" sx={{ fontWeight: 500, color: '#dc2626' }}>
                     {formatDate(value)} {/* ✅ DD-MM-YYYY format */}
@@ -294,7 +305,7 @@ const AllCasesSeparation = () => {
         },
         {
             key: 'rehireEligible',
-            label: 'Rehire Eligible',
+            label: 'Rehire',
             width: '100px',
             render: (value) => (
                 <Chip
@@ -309,7 +320,7 @@ const AllCasesSeparation = () => {
         {
             key: 'status',
             label: 'Status',
-            width: '120px',
+            width: '100px',
             render: (value) => {
                 let bg = '#f1f5f9';
                 let textColor = '#334155';
@@ -360,7 +371,8 @@ const AllCasesSeparation = () => {
             icon: <RemoveRedEyeIcon fontSize="small" />,
             tooltip: 'View Separation Details',
             color: 'primary',
-            onClick: (row) => console.log('View separation:', row.id)
+            // onClick: (row) => console.log('View separation:', row.id)
+              onClick: (row) => handleOpen(row) 
         },
     ];
 
@@ -382,14 +394,24 @@ const AllCasesSeparation = () => {
         formData.separationType !== 'ALL' ||
         search !== '';
 
+const handleOpen = (row) => {
+    setSelectedEmployee(row);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
     return (
-        <Box sx={{ p: 3 }}>
+        <>
+        <Box sx={{ p: 0 }}>
             {/* ---------- Filters Section ---------- */}
             <Grid
                 container
                 spacing={2}
                 alignItems="center"
-                sx={{ mb: 3, p: 2 }}
+                sx={{ mb: 0, p: 1 }}
             >
                 <Grid item xs={12} sm={3}>
                     <Autocomplete
@@ -540,6 +562,120 @@ const AllCasesSeparation = () => {
                 </Box>
             )}
         </Box>
+        {/*  */}
+         <Box>
+ 
+
+  <Dialog
+  open={open}
+  TransitionComponent={Transition}
+  keepMounted
+  onClose={handleClose}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: 2,
+      overflow: 'hidden',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      transition: 'transform 0.3s ease-in-out',
+      "&:hover": {
+        transform: 'scale(1.02)',
+        boxShadow: '0 12px 36px rgba(0,0,0,0.3)',
+      }
+    }
+  }}
+>
+  <DialogTitle
+    sx={{
+      background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+      color: '#fff',
+      fontWeight: 600,
+      fontSize: '1rem',
+      py: 1.2,
+      px: 2,
+      minHeight: '40px',
+      display: 'flex',
+      alignItems: 'center',
+      borderBottom: '1px solid rgba(255,255,255,0.2)',
+      borderRadius: '8px 8px 0 0',
+      textShadow: '0 0 8px rgba(255,255,255,0.6)' // glow effect
+    }}
+  >
+    👤 Employee Detail
+  </DialogTitle>
+
+  <DialogContent sx={{ p: 3, pt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    {selectedEmployee && (
+      <Box display="flex" flexDirection="column" gap={0}>
+        {[
+          { icon: '🧑', label: 'Name', value: selectedEmployee.employeeName },
+          { icon: '🆔', label: 'Code', value: selectedEmployee.employeeCode },
+          { icon: '🏢', label: 'Department', value: selectedEmployee.department },
+          { icon: '💼', label: 'Position', value: selectedEmployee.position },
+          { icon: '📄', label: 'Type', value: selectedEmployee.separationType },
+          { icon: '🗓️', label: 'Resignation Date', value: formatDate(selectedEmployee.resignation) },
+          { icon: '📅', label: 'Last Working Date', value: formatDate(selectedEmployee.lastWorkingDate), color: '#dc2626' },
+          { icon: '✅', label: 'Rehire', value: selectedEmployee.rehireEligible || 'No' },
+          { icon: '📌', label: 'Status', value: selectedEmployee.status }
+        ].map((item, idx) => (
+          <Box
+            key={idx}
+            display="flex"
+            alignItems="center"
+            gap={1}
+            sx={{
+              p: 1,
+              borderRadius: 1.5,
+              transition: 'all 0.2s ease-in-out',
+            //   "&:hover": {
+            //     background: 'rgba(127,0,255,0.05)',
+            //     transform: 'scale(1.02)',
+            //     boxShadow: '0 4px 12px rgba(127,0,255,0.2)'
+            //   }
+            }}
+          >
+            {/* <Typography sx={{ fontSize: 20 }}>{item.icon}</Typography> */}
+            <Box
+  sx={{
+    width: 25,              
+    height: 25,             
+    borderRadius: '50%',     
+    backgroundColor: '#f0f0f0', 
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 15,            
+    color: '#7f00ff',       
+    boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
+  }}
+>
+  {item.icon}
+</Box>
+
+            <Typography variant="subtitle2" sx={{ fontWeight: 500, color: '#64748b', minWidth: 130 }}>
+              {item.label}:
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                color: item.color || '#1e293b',
+                textShadow: '0 0 2px rgba(0,0,0,0.2)'
+              }}
+            >
+              {item.value || 'N/A'}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    )}
+  </DialogContent>
+</Dialog>
+
+
+    </Box>
+        </>
     );
 };
 
