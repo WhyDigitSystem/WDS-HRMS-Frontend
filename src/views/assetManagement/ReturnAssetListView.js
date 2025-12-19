@@ -78,7 +78,7 @@ const ReturnAssetListView = ({ data, onRemove }) => {
                   },
             }}
 >
-  Remove
+  Return
 </Button>
 
                 </TableCell>

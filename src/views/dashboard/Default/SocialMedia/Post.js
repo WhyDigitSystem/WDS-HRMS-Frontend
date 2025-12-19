@@ -330,7 +330,7 @@ const Post = ({ tabValue, circularData, setCircularData }) => {
                 </div>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              {/* <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                 <Tooltip title="Praise this circular">
                   <IconButton onClick={() => handlePraise(circularData[0].id)} color="secondary">
                     <ThumbUpAltIcon />
@@ -339,7 +339,7 @@ const Post = ({ tabValue, circularData, setCircularData }) => {
                 <Typography variant="caption" sx={{ ml: -1 }}>
                   {praiseCounts[circularData[0].id] || "0"}
                 </Typography>
-              </Box>
+              </Box> */}
             </Box>
           ) : (
             <Box sx={{ textAlign: 'center' }}>

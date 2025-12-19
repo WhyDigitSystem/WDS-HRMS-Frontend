@@ -77,7 +77,7 @@ const WorkFlow = () => {
 
             if (response.status === true) {
                 setSuccessMessage(response.paramObjectsMap?.message || 'Offer approved successfully!');
-                await getPendingOffers(); // Refresh the list
+                await getPendingOffers(); 
                 setApproveDialog(false);
                 setSelectedOffer(null);
 

@@ -247,13 +247,16 @@ const experienceOptions = [
     }));
 
     // Transform API data to match component expectations
-    const transformedJobs = jobs.reverse().map(job => ({
+    const transformedJobs = jobs.map(job => ({
         id: job.id,
         job_title: job.jobTitle,
         department: job.department,
         location: job.location,
         status: job.active ? 'Active' : 'Inactive', // Fixed status logic
         postedDate: job.commonDate ? job.commonDate.createdon : '',
+        skills: job.skills,
+        experience: job.experience,
+        education: job.education,
         applications: 0, // You might want to add this field to your API
         salary: '' // You might want to add this field to your API
     }));
@@ -688,97 +691,124 @@ const handleRemoveKeyword = (index) => {
                 onClose={handleCloseViewJobModal}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: 2,
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)'
-                    }
-                }}
+                 PaperProps={{
+    sx: {
+      borderRadius: 2,
+      overflow: 'hidden',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      transition: 'transform 0.3s ease-in-out',
+      "&:hover": {
+        transform: 'scale(1.02)',
+        boxShadow: '0 12px 36px rgba(0,0,0,0.3)',
+      }
+    }
+  }}
             >
                 <DialogTitle sx={{
-                    pb: 1,
-                    borderBottom: '1px solid #e2e8f0',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        Job Details
-                    </Typography>
-                    <IconButton
-                        onClick={handleCloseViewJobModal}
-                        size="small"
-                        sx={{ color: 'text.secondary' }}
-                    >
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
+      background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+      color: '#fff',
+      fontWeight: 600,
+      fontSize: '1rem',
+      py: 1.2,
+      px: 2,
+      minHeight: '40px',
+      display: 'flex',
+      alignItems: 'center',
+      borderBottom: '1px solid rgba(255,255,255,0.2)',
+      borderRadius: '8px 8px 0 0',
+      textShadow: '0 0 8px rgba(255,255,255,0.6)' 
+    }}
+  >
+                 
+     💼 Job Details
+         </DialogTitle>
 
-                <DialogContent sx={{ pt: 3 }}>
-                    {selectedJob && (
-                        <Stack spacing={2.5}>
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
-                                    Job Title
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                    {selectedJob.jobTitle || selectedJob.job_title}
-                                </Typography>
-                            </Box>
+                 <DialogContent sx={{ p: 3, pt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {selectedJob && (
+  <Box display="flex" flexDirection="column" gap={0}>
+    {[
+     
+  { icon: '💼', label: 'Job Title', value: selectedJob.jobTitle },
 
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
-                                    Department
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                    {selectedJob.department}
-                                </Typography>
-                            </Box>
+  { icon: '🏷️', label: 'Department', value: selectedJob.department },
 
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
-                                    Location
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                    {selectedJob.location}
-                                </Typography>
-                            </Box>
+  { icon: '🛠️', label: 'Skills', value: selectedJob.skills },
 
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
-                                    Status
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                    {selectedJob.active ? 'Active' : 'Inactive'}
-                                </Typography>
-                            </Box>
+  { icon: '🧑‍💻', label: 'Experience', value: selectedJob.experience },
 
-                            {selectedJob.branch && (
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
-                                        Branch
-                                    </Typography>
-                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                        {selectedJob.branch}
-                                    </Typography>
-                                </Box>
-                            )}
+  { icon: '🎓', label: 'Education Qualification', value: selectedJob.education },
 
-                            {selectedJob.commonDate && selectedJob.commonDate.createdon && (
-                                <Box>
-                                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 600 }}>
-                                        Created On
-                                    </Typography>
-                                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                        {selectedJob.commonDate.createdon}
-                                    </Typography>
-                                </Box>
-                            )}
-                        </Stack>
-                    )}
+  { icon: '🏢', label: 'Branch', value: selectedJob.branch },
+
+  { icon: '📍', label: 'Job Location', value: selectedJob.location },
+
+  { icon: selectedJob.active ? '🟢' : '🔴', label: 'Status', value: selectedJob.active ? 'Active' : 'Inactive' },
+
+  { icon: '📅', label: 'Created On', value: selectedJob.commonDate?.createdon }
+
+
+    ].map((item, idx) => (
+      <Box
+        key={idx}
+        display="flex"
+        alignItems="center"
+        gap={1}
+        sx={{
+          p: 1,
+          borderRadius: 1.5,
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            backgroundColor: '#f8fafc',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: 25,
+            height: 25,
+            borderRadius: '50%',
+            backgroundColor: '#f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 15,
+            color: '#7f00ff',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+          }}
+        >
+          {item.icon}
+        </Box>
+
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 500,
+            color: '#64748b',
+            minWidth: 140,
+          }}
+        >
+          {item.label}:
+        </Typography>
+
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+            color: '#1e293b',
+            textShadow: '0 0 2px rgba(0,0,0,0.15)',
+          }}
+        >
+          {item.value || '-'}
+        </Typography>
+      </Box>
+    ))}
+  </Box>
+)}
+
+                  
                 </DialogContent>
 
-                <DialogActions sx={{ p: 3 }}>
+                {/* <DialogActions sx={{ p: 3 }}>
                     <Button
                         onClick={handleCloseViewJobModal}
                         variant="contained"
@@ -795,7 +825,7 @@ const handleRemoveKeyword = (index) => {
                     >
                         Close
                     </Button>
-                </DialogActions>
+                </DialogActions> */}
             </Dialog>
 
             {/* Loading State */}

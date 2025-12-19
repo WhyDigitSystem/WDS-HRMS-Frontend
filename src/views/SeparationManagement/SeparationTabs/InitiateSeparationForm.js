@@ -23,6 +23,8 @@ import {
 import { showToast } from 'utils/toast-component';
 import { ToastContainer } from 'react-toastify';
 
+
+
 const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [formData, setFormData] = useState({
         employeeId: '',
@@ -47,11 +49,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success'
-    });
+   
 
     const separationTypes = [
         'Resignation',
@@ -92,8 +90,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                 setEmployees(employeeList);
             }
         } catch (error) {
-            console.error('Error fetching employees:', error);
-            showSnackbar('Error fetching employees', 'error');
+            console.error('error','Error fetching employees:', error);  
+         
         } finally {
             setLoading(false);
         }
@@ -149,42 +147,34 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
         return daysMap[noticePeriod] || 30;
     };
 
-    const showSnackbar = (message, severity = 'success') => {
-        setSnackbar({
-            open: true,
-            message,
-            severity
-        });
-    };
+   
 
-    const handleCloseSnackbar = () => {
-        setSnackbar(prev => ({ ...prev, open: false }));
-    };
+   
 
     const handleSubmit = async () => {
         // Validation
         if (!formData.employeeId) {
-            showSnackbar('Please select an employee', 'error');
+            showToast('error','Please select an employee');
             return;
         }
 
         if (!formData.separationType) {
-            showSnackbar('Please select separation type', 'error');
+            showToast('error','Please select separation type');
             return;
         }
 
         if (!formData.resignationDate) {
-            showSnackbar('Please select resignation date', 'error');
+            showToast('error','Please select resignation date');
             return;
         }
 
         if (!formData.lastWorkingDate) {
-            showSnackbar('Please select last working date', 'error');
+            showToast('error','Please select last working date');
             return;
         }
 
         if (!formData.reasonCategory) {
-            showSnackbar('Please select reason category', 'error');
+            showToast('error','Please select reason category');
             return;
         }
 
@@ -219,15 +209,17 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
             console.log('Submitting payload:', payload);
 
             const response = await apiCalls('put', '/employeseparation/createUpdateInitiateSeparation', payload);
+            console.log('Response:', response);
+            showToast('success','Save successfully!');
 
             if (response.status === true) {
-                showSnackbar('Separation process initiated successfully!', 'success');
-                showToast('success','Created Successfully')
+               
+                console.log('Separation initiated successfully:')
 
                 if (onSeparationCreated) {
                     onSeparationCreated();
                 }
-
+ 
                 // Reset form after successful submission
                 setFormData({
                     employeeId: '',
@@ -246,18 +238,29 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     separationReason: ''
                 });
             } else {
-                showSnackbar(response.message || 'Failed to initiate separation process', 'error');
+                showToast( 'error',response.message || 'Failed to initiate separation process');
             }
         } catch (error) {
-            console.error('Error submitting separation form:', error);
-            showSnackbar('Error submitting separation form', 'error');
+            console.error('error','Error submitting separation form:', error);
+            showToast('error','Error submitting separation form');
         } finally {
             setSubmitting(false);
         }
     };
 
+    const calculateLastWorkingDate = (resignationDate, noticePeriod) => {
+  if (!resignationDate || !noticePeriod) return '';
+
+  const days = extractNoticeDays(noticePeriod);
+
+  return dayjs(resignationDate)
+    .add(days - 1, 'day')
+    .toISOString();
+};
+
     return (
-        <>        <ToastContainer />
+        <>   
+        <ToastContainer />
         <Box sx={{ p: 2,backgroundColor: '#f8fafc', borderRadius: 2  }}>
             {/* Employee Info Section */}
             <Typography sx={{ fontWeight: 700, mb: 1, color: '#1e293b' }}>
@@ -417,7 +420,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         <Grid item xs={12} sm={6} md={4} lg={3}>
                         <FormControl fullWidth variant="outlined" size="small">
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                <DatePicker
+                                {/* <DatePicker
                                     label={
                                         <span>
                                             Resignation/Notice Date<span style={{ color: 'red' }}> *</span>
@@ -455,9 +458,104 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                             },
                                         },
                                     }}
-                                />
+                                /> */}
+                                <DatePicker
+  label={
+    <span>
+      Resignation/Notice Date<span style={{ color: 'red' }}> *</span>
+    </span>
+  }
+  format="DD-MM-YYYY"
+  value={formData.resignationDate ? dayjs(formData.resignationDate) : null}
+   slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            fullWidth: true,
+                                            error: false,
+                                            helperText: '',
+                                            sx: {
+                                                '& .MuiInputBase-root': {
+                                                    backgroundColor: '#f9fafb',
+                                                    borderRadius: '8px',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '& .Mui-disabled': {
+                                                    backgroundColor: '#f9fafb',
+                                                    color: '#334155',
+                                                },
+                                            },
+                                        },
+                                    }}
+  onChange={(newValue) => {
+    const resignationISO = newValue ? newValue.toISOString() : '';
+
+    setFormData((prev) => ({
+      ...prev,
+      resignationDate: resignationISO,
+      lastWorkingDate: calculateLastWorkingDate(
+        resignationISO,
+        prev.noticePeriod
+      ),
+    }));
+  }}
+/>
+
                             </LocalizationProvider>
                         </FormControl>
+                    </Grid>
+
+                    
+                       <Grid item xs={12} sm={6} md={4} lg={3}>
+                   
+                        {/* <TextField
+                            label="Notice Period (Days)"
+                            select
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            name="noticePeriod"
+                            value={formData.noticePeriod}
+                            onChange={handleInputChange}
+                        >
+                            {['15 Days', '30 Days', '45 Days', '60 Days', '90 Days'].map((d) => (
+                                <MenuItem key={d} value={d}>
+                                    {d}
+                                </MenuItem>
+                            ))}
+                        </TextField> */}
+                        <TextField
+  label="Notice Period (Days)"
+  select
+  variant="outlined"
+  size="small"
+  fullWidth
+  name="noticePeriod"
+  value={formData.noticePeriod}
+  onChange={(e) => {
+    const noticePeriod = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      noticePeriod,
+      lastWorkingDate: calculateLastWorkingDate(
+        prev.resignationDate,
+        noticePeriod
+      ),
+    }));
+  }}
+>
+  {['15 Days', '30 Days', '45 Days', '60 Days', '90 Days'].map((d) => (
+    <MenuItem key={d} value={d}>
+      {d}
+    </MenuItem>
+  ))}
+</TextField>
+
                     </Grid>
 
                        <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -471,6 +569,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                         </span>
                                     }
                                     format="DD-MM-YYYY"
+                                    disabled
                                     value={formData.lastWorkingDate ? dayjs(formData.lastWorkingDate) : null}
                                     onChange={(newValue) => {
                                         setFormData((prev) => ({
@@ -507,25 +606,6 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         </FormControl>
                     </Grid>
 
-                       <Grid item xs={12} sm={6} md={4} lg={3}>
-                   
-                        <TextField
-                            label="Notice Period (Days)"
-                            select
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            name="noticePeriod"
-                            value={formData.noticePeriod}
-                            onChange={handleInputChange}
-                        >
-                            {['15 Days', '30 Days', '45 Days', '60 Days', '90 Days'].map((d) => (
-                                <MenuItem key={d} value={d}>
-                                    {d}
-                                </MenuItem>
-                            ))}
-                        </TextField>
-                    </Grid>
 
                       <Grid item xs={12} sm={6} md={4} lg={3}>
 
@@ -541,7 +621,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                     // label="Reason Category *"
                                       label={
                                         <span>
-                                            Reason Category <span style={{ color: 'red' }}> *</span>
+                                            Reason <span style={{ color: 'red' }}> *</span>
                                         </span>
                                     }
                                     variant="outlined"
@@ -614,7 +694,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     }
   }}
                     onClick={handleSubmit}
-                    disabled={!formData.employeeId || submitting}
+                    // disabled={!formData.employeeId || submitting}
                 >
                     {submitting ? (
                         <CircularProgress size={24} sx={{ color: 'white' }} />
@@ -623,23 +703,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     )}
                 </Button>
             </Box>
-
-            {/* Snackbar for notifications */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={snackbar.severity}
-                    sx={{ width: '100%' }}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
         </Box>
+         
         </>
 
     );

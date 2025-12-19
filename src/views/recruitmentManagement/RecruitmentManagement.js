@@ -111,7 +111,7 @@ const RecruitmentManagement = () => {
             const response = await apiCalls('get', `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
 
             if (response.status === true) {
-                const jobsData = response.paramObjectsMap.jobPostingsVO || [];
+                const jobsData = response.paramObjectsMap.jobPostingsVO.reverse() || [];
                 setJobs(jobsData);
             } else {
                 console.error('API Error fetching jobs:', response);
@@ -227,7 +227,7 @@ const RecruitmentManagement = () => {
 
     // Calculate counts for each tab - FIXED to show total count instead of just active
     const jobCount = jobs.length; // Show total jobs
-    const ATSCount = Ats.length;
+    // const ATSCount = Ats.length;
     const candidateCount = candidates.length; // Show total candidates
     const interviewCount = interviews.length; // Show total interviews
     const offerCount = offers.length; // Show total offers
@@ -327,7 +327,7 @@ const RecruitmentManagement = () => {
                                 label={
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <span>ATS</span>
-                                        <Chip
+                                        {/* <Chip
                                             label={ATSCount}
                                             size="small"
                                             sx={{
@@ -336,7 +336,7 @@ const RecruitmentManagement = () => {
                                                 backgroundColor: currentTab === 'Ats' ? iconColors.Ats.active : 'grey.300',
                                                 color: currentTab === 'Ats' ? 'white' : 'grey.700',
                                             }}
-                                        />
+                                        /> */}
                                     </Box>
                                 }
                                 value="Ats"

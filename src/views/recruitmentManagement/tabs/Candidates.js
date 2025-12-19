@@ -108,7 +108,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
         'get',
         `master/getReportingNameForEmployee?branchCode=${branchCode}&employeeCode=Undefined&orgId=${orgId}`
       );
-      const employeeList = result?.paramObjectsMap?.employeeVO.reverse() || [];
+      const employeeList = result?.paramObjectsMap?.employeeVO || [];
       const mappedList = employeeList.map((emp) => ({
         label: emp.employeeName,
         code: emp.employeeCode,
