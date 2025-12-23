@@ -89,7 +89,7 @@ const RecruitmentManagement = () => {
         try {
             setLoading(true);
 
-            // Fetch all data in parallel
+           
             await Promise.all([
                 fetchJobs(),
                 fetchCandidates(),

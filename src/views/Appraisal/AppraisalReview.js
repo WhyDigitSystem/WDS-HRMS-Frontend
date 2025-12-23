@@ -631,26 +631,27 @@ const AppraiserReview = () => {
             <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px' }}>
                 <div className="row d-flex ml">
                     <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-                        <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-                        <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+                        {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
+                        {/* <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} /> */}
 
                         {/* Conditional buttons for List View vs Form View */}
                         {listView ? (
-                            <ActionButton
-                                title="Add New"
-                                icon={AddIcon}
-                                onClick={() => {
-                                    setListView(false);
-                                    handleClear(); // Clear form for new entry
-                                }}
-                            />
+                            // <ActionButton
+                            //     title="Add New"
+                            //     icon={AddIcon}
+                            //     onClick={() => {
+                            //         setListView(false);
+                            //         handleClear(); // Clear form for new entry
+                            //     }}
+                            // />
+                            <></>
                         ) : (
                             <>
                                 <ActionButton
                                     title="Back to List"
                                     icon={FormatListBulletedTwoToneIcon}
                                     onClick={() => {
-                                        getAllPerformanceGoals(); // Refresh data
+                                        getAllPerformanceGoals(); 
                                         setListView(true);
                                     }}
                                 />
@@ -659,11 +660,11 @@ const AppraiserReview = () => {
                                     icon={SaveIcon}
                                     onClick={handleSave}
                                 />
-                                <ActionButton
+                                {/* <ActionButton
                                     title="Upload"
                                     icon={UploadIcon}
                                     isLoading={isLoading}
-                                />
+                                /> */}
                             </>
                         )}
                     </div>
@@ -717,7 +718,7 @@ const AppraiserReview = () => {
                                 <div className="col-md-3 mb-1">
                                     <FormControl size="small" variant="outlined" fullWidth error={!!fieldErrors.month}>
                                         <InputLabel>Select Month</InputLabel>
-                                        <Select label="Select Month" value={selectedMonth} onChange={handleMonthChange}>
+                                        <Select label="Select Month" disabled value={selectedMonth} onChange={handleMonthChange}>
                                             {months.map((m) => (
                                                 <MenuItem key={m.value} value={m.name}>
                                                     {m.name}
@@ -731,7 +732,7 @@ const AppraiserReview = () => {
                                 <div className="col-md-3 mb-1">
                                     <FormControl size="small" variant="outlined" fullWidth error={!!fieldErrors.year}>
                                         <InputLabel>Select Year</InputLabel>
-                                        <Select label="Select Year" value={formData.year} onChange={handleYearChange}>
+                                        <Select label="Select Year" disabled value={formData.year} onChange={handleYearChange}>
                                             {years.map((y) => (
                                                 <MenuItem key={y} value={y}>
                                                     {y}

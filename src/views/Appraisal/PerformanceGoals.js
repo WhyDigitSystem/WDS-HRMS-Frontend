@@ -56,21 +56,54 @@ const PerformanceGoals = () => {
         orgId: orgId
     });
 
+    // const listViewColumns = [
+    //     { accessorKey: 'empName', header: 'Employee', size: 140 },
+    //     { accessorKey: 'empCode', header: 'Code', size: 140 },
+    //     { accessorKey: 'performanceGoalsDtlVO.perspective', header: 'Perspective', size: 140 },
+    //     { accessorKey: 'performanceGoalsDtlVO.selfrating', header: 'Rating', size: 140 },
+    //     {
+    //         accessorKey: 'pmonth',
+    //         header: 'Month',
+    //         size: 140,
+    //         Cell: ({ cell }) => {
+    //             const monthNumber = cell.getValue();
+    //             const monthObj = months.find(m => m.value === monthNumber);
+    //             return monthObj ? monthObj.name : monthNumber;
+    //         }
+    //     },
+    //     { accessorKey: 'appraisalYear', header: 'Year', size: 140 },
+    // ];
+
     const listViewColumns = [
-        { accessorKey: 'empName', header: 'Employee', size: 140 },
-        { accessorKey: 'empCode', header: 'Code', size: 140 },
-        {
-            accessorKey: 'pmonth',
+  { accessorKey: 'empName', header: 'Employee', size: 140 },
+  { accessorKey: 'empCode', header: 'Code', size: 100 },
+
+  {
+    header: 'Perspective',
+    accessorFn: row =>
+      row.performanceGoalsDtlVO?.[0]?.perspective || '-',
+    size: 160
+  },
+
+  {
+    header: 'Rating',
+    accessorFn: row =>
+      row.performanceGoalsDtlVO?.[0]?.selfrating || '-',
+    size: 100
+  },
+   {
+           accessorKey: 'pmonth',
             header: 'Month',
             size: 140,
-            Cell: ({ cell }) => {
-                const monthNumber = cell.getValue();
-                const monthObj = months.find(m => m.value === monthNumber);
+           Cell: ({ cell }) => {
+             const monthNumber = cell.getValue();
+              const monthObj = months.find(m => m.value === monthNumber);
                 return monthObj ? monthObj.name : monthNumber;
-            }
-        },
-        { accessorKey: 'appraisalYear', header: 'Year', size: 140 },
-    ];
+          }
+         },
+       { accessorKey: 'appraisalYear', header: 'Year', size: 140 },
+];
+
 
     const [goalsDetailsData, setGoalsDetailsData] = useState([{
         id: null,
@@ -253,7 +286,7 @@ const PerformanceGoals = () => {
         try {
             const response = await apiCalls('get', `/performancegoals/getPerformanceGoalsByOrgIdAndEmployeeCode?orgId=${orgId}&employeeCode=${employeeCode}`);
             if (response.status) {
-                setListViewData(response.paramObjectsMap.performanceGoalsVO || []);
+                setListViewData(response.paramObjectsMap.performanceGoalsVO.reverse() || []);
             } else {
                 showToast('error', response.message || 'Failed to fetch appraisees');
             }
@@ -606,12 +639,13 @@ const PerformanceGoals = () => {
             });
 
             // Consistent Header Design
-            doc.setFillColor(30, 60, 114);
-            doc.rect(0, 0, doc.internal.pageSize.width, 25, 'F');
+            // doc.setFillColor(30, 60, 114);
+            doc.setFillColor(220, 235, 255);
+            doc.rect(0, 0, doc.internal.pageSize.width, 20, 'F');
 
             // Company Logo Section
             const logoX = 15;
-            const logoY = 5;
+            const logoY = 2.5;
             const logoWidth = 35;
             const logoHeight = 15;
 
@@ -644,25 +678,28 @@ const PerformanceGoals = () => {
 
             // Main Title
             doc.setFontSize(16);
-            doc.setTextColor(255, 255, 255);
+            // doc.setTextColor(255, 255, 255);
+            doc.setTextColor(40, 70, 120);
             doc.setFont('helvetica', 'bold');
-            doc.text('PERFORMANCE GOALS REPORT', doc.internal.pageSize.width / 2, 14, { align: 'center' });
+            doc.text('PERFORMANCE GOALS', doc.internal.pageSize.width / 2, 10, { align: 'center' });
 
             // Subtitle
             doc.setFontSize(9);
-            doc.setTextColor(255, 255, 255);
+            // doc.setTextColor(255, 255, 255);
+            doc.setTextColor(30, 50, 90);
             doc.setFont('helvetica', 'normal');
             const subtitle = companyDetails && companyDetails.companyName
-                ? `${companyDetails.companyName} - Performance Assessment`
+                // ? `${companyDetails.companyName} - Performance Assessment`
+                ? `${companyDetails.companyName}`
                 : 'Comprehensive Performance Assessment Report';
             // Truncate subtitle if too long
             const maxSubtitleLength = 50;
             const displaySubtitle = subtitle.length > maxSubtitleLength
                 ? subtitle.substring(0, maxSubtitleLength - 3) + '...'
                 : subtitle;
-            doc.text(displaySubtitle, doc.internal.pageSize.width / 2, 20, { align: 'center' });
+            doc.text(displaySubtitle, doc.internal.pageSize.width / 2, 15, { align: 'center' });
 
-            let yPosition = 35;
+            let yPosition = 28;
             let currentPage = 1;
 
             // Improved text shortening function
@@ -708,7 +745,7 @@ const PerformanceGoals = () => {
                 doc.setFontSize(9);
                 doc.setTextColor(255, 255, 255);
                 doc.setFont('helvetica', 'bold');
-                doc.text('EMPLOYEE INFORMATION', 20, yPosition + 1);
+                doc.text('EMPLOYEE INFORMATION', 20, yPosition);
 
                 // Employee details with proper alignment
                 doc.setFontSize(8);
@@ -723,7 +760,7 @@ const PerformanceGoals = () => {
 
                 // Column 1: Basic Info
                 doc.setFont('helvetica', 'bold');
-                doc.text('Employee:', col1X, yPosition + 8);
+                doc.text('Name:', col1X, yPosition + 8);
                 doc.setFont('helvetica', 'normal');
                 doc.text(shortenText(record.empName || 'N/A', 20), col1X + 25, yPosition + 8);
 
@@ -753,7 +790,7 @@ const PerformanceGoals = () => {
                 doc.setFont('helvetica', 'bold');
                 doc.text('Reports To:', col3X, yPosition + 13);
                 doc.setFont('helvetica', 'normal');
-                doc.text(shortenText(record.reportingto || 'N/A', 20), col3X + 25, yPosition + 13);
+                doc.text(shortenText(record.reportingto || 'N/A', 20), col3X + 20, yPosition + 13);
 
                 // Column 4: Branch - Fixed alignment
                 doc.setFont('helvetica', 'bold');
@@ -761,7 +798,7 @@ const PerformanceGoals = () => {
                 doc.setFont('helvetica', 'normal');
                 doc.text(shortenText(record.branch || 'N/A', 15), col4X + 18, yPosition + 8);
 
-                yPosition += 25;
+                yPosition += 22;
 
                 // Performance Goals Details Table with better text handling
                 if (record.performanceGoalsDtlVO && record.performanceGoalsDtlVO.length > 0) {
@@ -843,7 +880,7 @@ const PerformanceGoals = () => {
                     });
 
                     // Update yPosition for next record
-                    yPosition = doc.lastAutoTable.finalY + 12;
+                    yPosition = doc.lastAutoTable.finalY + 5;
 
                     // Add professional summary for the record
                     if (yPosition < 175) {
@@ -933,7 +970,8 @@ const PerformanceGoals = () => {
             <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px' }}>
                 <div className="row d-flex ml">
                     <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-                        <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
+                        {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
+                        
                         <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
                         <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
                         <ActionButton
@@ -941,11 +979,15 @@ const PerformanceGoals = () => {
                             icon={SaveIcon}
                             onClick={handleSave}
                         />
-                        <ActionButton
+                        {listView && (
+                              <ActionButton
                             title="Download PDF"
                             icon={PictureAsPdfIcon}
                             onClick={downloadPDF}
                         />
+                        )
+                    }
+                      
                     </div>
 
                     {!listView ? (

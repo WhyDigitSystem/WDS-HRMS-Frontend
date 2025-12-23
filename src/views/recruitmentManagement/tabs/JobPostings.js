@@ -201,7 +201,7 @@ const experienceOptions = [
             branchCode: branchCode || '',
             createdBy: localStorage.getItem('username') || 'admin',
             orgId: parseInt(orgId) || 0,
-            active: true // Changed from isActive to active
+            active: true 
         });
     };
 
@@ -220,13 +220,12 @@ const experienceOptions = [
                 branchCode: branchCode || '',
                 createdBy: loginUserName,
                 orgId: parseInt(orgId),
-                // active field is already included in newJobData
             };
 
             const response = await apiCalls('put', 'recruitmentmanagement/createUpdateJobPostings', payload);
 
             if (response.status === true) {
-                // Refresh the jobs list
+              
                 await getJobPostings();
                 handleCloseAddJobModal();
                 showToast('success', 'Job posting created successfully!');
@@ -240,19 +239,19 @@ const experienceOptions = [
         }
     };
 
-    // Transform department data for autocomplete options
+  
     const departmentOptions = departmentList.map(dept => ({
         value: dept.departmentName,
         label: dept.departmentName
     }));
 
-    // Transform API data to match component expectations
+    
     const transformedJobs = jobs.map(job => ({
         id: job.id,
         job_title: job.jobTitle,
         department: job.department,
         location: job.location,
-        status: job.active ? 'Active' : 'Inactive', // Fixed status logic
+        status: job.active ? 'Active' : 'Inactive', 
         postedDate: job.commonDate ? job.commonDate.createdon : '',
         skills: job.skills,
         experience: job.experience,
