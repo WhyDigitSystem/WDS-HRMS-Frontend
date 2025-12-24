@@ -813,12 +813,13 @@ const PerformanceGoals = () => {
                         shortenText(goal.comments || '-', 30),
                         shortenText(goal.performanceself || '-', 30),
                         goal.selfrating ? goal.selfrating.toString() : '-',
+                        goal.appraiserrating?goal.appraiserrating.toString():'Pending',
                     ]);
 
                     doc.autoTable({
                         startY: yPosition,
                         head: [
-                            ['#', 'Perspective', 'Objective Description', 'Assigned %', 'Measurement', 'Qtr Target', 'Performance', 'Comments', 'Performance Self', 'Self Rating']
+                            ['#', 'Perspective', 'Objective Description', 'Assigned %', 'Measurement', 'Qtr Target', 'Performance', 'Comments', 'Performance Self', 'Self Rating','App Rating']
                         ],
                         body: tableData,
                         theme: 'grid',
@@ -862,8 +863,9 @@ const PerformanceGoals = () => {
                             8: { cellWidth: 35, halign: 'left' }, // Self Performance
                             9: { cellWidth: 12, halign: 'center' }, // Self Rating
                             10: { cellWidth: 15, halign: 'center' } // Appraiser Rating
+
                         },
-                        margin: { left: 12, right: 12 },
+                        margin: { left: 5, right: 5 },
                         tableWidth: 'auto',
                         didParseCell: function (data) {
                             // Handle long text in cells
