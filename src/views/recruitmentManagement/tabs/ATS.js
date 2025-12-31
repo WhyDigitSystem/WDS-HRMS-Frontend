@@ -82,7 +82,7 @@ const ATS = () => {
       if (response?.status === true) {
         setAtsResult(response.paramObjectsMap.atsResult);
         showToast('Resume analyzed successfully', 'success');
-        reset();
+        // reset();
         setSelectedFile(null);
       } else {
         showToast(response?.message || 'Failed to analyze resume', 'error');
