@@ -52,7 +52,7 @@ const CheckInOut = () => {
   const [checkOutTime, setCheckOutTime] = useState('');
   const [checkInModalOpen, setCheckInModalOpen] = useState(false);
   const [checkOutModalOpen, setCheckOutModalOpen] = useState(false);
-const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
+  const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
   const [searchText, setSearchText] = useState('');
   const [reportingPersonMail, setReportingPersonMail] = useState('');
   const [reportingPerson, setReportingPerson] = useState('');
@@ -76,6 +76,9 @@ const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
   ];
   const [todayStatus, setTodayStatus] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState(dayjs().month()); // default current month (0-11)
+  const currentYear = dayjs().year();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   useEffect(() => {
     getAllSwipeInandOut();
@@ -83,25 +86,25 @@ const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
   }, []);
 
   useEffect(() => {
-  const timer = setInterval(() => {
-    setLiveTime(dayjs().format("HH:mm:ss"));
-  }, 1000); // updates every 30 seconds
+    const timer = setInterval(() => {
+      setLiveTime(dayjs().format("HH:mm:ss"));
+    }, 1000); // updates every 30 seconds
 
-  return () => clearInterval(timer); // cleanup
-}, []);
+    return () => clearInterval(timer); // cleanup
+  }, []);
 
   useEffect(() => {
-    getAllSwipeInandOut(selectedMonth);
-  }, [selectedMonth]); // ✅ Added selectedMonth as dependency
+    getAllSwipeInandOut(selectedMonth, selectedYear);
+  }, [selectedMonth, selectedYear]);
 
-  const getAllSwipeInandOut = async (monthIndex = selectedMonth) => {
+  const getAllSwipeInandOut = async (monthIndex = selectedMonth, year = selectedYear) => {
     setLoading(true);
     try {
-      const monthToSend = monthIndex + 1; // Convert 0-based index to 1-based (e.g., May = 5)
+      const monthToSend = monthIndex + 1;
 
       const result = await apiCalls(
         'get',
-        `basicmaster/attendance?branch=${branch}&branchCode=${branchCode}&empcode=${empCode}&month=${monthToSend}&orgId=${orgId}`
+        `basicmaster/attendance?branch=${branch}&branchCode=${branchCode}&empcode=${empCode}&month=${monthToSend}&finYear=${year}&orgId=${orgId}`
       );
 
       if (result?.paramObjectsMap?.Attendance) {
@@ -426,21 +429,29 @@ const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
   };
 
   const getWorkingHours = (checkInTime) => {
-  const now = dayjs();
-  const start = dayjs(checkInTime, "HH:mm");
+    const now = dayjs();
+    const start = dayjs(checkInTime, "HH:mm");
 
-  const diffMinutes = now.diff(start, "minute");
-  const hours = Math.floor(diffMinutes / 60);
+    const diffMinutes = now.diff(start, "minute");
+    const hours = Math.floor(diffMinutes / 60);
 
-  return hours; // simple integer
-};
+    return hours; // simple integer
+  };
 
   return (
     <div style={{ padding: 20 }}>
       <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" mb={2} gap={2}>
         {/* Left: Month & Search */}
         <Box display="flex" alignItems="center" gap={2}>
-          <TextField select label="Select Month" size="small" value={selectedMonth} onChange={handleMonthChange} sx={{ minWidth: 150 }}>
+          {/* Month */}
+          <TextField
+            select
+            label="Select Month"
+            size="small"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            sx={{ minWidth: 150 }}
+          >
             {monthOptions.map((month, index) => (
               <MenuItem key={index} value={index}>
                 {month}
@@ -448,7 +459,29 @@ const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
             ))}
           </TextField>
 
-          <TextField variant="outlined" label="Search" size="small" value={searchText} onChange={handleSearch} />
+          {/* Year */}
+          <TextField
+            select
+            label="Select Year"
+            size="small"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            sx={{ minWidth: 120 }}
+          >
+            {yearOptions.map((year) => (
+              <MenuItem key={year} value={year}>
+                {year}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            variant="outlined"
+            label="Search"
+            size="small"
+            value={searchText}
+            onChange={handleSearch}
+          />
         </Box>
 
         {/* Right: Status Legends */}
