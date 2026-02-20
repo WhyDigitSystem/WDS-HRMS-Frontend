@@ -151,139 +151,365 @@ const PendingApproval = ({ isLoading }) => {
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
   const [empCode, setEmpCode] = useState(localStorage.getItem('employeeCode'));
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
+  const [userType] = useState(localStorage.getItem('userType'));
   const employeeCode = localStorage.getItem('employeeCode');
   const isProcessing = processingId !== null;
   const [selectedIncrement, setSelectedIncrement] = useState(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   const [EMPLOYEECODE] = useState("WDS051");
+  const isAdmin = userType?.toUpperCase() === "ADMIN";
 
   useEffect(() => {
     getAllRequests();
   }, [orgId, employeeCode]);
 
+  console.log('Leave', leaveRequests)
+
+  // const getAllRequests = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     const [
+  //       leaveResponse,
+  //       permissionResponse,
+  //       compoOffResponse,
+  //       checkOutResponse,
+  //       checkInOutResult,
+  //       incrementResponse,
+  //       expenseClaims,
+  //       travelExpense
+  //     ] = await Promise.all([
+  //       apiCalls(
+  //         'get',
+  //         `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `basicmaster/getRequestCheckOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+  //       )
+  //     ]);
+
+  //     // ===== Normalize all responses =====
+  //     const normalize = (data) =>
+  //       Array.isArray(data) ? data : [data].filter(Boolean);
+
+  //     const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
+  //     const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
+  //     const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
+  //     const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
+  //     const expenseRequests = normalize(expenseClaims?.paramObjectsMap?.expenseClaimsVO);
+  //     const travelRequests = normalize(travelExpense?.paramObjectsMap?.travelRequestsVO);
+
+  //     let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
+  //       ...item,
+  //       employeeEmail: item.email || item.employeeEmail || ''
+  //     }));
+
+  //     // ===== Process CheckInOut Adjustment =====
+  //     const rawCheckInOut = normalize(checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO);
+
+  //     const grouped = {};
+
+  //     rawCheckInOut.forEach((item) => {
+  //       const key = `${item.employeeCode}_${item.checkInDate}`;
+
+  //       if (!grouped[key]) {
+  //         grouped[key] = {
+  //           ...item,
+  //           id: key,
+  //           entryTime: '',
+  //           exitTime: '',
+  //           employeeEmail: item.email || item.employeeEmail || '',
+  //           records: []
+  //         };
+  //       }
+
+  //       grouped[key].records.push(item);
+  //     });
+
+  //     const checkInOutRequests = Object.values(grouped).map((group) => {
+  //       const sortedRecords = group.records.sort((a, b) =>
+  //         a.entryTime.localeCompare(b.entryTime)
+  //       );
+
+  //       const entry = sortedRecords[0]?.entryTime || '';
+  //       const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
+
+  //       return {
+  //         ...group,
+  //         entryTime: entry,
+  //         exitTime: exit,
+  //         approveStatus: group.records[0]?.approveStatus || 'PENDING',
+  //         screenName: group.records[0]?.screenName || 'CHECKINOUTADJUSTMENT'
+  //       };
+  //     });
+
+  //     // ===== Filter only PENDING requests =====
+  //     const filterPending = (arr) => arr.filter((r) => !r.approveStatus || r.approveStatus === 'PENDING');
+
+  //     const combinedRequests = [
+  //       ...filterPending(leaveRequests),
+  //       ...filterPending(permissionRequests),
+  //       ...filterPending(compoOffRequests),
+  //       ...filterPending(checkOutRequests),
+  //       ...filterPending(checkInOutRequests),
+  //       ...filterPending(incrementManagementRequests),
+  //       ...filterPending(expenseRequests),
+  //       ...filterPending(travelRequests),
+  //     ];
+
+  //     // ===== Set State =====
+  //     setLeaveRequests(combinedRequests);
+  //     setScreenNames(combinedRequests.map((item) => item.screenName));
+  //   } catch (error) {
+  //     console.error('Error fetching combined requests:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const mapUserDashboardToAdminFormat = (list = []) => {
+    const grouped = {};
+
+    list.forEach((item, index) => {
+      const key = `${item.type}_${item.fromdate}`;
+
+      if (!grouped[key]) {
+        let screenName = "";
+
+        if (item.type === "CHECKINOUT_ADJUSTMENT") {
+          screenName = "CHECKINOUTADJUSTMENT";
+        } else if (item.type === "COMPENSATORY_OFF") {
+          screenName = "COMPENSATORY OFF";
+        } else {
+          screenName = item.type.replace(/_/g, " ");
+        }
+
+        grouped[key] = {
+          id: index + 1,
+          screenName,
+          approveStatus: item.approvalstatus,
+
+          startDate: item.fromdate,
+          endDate: item.todate,
+          checkInDate: item.fromdate,
+
+          // CompOff specific
+          compOffDate:
+            item.type === "COMPENSATORY_OFF"
+              ? item.fromdate
+              : undefined,
+
+          totalDays:
+            item.type === "COMPENSATORY_OFF"
+              ? "1"
+              : item.duration || "",
+
+          employeeName,
+          employeeCode,
+
+          reason: item.reason || "",
+          leaveType:
+            item.type === "COMPENSATORY_OFF"
+              ? "Compensatory Off"
+              : "",
+
+          entryTime: "",
+          exitTime: "",
+          records: []
+        };
+      }
+
+      grouped[key].records.push(item);
+    });
+
+    return Object.values(grouped).map((group) => {
+      if (group.screenName === "CHECKINOUTADJUSTMENT") {
+        const inEntry = group.records.find(r => r.status === "IN");
+        const outEntry = group.records.find(r => r.status === "OUT");
+
+        group.entryTime = inEntry?.time || "";
+        group.exitTime = outEntry?.time || "";
+      }
+
+      delete group.records;
+      return group;
+    });
+  };
+
   const getAllRequests = async () => {
     try {
       setLoading(true);
 
-      const [
-        leaveResponse,
-        permissionResponse,
-        compoOffResponse,
-        checkOutResponse,
-        checkInOutResult,
-        incrementResponse,
-        expenseClaims,
-        travelExpense
-      ] = await Promise.all([
-        apiCalls(
-          'get',
-          `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
-        ),
-        apiCalls(
-          'get',
-          `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
-        ),
-        apiCalls(
-          'get',
-          `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
-        ),
-        apiCalls(
-          'get',
-          `basicmaster/getRequestCheckOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
-        ),
-        apiCalls(
-          'get',
-          `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
-        ),
-        apiCalls(
-          'get',
-          `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
-        ),
-        apiCalls(
-          'get',
-          `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
-        ),
-        apiCalls(
-          'get',
-          `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
-        )
-      ]);
+      const userType = localStorage.getItem("userType");
 
-      // ===== Normalize all responses =====
-      const normalize = (data) =>
-        Array.isArray(data) ? data : [data].filter(Boolean);
+      // ================= ADMIN FLOW =================
+      if (userType === "ADMIN") {
 
-      const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
-      const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
-      const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
-      const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
-      const expenseRequests = normalize(expenseClaims?.paramObjectsMap?.expenseClaimsVO);
-      const travelRequests = normalize(travelExpense?.paramObjectsMap?.travelRequestsVO);
+        const [
+          leaveResponse,
+          permissionResponse,
+          compoOffResponse,
+          checkOutResponse,
+          checkInOutResult,
+          incrementResponse,
+          expenseClaims,
+          travelExpense
+        ] = await Promise.all([
+          apiCalls(
+            'get',
+            `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+          ),
+          apiCalls(
+            'get',
+            `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+          ),
+          apiCalls(
+            'get',
+            `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+          ),
+          apiCalls(
+            'get',
+            `basicmaster/getRequestCheckOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+          )
+        ]);
 
-      let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
-        ...item,
-        employeeEmail: item.email || item.employeeEmail || ''
-      }));
+        const normalize = (data) =>
+          Array.isArray(data) ? data : [data].filter(Boolean);
 
-      // ===== Process CheckInOut Adjustment =====
-      const rawCheckInOut = normalize(checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO);
+        const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
+        const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
+        const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
+        const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
+        const expenseRequests = normalize(expenseClaims?.paramObjectsMap?.expenseClaimsVO);
+        const travelRequests = normalize(travelExpense?.paramObjectsMap?.travelRequestsVO);
 
-      const grouped = {};
+        let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
+          ...item,
+          employeeEmail: item.email || item.employeeEmail || ''
+        }));
 
-      rawCheckInOut.forEach((item) => {
-        const key = `${item.employeeCode}_${item.checkInDate}`;
+        // ===== Process CheckInOut Adjustment =====
+        const rawCheckInOut = normalize(checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO);
 
-        if (!grouped[key]) {
-          grouped[key] = {
-            ...item,
-            id: key,
-            entryTime: '',
-            exitTime: '',
-            employeeEmail: item.email || item.employeeEmail || '',
-            records: []
+        const grouped = {};
+
+        rawCheckInOut.forEach((item) => {
+          const key = `${item.employeeCode}_${item.checkInDate}`;
+
+          if (!grouped[key]) {
+            grouped[key] = {
+              ...item,
+              id: key,
+              entryTime: '',
+              exitTime: '',
+              employeeEmail: item.email || item.employeeEmail || '',
+              records: []
+            };
+          }
+
+          grouped[key].records.push(item);
+        });
+
+        const checkInOutRequests = Object.values(grouped).map((group) => {
+          const sortedRecords = group.records.sort((a, b) =>
+            a.entryTime.localeCompare(b.entryTime)
+          );
+
+          const entry = sortedRecords[0]?.entryTime || '';
+          const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
+
+          return {
+            ...group,
+            entryTime: entry,
+            exitTime: exit,
+            approveStatus: group.records[0]?.approveStatus || 'PENDING',
+            screenName: group.records[0]?.screenName || 'CHECKINOUTADJUSTMENT'
           };
-        }
+        });
 
-        grouped[key].records.push(item);
-      });
+        const filterPending = (arr) =>
+          arr.filter((r) => !r.approveStatus || r.approveStatus === 'PENDING');
 
-      const checkInOutRequests = Object.values(grouped).map((group) => {
-        const sortedRecords = group.records.sort((a, b) =>
-          a.entryTime.localeCompare(b.entryTime)
+        const combinedRequests = [
+          ...filterPending(leaveRequests),
+          ...filterPending(permissionRequests),
+          ...filterPending(compoOffRequests),
+          ...filterPending(checkOutRequests),
+          ...filterPending(checkInOutRequests),
+          ...filterPending(incrementManagementRequests),
+          ...filterPending(expenseRequests),
+          ...filterPending(travelRequests)
+        ];
+
+        setLeaveRequests(combinedRequests);
+        setScreenNames(combinedRequests.map((item) => item.screenName));
+      }
+
+      // ================= USER FLOW =================
+      else {
+
+        const result = await apiCalls(
+          'get',
+          `/basicmaster/getDashBoardApprovalStatusDetails/${employeeCode}`
         );
 
-        const entry = sortedRecords[0]?.entryTime || '';
-        const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
+        const dashboardData =
+          result?.paramObjectsMap?.dashBoard || [];
 
-        return {
-          ...group,
-          entryTime: entry,
-          exitTime: exit,
-          approveStatus: group.records[0]?.approveStatus || 'PENDING',
-          screenName: group.records[0]?.screenName || 'CHECKINOUTADJUSTMENT'
-        };
-      });
+        const mapped = mapUserDashboardToAdminFormat(dashboardData);
 
-      // ===== Filter only PENDING requests =====
-      const filterPending = (arr) => arr.filter((r) => !r.approveStatus || r.approveStatus === 'PENDING');
+        const pendingOnly = mapped.filter(
+          (r) => !r.approveStatus || r.approveStatus === "PENDING"
+        );
 
-      const combinedRequests = [
-        ...filterPending(leaveRequests),
-        ...filterPending(permissionRequests),
-        ...filterPending(compoOffRequests),
-        ...filterPending(checkOutRequests),
-        ...filterPending(checkInOutRequests),
-        ...filterPending(incrementManagementRequests),
-        ...filterPending(expenseRequests),
-        ...filterPending(travelRequests),
-      ];
+        setLeaveRequests(pendingOnly);
+        setScreenNames(pendingOnly.map((i) => i.screenName));
+      }
 
-      // ===== Set State =====
-      setLeaveRequests(combinedRequests);
-      setScreenNames(combinedRequests.map((item) => item.screenName));
     } catch (error) {
-      console.error('Error fetching combined requests:', error);
+      console.error("Error fetching dashboard requests:", error);
     } finally {
       setLoading(false);
     }
@@ -824,7 +1050,7 @@ const PendingApproval = ({ isLoading }) => {
           </Typography>
 
           <Box display="flex" alignItems="center" gap={1}>
-            {leaveRequests.length > 0 && (
+            {userType?.toUpperCase() === "ADMIN" && leaveRequests.length > 0 && (
               <Button
                 variant="contained"
                 color="success"
@@ -842,7 +1068,10 @@ const PendingApproval = ({ isLoading }) => {
             )}
 
             {leaveRequests.length > 3 && (
-              <ViewAllButton onClick={handleOpenModal} endIcon={<ArrowForward sx={{ fontSize: '18px' }} />}>
+              <ViewAllButton
+                onClick={handleOpenModal}
+                endIcon={<ArrowForward sx={{ fontSize: '18px' }} />}
+              >
                 View All ({leaveRequests.length})
               </ViewAllButton>
             )}
@@ -878,7 +1107,10 @@ const PendingApproval = ({ isLoading }) => {
                       </Avatar>
                       <Box>
                         <Typography variant="subtitle1" fontWeight="600">
-                          {leaveRequest.employeeName || 'Unknown Employee'}
+                          {/* {userType === "Admin"
+                            ? (leaveRequest.employeeName || "Unknown Employee")
+                            : (employeeName || "Unknown Employee")} */}
+                          {leaveRequest.employeeName || "Unknown Employee"}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {leaveRequest.screenName || 'No type specified'}
@@ -889,7 +1121,27 @@ const PendingApproval = ({ isLoading }) => {
 
                   <Grid item xs={12} sm={4}>
                     <Box display="flex" justifyContent="flex-end">
-                      <ActionButtons request={leaveRequest} />
+                      {isAdmin ? (
+                        <ActionButtons request={leaveRequest} />
+                      ) : (
+                        <Stack spacing={0.5} alignItems="flex-end">
+                          {/* FROM */}
+                          <Typography fontSize="0.8rem" color="text.secondary">
+                            From{" "}
+                            <Box component="span" fontWeight={600} color="text.primary">
+                              {dayjs(leaveRequest.startDate).format("DD-MM-YYYY")}
+                            </Box>
+                          </Typography>
+
+                          {/* TO */}
+                          <Typography fontSize="0.8rem" color="text.secondary">
+                            To{" "}
+                            <Box component="span" fontWeight={600} color="text.primary">
+                              {dayjs(leaveRequest.endDate).format("DD-MM-YYYY")}
+                            </Box>
+                          </Typography>
+                        </Stack>
+                      )}
                     </Box>
                   </Grid>
                 </Grid>
@@ -1250,7 +1502,12 @@ const PendingApproval = ({ isLoading }) => {
                     </Grid>
 
                     <Box mt={3} display="flex" justifyContent="flex-end">
-                      <ActionButtons request={request} />
+                      {
+                        isAdmin ? (
+                          <ActionButtons request={request} />
+                        ) : null
+                      }
+
                     </Box>
 
                     {index < leaveRequests.length - 1 && <Divider sx={{ my: 3, borderColor: 'rgba(0,0,0,0.1)' }} />}
