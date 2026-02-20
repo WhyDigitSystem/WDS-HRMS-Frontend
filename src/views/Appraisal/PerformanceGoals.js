@@ -191,11 +191,30 @@ const PerformanceGoals = () => {
         }
     };
 
-    const handleSelectChange = (index, field, value) => {
-        const updatedData = [...goalsDetailsData];
-        updatedData[index][field] = value;
-        setGoalsDetailsData(updatedData);
-    };
+    // const handleSelectChange = (index, field, value) => {
+    //     const updatedData = [...goalsDetailsData];
+    //     updatedData[index][field] = value;
+    //     setGoalsDetailsData(updatedData);
+    //     setGoalsDetailsErrors((prev)=>({...prev,perspective:''}))
+    // };
+
+   const handleSelectChange = (index, field, value) => {
+  const updatedData = [...goalsDetailsData];
+  updatedData[index][field] = value;
+  setGoalsDetailsData(updatedData);
+
+  setGoalsDetailsErrors(prev => {
+    const updatedErrors = [...prev];
+    if (updatedErrors[index]) {
+      updatedErrors[index] = {
+        ...updatedErrors[index],
+        [field]: ''   
+      };
+    }
+    return updatedErrors;
+  });
+   };  
+
 
     const handleMonthChange = (event) => {
         const selectedMonthName = event.target.value;
@@ -367,17 +386,17 @@ const PerformanceGoals = () => {
     };
 
     const handleSave = async () => {
-        const nonEmptyDetailsData = goalsDetailsData.filter(row =>
-            row.perspective ||
-            row.objectiveDescription ||
-            row.assigned ||
-            row.measurement ||
-            row.qtrTarget ||
-            row.performance ||
-            row.comments ||
-            row.performanceSelf ||
-            row.selfRating
-        );
+        // const nonEmptyDetailsData = goalsDetailsData.filter(row =>
+        //     row.perspective ||
+        //     row.objectiveDescription ||
+        //     row.assigned ||
+        //     row.measurement ||
+        //     row.qtrTarget ||
+        //     row.performance ||
+        //     row.comments ||
+        //     row.performanceSelf ||
+        //     row.selfRating
+        // );
 
         const errors = {};
         if (!employeeDetailsData.empCode) errors.employeeCode = 'Employee Code is required';
@@ -388,7 +407,7 @@ const PerformanceGoals = () => {
         const detailsErrors = [];
         let hasDetailErrors = false;
 
-        nonEmptyDetailsData.forEach((row, index) => {
+        goalsDetailsData.forEach((row, index) => {
             const rowErrors = {};
 
             if (!row.perspective) {
@@ -421,10 +440,11 @@ const PerformanceGoals = () => {
             showToast('error', 'Please fill all required fields');
             return;
         }
+        
 
         setIsLoading(true);
 
-        const performanceGoalsDetailsDTO = nonEmptyDetailsData.map(row => ({
+        const performanceGoalsDetailsDTO = goalsDetailsData.map(row => ({
             perspective: row.perspective,
             objectivedesc: row.objectiveDescription,
             perassigned: row.assigned,

@@ -40,6 +40,7 @@ const SupportTickets = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
+  const userType = localStorage.getItem('userType');
 
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [detailDialog, setDetailDialog] = useState(false);
@@ -276,7 +277,7 @@ const SupportTickets = () => {
           {tab === 0 && <RaiseTicketTab ticket={ticket} handleChange={handleChange} handleSubmit={handleSubmit} />}
           {tab === 1 && (
             <AllTicketsTab
-              tickets={loginUserName === 'EBSPL/ITADMIN' ? adminTickets : tickets}
+              tickets={userType === 'ADMIN' ? adminTickets : tickets}
               onRowClick={handleRowClick}
               getAllTickets={getTicketsByOrgId}
             />

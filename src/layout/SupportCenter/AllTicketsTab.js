@@ -27,6 +27,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { showToast } from 'utils/toast-component';
 import CommentSection from './HelperComponent/CommentSection';
 import TicketInfo from './HelperComponent/TicketInfo';
+import { ToastContainer } from 'react-toastify';
 
 dayjs.extend(relativeTime);
 
@@ -61,6 +62,7 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
+  const userType = localStorage.getItem('userType');
   const [isLoading, setIsLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [comment, setComment] = useState([]);
@@ -73,7 +75,7 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
     getComments(ticket.id);
     setComment('');
     setOpenDialog(true);
-    onRowClick && onRowClick(ticket); // optional external click handler
+    onRowClick && onRowClick(ticket); 
   };
 
   const handleSearchExpand = () => {
@@ -201,6 +203,8 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
   );
 
   return (
+    <>
+    <ToastContainer />
     <Box sx={{ height: 400, mt: 0 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         {/* Left side: Title */}
@@ -279,7 +283,7 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
             headerName: 'Status',
             width: 160,
             renderCell: (params) => {
-              if (loginUserName === 'EBSPL/ITADMIN') {
+              if (userType === 'ADMIN') {
                 return (
                   <Select
                     value={params.value}
@@ -307,7 +311,7 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
               }
             }
           },
-          ...(loginUserName === 'EBSPL/ITADMIN'
+          ...(userType === 'ADMIN'
             ? [
                 {
                   field: 'userName',
@@ -378,6 +382,7 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
         </DialogActions>
       </Dialog>
     </Box>
+    </>
   );
 };
 

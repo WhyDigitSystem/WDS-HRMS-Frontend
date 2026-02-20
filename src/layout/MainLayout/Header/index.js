@@ -63,7 +63,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
           minWidth: { xs: 'auto', md: 140 },
           display: 'flex',
           alignItems: 'center',
-          gap:'50px'
+          gap: '50px'
         }}
       >
         {/* <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
@@ -76,7 +76,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
         <ButtonBase
           sx={{
             borderRadius: '8px',
-            overflow: 'hidden',
+            overflow: 'hidden'
             // display: { xs: 'inline-flex', md: 'none' }, // Visible only on xs (mobile), hidden on sm and up
             // mr: 1
           }}
@@ -222,9 +222,9 @@ const Header = ({ handleLeftDrawerToggle }) => {
             flexDirection: 'column',
             minWidth: 0,
             maxWidth: { sm: 120, md: 160 },
-            cursor: 'pointer'
+            // cursor: 'pointer'
           }}
-          onClick={() => setLogoPreviewOpen(true)}
+          // onClick={() => setLogoPreviewOpen(true)}
         >
           <Typography
             variant="subtitle2"
@@ -263,8 +263,6 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
       {/* Right Side Actions */}
       <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }}>
-
-
         {/* Notification */}
         <NotificationSection />
 

@@ -470,13 +470,13 @@ const Task = () => {
         const response = await apiCalls('put', '/timesheet/createUpdateTask', saveData);
 
         if (response.status === true) {
-          showToast('success', 'TimeSheet submitted successfully');
+          showToast('success', 'Task submitted successfully');
           setModalOpen(false);
           handleClear();
           setFormRows([{ projectName: '', screenTask: '', wip: '', status: '', remarks: '', fromTime: '', toTime: '', description: '' }]);
           setSelectedDate(null);
         } else {
-          const errorMsg = response.paramObjectsMap?.errorMessage || 'TimeSheet submission failed';
+          const errorMsg = response.paramObjectsMap?.errorMessage || 'Task submission failed';
           showToast('error', errorMsg);
         }
       } catch (error) {
