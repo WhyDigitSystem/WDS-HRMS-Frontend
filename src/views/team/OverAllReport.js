@@ -66,17 +66,16 @@ function OverAllReport() {
   const [dateFilter, setDateFilter] = useState('All');
 
   const [formData, setFormData] = useState({
-    currMonth: dayjs().format('MMM'),
-    currMonthNum: dayjs().format('M'),
-    currYear: dayjs().format('YYYY'),
+    fromDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+    toDate: dayjs().format('YYYY-MM-DD'),
     branch: 'All',
     employeeCode: 'All',
     empDepartment: 'All'
   });
 
   const [fieldErrors, setFieldErrors] = useState({
-    currMonth: '',
-    currYear: '',
+    fromDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+    toDate: dayjs().format('YYYY-MM-DD'),
     branch: '',
     employeeCode: '',
     empDepartment: ''
@@ -116,7 +115,7 @@ function OverAllReport() {
 
     return Array.from(dates)
       .sort((a, b) => new Date(a) - new Date(b))
-      .map(date => ({
+      .map((date) => ({
         value: date,
         label: dayjs(date).format('DD/MM/YYYY')
       }));
@@ -133,11 +132,7 @@ function OverAllReport() {
           .filter((ts) => ts.status === 'TIMESHEET') // ✅ exclude leave/holiday
           .map((ts) => ({
             ...ts,
-            timeSheetDetailsVO: ts.timeSheetDetailsVO
-              ? ts.timeSheetDetailsVO.filter(
-                (task) => task.project?.trim() === screen
-              )
-              : [],
+            timeSheetDetailsVO: ts.timeSheetDetailsVO ? ts.timeSheetDetailsVO.filter((task) => task.project?.trim() === screen) : []
           }))
           .filter((ts) => ts.timeSheetDetailsVO.length > 0);
 
@@ -192,16 +187,15 @@ function OverAllReport() {
   const handleClear = () => {
     setListView(false);
     setFormData({
-      currMonth: dayjs().format('MMM'),
-      currMonthNum: dayjs().format('M'),
-      currYear: dayjs().format('YYYY'),
+      fromDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+      toDate: dayjs().format('YYYY-MM-DD'),
       branch: 'All',
       employeeCode: 'All',
       empDepartment: 'All'
     });
     setFieldErrors({
-      currMonth: '',
-      currYear: '',
+      fromDate: null,
+      toDate: dayjs().format('YYYY-MM-DD'),
       branch: '',
       employeeCode: '',
       empDepartment: ''
@@ -215,21 +209,10 @@ function OverAllReport() {
   };
 
   const handleDateChange = (field, date) => {
-    if (!date) {
-      setFormData((prev) => ({ ...prev, [field]: '' }));
-      return;
-    }
-    if (field === 'currMonth') {
-      setFormData((prev) => ({
-        ...prev,
-        currMonth: date.format('MMM'),
-        currMonthNum: date.format('M')
-      }));
-    } else if (field === 'currYear') {
-      setFormData((prev) => ({ ...prev, currYear: date.format('YYYY') }));
-    } else {
-      setFormData((prev) => ({ ...prev, [field]: date.format('YYYY-MM-DD') }));
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [field]: date ? date.format('YYYY-MM-DD') : ''
+    }));
   };
 
   const handleChange = async (field, value) => {
@@ -306,7 +289,7 @@ function OverAllReport() {
     try {
       const response = await apiCalls(
         'get',
-        `/timesheet/getAllEmployeeTask?branchCode=${branchCode}&department=${formData.empDepartment}&employeecode=${formData.employeeCode}&month=${formData.currMonthNum}&orgId=${orgId}&year=${formData.currYear}`
+        `/timesheet/getAllEmployeeTask?branchCode=${branchCode}&department=${formData.empDepartment}&employeecode=${formData.employeeCode}&fromDate=${formData.fromDate}&orgId=${orgId}&toDate=${formData.toDate}`
       );
       if (response.status === true) {
         const data = response.paramObjectsMap.timeSheetVO || [];
@@ -364,8 +347,10 @@ function OverAllReport() {
     let metaRowIndex = 2;
     const paramEntries = [
       ['Employee', empName || '-'],
-      ['Month', filters?.currMonth || '-'],
-      ['Year', filters?.currYear || '-'],
+      ['From Date', filters?.fromDate ? dayjs(filters.fromDate).format('DD-MM-YYYY') : '-'],
+      ['To Date', filters?.toDate ? dayjs(filters.toDate).format('DD-MM-YYYY') : '-'],
+      // ['From Date', filters?.fromDate.format('DD-MM-YYYY') || '-'],
+      // ['To Date', filters?.toDate.format('DD-MM-YYYY') || '-'],
       ['Branch', filters?.branch || '-'],
       ['Department', filters?.empDepartment || '-'],
       ['Screen Filter', screenFilter !== 'All' ? screenFilter : 'All Screens'],
@@ -520,8 +505,8 @@ function OverAllReport() {
     let metaY = 40;
     const paramEntries = [
       ['Employee', empName || '-'],
-      ['Month', filters?.currMonth || '-'],
-      ['Year', filters?.currYear || '-'],
+      ['From Date', filters?.fromDate ? dayjs(filters.fromDate).format('DD-MM-YYYY') : '-'],
+      ['To Date', filters?.toDate ? dayjs(filters.toDate).format('DD-MM-YYYY') : '-'],
       ['Branch', filters?.branch || '-'],
       ['Department', filters?.empDepartment || '-'],
       ['Screen Filter', screenFilter !== 'All' ? screenFilter : 'All Screens'],
@@ -679,17 +664,15 @@ function OverAllReport() {
               <FormControl fullWidth variant="filled" size="small">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    views={['month']}
-                    label="Month"
-                    value={dayjs(formData.currMonth, 'MMM')}
-                    onChange={(date) => handleDateChange('currMonth', date)}
-                    format="MMM"
-                    maxDate={dayjs()}
+                    label="From Date"
+                    value={formData.fromDate ? dayjs(formData.fromDate) : null}
+                    onChange={(date) => handleDateChange('fromDate', date)}
+                    format="DD-MM-YYYY"
                     slotProps={{
                       textField: {
                         size: 'small',
-                        error: fieldErrors.currMonth,
-                        helperText: fieldErrors.currMonth
+                        // error: !!fieldErrors.fromDate,
+                        // helperText: fieldErrors.fromDate
                       }
                     }}
                   />
@@ -700,16 +683,15 @@ function OverAllReport() {
               <FormControl fullWidth variant="filled" size="small">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
-                    views={['year']}
-                    label="Year"
-                    value={dayjs(formData.currYear, 'YYYY')}
-                    onChange={(date) => handleDateChange('currYear', date)}
-                    format="YYYY"
+                    label="To Date"
+                    value={formData.toDate ? dayjs(formData.toDate) : null}
+                    onChange={(date) => handleDateChange('toDate', date)}
+                    format="DD-MM-YYYY"
                     slotProps={{
                       textField: {
-                        size: 'small',
-                        error: fieldErrors.currYear,
-                        helperText: fieldErrors.currYear
+                        size: 'small'
+                        // error: !!fieldErrors.toDate,
+                        // helperText: fieldErrors.toDate
                       }
                     }}
                   />
@@ -837,7 +819,6 @@ function OverAllReport() {
         >
           <DialogTitle style={{ cursor: 'move', backgroundColor: '#0f0f1a', color: 'white' }} id="draggable-dialog-title">
             Task Details
-
             {/* Download Icon */}
             <Tooltip title="Download">
               <IconButton
@@ -852,7 +833,6 @@ function OverAllReport() {
                 <DownloadIcon />
               </IconButton>
             </Tooltip>
-
             <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose} PaperProps={{ sx: { minWidth: 150 } }}>
               <MenuItem
                 onClick={() => {
@@ -883,7 +863,6 @@ function OverAllReport() {
                 <PictureAsPdfIcon sx={{ mr: 1, color: 'red' }} /> PDF
               </MenuItem>
             </Menu>
-
             <IconButton
               onClick={() => setListView(false)}
               sx={{
@@ -917,7 +896,7 @@ function OverAllReport() {
                     background: 'linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%)',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
                     border: '1px solid #90caf9',
-                    mb: 1.5,
+                    mb: 1.5
                   }}
                 >
                   <Typography
@@ -927,11 +906,11 @@ function OverAllReport() {
                       fontWeight: 600,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
+                      gap: 1
                     }}
                   >
                     <span>Active Filters:</span>
-                    
+
                     {screenFilter !== 'All' && (
                       <Chip
                         label={`Screen: ${screenFilter}`}
@@ -943,11 +922,11 @@ function OverAllReport() {
                           letterSpacing: 0.3,
                           backgroundColor: '#1976d2',
                           color: 'white',
-                          px: 1,
+                          px: 1
                         }}
                       />
                     )}
-                    
+
                     {dateFilter !== 'All' && (
                       <Chip
                         label={`Date: ${dayjs(dateFilter).format('DD/MM/YYYY')}`}
@@ -959,7 +938,7 @@ function OverAllReport() {
                           letterSpacing: 0.3,
                           backgroundColor: '#7b1fa2',
                           color: 'white',
-                          px: 1,
+                          px: 1
                         }}
                       />
                     )}
@@ -981,8 +960,8 @@ function OverAllReport() {
                       color: '#1976d2',
                       '&:hover': {
                         backgroundColor: '#bbdefb',
-                        borderColor: '#1565c0',
-                      },
+                        borderColor: '#1565c0'
+                      }
                     }}
                   >
                     Clear All Filters
@@ -1006,8 +985,8 @@ function OverAllReport() {
                                 padding: '2px',
                                 color: 'primary.main',
                                 '&:hover': {
-                                  backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                                },
+                                  backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                                }
                               }}
                             >
                               <CalendarMonthIcon fontSize="small" />
@@ -1030,8 +1009,8 @@ function OverAllReport() {
                                   padding: '2px',
                                   color: 'primary.main',
                                   '&:hover': {
-                                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                                  },
+                                    backgroundColor: 'rgba(25, 118, 210, 0.04)'
+                                  }
                                 }}
                               >
                                 <FilterListIcon fontSize="small" />
@@ -1066,7 +1045,7 @@ function OverAllReport() {
                       All Screens
                     </MenuItem>
                     {screenList
-                      .filter(screen => screen !== 'All')
+                      .filter((screen) => screen !== 'All')
                       .map((screen, index) => (
                         <MenuItem
                           key={index}
@@ -1078,8 +1057,7 @@ function OverAllReport() {
                         >
                           {screen}
                         </MenuItem>
-                      ))
-                    }
+                      ))}
                   </Menu>
 
                   {/* Date Filter Menu */}
@@ -1099,7 +1077,7 @@ function OverAllReport() {
                       All Dates
                     </MenuItem>
                     {dateList
-                      .filter(date => date.value !== 'All')
+                      .filter((date) => date.value !== 'All')
                       .map((date, index) => (
                         <MenuItem
                           key={index}
@@ -1111,8 +1089,7 @@ function OverAllReport() {
                         >
                           {date.label}
                         </MenuItem>
-                      ))
-                    }
+                      ))}
                   </Menu>
 
                   <TableBody>
@@ -1184,7 +1161,9 @@ function OverAllReport() {
                                     textAlign: 'center'
                                   }}
                                 >
-                                  <TableCell sx={{ textAlign: 'start', fontWeight: 'bold' }}>{dayjs(ts.date).format('DD/MM/YYYY')}</TableCell>
+                                  <TableCell sx={{ textAlign: 'start', fontWeight: 'bold' }}>
+                                    {dayjs(ts.date).format('DD/MM/YYYY')}
+                                  </TableCell>
                                   <TableCell sx={{ textAlign: 'center' }}>
                                     {ts.totalhours}
                                     {ts.totalhours ? 'hrs' : ''}
@@ -1209,8 +1188,8 @@ function OverAllReport() {
                       <TableRow>
                         <TableCell colSpan={11} align="center" sx={{ py: 3 }}>
                           <Typography variant="body1" color="textSecondary">
-                            {screenFilter !== 'All' || dateFilter !== 'All' 
-                              ? `No data found for the selected filters` 
+                            {screenFilter !== 'All' || dateFilter !== 'All'
+                              ? `No data found for the selected filters`
                               : 'No data available'}
                           </Typography>
                         </TableCell>
