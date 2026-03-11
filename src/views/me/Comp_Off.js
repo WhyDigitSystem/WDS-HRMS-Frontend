@@ -164,7 +164,18 @@ export const Comp_Off = () => {
     try {
       const result = await apiCalls('get', `commonmaster/company/${orgId}`);
       const weekOffList = result.paramObjectsMap.companyVO[0].companyWeekOffVO || [];
-      setWeekOff(weekOffList); // ← Save full rule objects
+
+      const userDesignation = designation?.toUpperCase()?.trim();
+
+      const filteredWeekOff = weekOffList.filter((rule) => {
+        if (!rule.type) return false;
+
+        const types = rule.type.split(',').map((t) => t.trim().toUpperCase());
+
+        return types.includes('ALL') || types.includes(userDesignation);
+      });
+
+      setWeekOff(filteredWeekOff);
     } catch (error) {
       console.error('Error fetching week offs:', error);
     }
@@ -277,10 +288,10 @@ export const Comp_Off = () => {
       prev.map((row) =>
         row.id === id
           ? {
-              ...row,
-              compoOff: selectedDateStr,
-              compoOffDay: getCompoOffDayText(selectedDateStr)
-            }
+            ...row,
+            compoOff: selectedDateStr,
+            compoOffDay: getCompoOffDayText(selectedDateStr)
+          }
           : row
       )
     );
@@ -312,10 +323,10 @@ export const Comp_Off = () => {
       prev.map((row) =>
         row.id === id
           ? {
-              ...row,
-              assignedBy: selectedCode,
-              assignedByName: selectedPerson ? `${selectedPerson.role} - ${selectedPerson.employeeName}` : ''
-            }
+            ...row,
+            assignedBy: selectedCode,
+            assignedByName: selectedPerson ? `${selectedPerson.role} - ${selectedPerson.employeeName}` : ''
+          }
           : row
       )
     );
@@ -501,7 +512,7 @@ export const Comp_Off = () => {
           compoOffDay: item.compOffDay || '',
           assignedBy: item.assignedBy || '',
           description: item.notes || '',
-          status:item.approvalStatus || '',
+          status: item.approvalStatus || '',
           notify: Array.isArray(item.compoffNotifyVO) ? item.compoffNotifyVO.map((n) => n.notify2 || '').filter(Boolean) : [],
           disabled: true
         }));

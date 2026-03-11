@@ -315,9 +315,6 @@ const ProfileSection = () => {
           setDesignation(empData.designation);
           localStorage.setItem('designation', empData.designation);
         }
-        if (empData.profileImage) {
-          localStorage.setItem('profileImage', empData.profileImage);
-        }
       }
     } catch (err) {
       console.error('Error fetching employee data:', err);

@@ -30,6 +30,7 @@ const PermissionRequest = () => {
   const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
   const [employeeCode, setEmployeeCode] = useState(localStorage.getItem('employeeCode'));
+  const [designation, setDesignation] = useState(localStorage.getItem('designation'));
   const [editId, setEditId] = useState('');
   const [branchList, setBranchList] = useState([]);
   const [companyList, setCompanyList] = useState([]);
@@ -71,7 +72,7 @@ const PermissionRequest = () => {
     { accessorKey: 'totalHours', header: 'Total Hrs', size: 140 },
     { accessorKey: 'notes', header: 'Notes', size: 140 },
     { accessorKey: 'notify', header: 'Notify', size: 140 },
-    {accessorKey:'approveStatus',header:'Status',size: 140 }
+    { accessorKey: 'approveStatus', header: 'Status', size: 140 }
   ];
 
   const [listViewData, setListViewData] = useState([]);
@@ -147,7 +148,17 @@ const PermissionRequest = () => {
           shiftOut: companyData.shiftOut
         });
 
-        setWeekOffRules(companyData.companyWeekOffVO || []);
+        const userDesignation = designation?.toUpperCase()?.trim();
+
+        const filteredWeekOff = (companyData.companyWeekOffVO || []).filter((rule) => {
+          if (!rule.type) return false;
+
+          const types = rule.type.split(',').map((t) => t.trim().toUpperCase());
+
+          return types.includes('ALL') || types.includes(userDesignation);
+        });
+
+        setWeekOffRules(filteredWeekOff);
       }
     } catch (error) {
       console.error('Error fetching company details:', error);
@@ -157,22 +168,22 @@ const PermissionRequest = () => {
   const shouldDisableDate = (date) => {
     if (!date || !weekOffRules.length) return false;
 
-    const jsDate = date.toDate(); // convert dayjs to JS Date
-    const dayName = jsDate.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(); // e.g., 'SUNDAY'
+    const jsDate = date.toDate();
+    const dayName = jsDate.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
     const dayOfMonth = jsDate.getDate();
-    const weekNumber = Math.ceil(dayOfMonth / 7); // 1-5
+    const weekNumber = Math.ceil(dayOfMonth / 7);
 
     for (const rule of weekOffRules) {
       const ruleDay = rule.weekOffDays?.toUpperCase();
       const numbers = rule.weekNumbers || [];
 
       if (ruleDay === dayName) {
-        if (numbers.includes(-1)) return true; // Disable all that weekday
-        if (numbers.includes(weekNumber)) return true; // Disable this week's instance
+        if (numbers.includes(-1)) return true;
+        if (numbers.includes(weekNumber)) return true;
       }
     }
 
-    return false; // Otherwise allow
+    return false;
   };
 
   const getNotifyList = async () => {
@@ -354,10 +365,10 @@ const PermissionRequest = () => {
         totalHours: totalHoursNumber,
         permissionRequestNotifyDTO: Array.isArray(formData.allNotifyPerson)
           ? formData.allNotifyPerson.map((item) => ({
-              notify2: item.label || '',
-              notify2Code: item.code || '',
-              notify2Email: item.email || ''
-            }))
+            notify2: item.label || '',
+            notify2Code: item.code || '',
+            notify2Email: item.email || ''
+          }))
           : []
       };
 
@@ -658,10 +669,10 @@ const PermissionRequest = () => {
                   onChange={(event, newValue) => {
                     const updatedFields = newValue
                       ? {
-                          notify: newValue.reportingPerson,
-                          notifyCode: newValue.reportingPersonCode,
-                          notifyEmail: newValue.notifyEmail
-                        }
+                        notify: newValue.reportingPerson,
+                        notifyCode: newValue.reportingPersonCode,
+                        notifyEmail: newValue.notifyEmail
+                      }
                       : { notify: '', notifyCode: '', notifyEmail: '' };
 
                     Object.entries(updatedFields).forEach(([name, value]) => handleInputChange({ target: { name, value } }));
@@ -692,8 +703,8 @@ const PermissionRequest = () => {
                   value={
                     Array.isArray(formData.allNotifyPerson)
                       ? allReportingPersonList.filter((person) =>
-                          formData.allNotifyPerson.some((selected) => selected.code === person.code)
-                        )
+                        formData.allNotifyPerson.some((selected) => selected.code === person.code)
+                      )
                       : []
                   }
                   onChange={(event, newValue) => {

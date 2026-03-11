@@ -23,7 +23,8 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  Autocomplete
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
@@ -51,9 +52,12 @@ const Company = () => {
   const [stateList, setStateList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [currencyList, setCurrencyList] = useState([]);
+  const [designationData, setDesignationData] = useState([]);
   const [editId, setEditId] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
-  const [weekOffRows, setWeekOffRows] = useState([{ weekOff: '', weekNumbers: [] }]);
+  const [weekOffRows, setWeekOffRows] = useState([
+    { weekOff: '', weekNumbers: [], designation: [] }
+  ]);
 
   const handleWeekOffChange = (index, value) => {
     const updated = [...weekOffRows];
@@ -68,12 +72,25 @@ const Company = () => {
   };
 
   const handleAddRow = () => {
-    setWeekOffRows([...weekOffRows, { weekOff: '', weekNumbers: [] }]);
+    setWeekOffRows([
+      ...weekOffRows,
+      { weekOff: '', weekNumbers: [], designation: [] }
+    ]);
+  };
+
+  const handleDesignationChange = (index, value) => {
+    const updated = [...weekOffRows];
+
+    const newValue = value.includes('ALL') ? ['ALL'] : value;
+
+    updated[index].designation = newValue;
+
+    setWeekOffRows(updated);
   };
 
   const handleClearRow = (index) => {
     const updated = [...weekOffRows];
-    updated[index] = { weekOff: '', weekNumbers: [] };
+    updated[index] = { weekOff: '', weekNumbers: [], designation: [] };
     setWeekOffRows(updated);
   };
 
@@ -88,6 +105,7 @@ const Company = () => {
     companyName: '',
     ceo: '',
     address: '',
+    designation: '',
     currency: '',
     country: '',
     state: '',
@@ -122,6 +140,7 @@ const Company = () => {
     address: '',
     currency: '',
     country: '',
+    designation: '',
     state: '',
     city: '',
     pincode: '',
@@ -187,6 +206,7 @@ const Company = () => {
     getAllCountries();
     getCompanyDetails();
     getAllCurrency();
+    getAllDesignation();
   }, []); // Run only once on mount
 
   useEffect(() => {
@@ -231,6 +251,16 @@ const Company = () => {
       setCityList(cityData);
     } catch (error) {
       console.error('Error fetching country data:', error);
+    }
+  };
+
+  const getAllDesignation = async () => {
+    try {
+      const result = await apiCalls('get', `commonmaster/getDesignationByOrgId?orgid=${orgId}`);
+      setDesignationData(result.paramObjectsMap.designationVO.reverse());
+    } catch (err) {
+      console.log('error', err);
+      showToast('error', 'Error fetching designation list');
     }
   };
 
@@ -346,7 +376,10 @@ const Company = () => {
         const weekOffDataFromApi =
           particularCompany.companyWeekOffVO?.map((item) => ({
             weekOff: item.weekOffDays || '',
-            weekNumbers: item.weekNumbers || []
+            weekNumbers: item.weekNumbers || [],
+            designation: item.type
+              ? item.type.split(',').map((d) => d.trim())
+              : []
           })) || [];
 
         setWeekOffRows(weekOffDataFromApi);
@@ -573,7 +606,10 @@ const Company = () => {
           .filter((row) => row.weekOff && row.weekNumbers.length > 0)
           .map((row) => ({
             weekOffDays: row.weekOff,
-            weekNumbers: row.weekNumbers.includes(-1) ? [-1] : row.weekNumbers // 'All' as [0]
+            weekNumbers: row.weekNumbers.includes(-1) ? [-1] : row.weekNumbers,
+            type: row.designation.includes('ALL')
+              ? ['ALL']
+              : row.designation
           })),
         country: formData.country,
         createdBy: loginUserName,
@@ -1210,38 +1246,43 @@ const Company = () => {
           </>
         )}
       </div>
-      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="lg">
         <DialogTitle>Select Week Off Days</DialogTitle>
         <DialogContent>
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
-                <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Week Off</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Week Numbers</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Actions</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Week Off</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Week Numbers</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Type</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
               {weekOffRows.map((row, index) => (
                 <TableRow key={index}>
-                  {/* Week Off Dropdown */}
-                  <TableCell>
+
+                  {/* Week Off */}
+                  <TableCell sx={{ width: '25%' }}>
                     <FormControl fullWidth size="small">
-                      <Select value={row.weekOff} onChange={(e) => handleWeekOffChange(index, e.target.value)} displayEmpty>
+                      <Select
+                        value={row.weekOff}
+                        onChange={(e) => handleWeekOffChange(index, e.target.value)}
+                        displayEmpty
+                      >
                         <MenuItem value="">
                           <em>Select Day</em>
                         </MenuItem>
                         {['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'].map((day) => (
-                          <MenuItem key={day} value={day}>
-                            {day}
-                          </MenuItem>
+                          <MenuItem key={day} value={day}>{day}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
                   </TableCell>
 
-                  {/* Week Numbers Multi-select */}
-                  <TableCell>
+                  {/* Week Numbers */}
+                  <TableCell sx={{ width: '25%' }}>
                     <FormControl fullWidth size="small">
                       <Select
                         multiple
@@ -1251,29 +1292,61 @@ const Company = () => {
                           const updated = value.includes(-1) ? [-1] : value;
                           handleWeekNumberChange(index, updated);
                         }}
-                        renderValue={(selected) => (selected.includes(-1) ? 'All' : selected.join(', '))}
+                        renderValue={(selected) =>
+                          selected.includes(-1) ? 'All' : selected.join(', ')
+                        }
                       >
                         {[1, 2, 3, 4, 5].map((num) => (
-                          <MenuItem key={num} value={num}>
-                            {num}
-                          </MenuItem>
+                          <MenuItem key={num} value={num}>{num}</MenuItem>
                         ))}
-                        <MenuItem key="All" value={-1}>
-                          All
-                        </MenuItem>
+                        <MenuItem value={-1}>All</MenuItem>
                       </Select>
                     </FormControl>
                   </TableCell>
 
+                  {/* Designation */}
+                  <TableCell sx={{ width: '25%' }}>
+                    <Autocomplete
+                      multiple
+                      size="small"
+                      options={['ALL', ...designationData.map((d) => d.designationName)]}
+                      value={Array.isArray(row.designation) ? row.designation : []}
+                      onChange={(event, newValue) => {
+                        const value = newValue.includes('ALL') ? ['ALL'] : newValue;
+                        handleDesignationChange(index, value);
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Designation"
+                          placeholder="Select Designation"
+                        />
+                      )}
+                    />
+                  </TableCell>
+
                   {/* Actions */}
-                  <TableCell>
-                    <Button variant="outlined" color="secondary" size="small" onClick={() => handleClearRow(index)} sx={{ mr: 1 }}>
+                  <TableCell sx={{ width: '25%' }}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      onClick={() => handleClearRow(index)}
+                      sx={{ mr: 1 }}
+                    >
                       Clear
                     </Button>
-                    <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteRow(index)}>
+
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteRow(index)}
+                    >
                       Delete
                     </Button>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>

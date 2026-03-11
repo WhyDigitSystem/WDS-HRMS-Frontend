@@ -26,6 +26,7 @@ const Calendar = () => {
   const [branchCode] = useState(localStorage.getItem('branchCode'));
   const [branchName] = useState(localStorage.getItem('branch'));
   const [department] = useState(localStorage.getItem('department'));
+  const [designation] = useState(localStorage.getItem('designation'));
   const [empCode] = useState(localStorage.getItem('employeeCode'));
   const [empName] = useState(localStorage.getItem('employeeName'));
 
@@ -247,12 +248,23 @@ const Calendar = () => {
       const result = await apiCalls('get', `commonmaster/company/${orgId}`);
       const weekOffConfig = result.paramObjectsMap.companyVO[0].companyWeekOffVO || [];
 
-      const transformedWeekOffs = weekOffConfig.map((off) => ({
-        weekOffDays: off.weekOffDays.toUpperCase(),
-        weekNumbers: off.weekNumbers || [-1]
-      }));
+      const userDesignation = designation?.toUpperCase()?.trim();
 
-      setWeekOffs(transformedWeekOffs);
+      const filteredWeekOffs = weekOffConfig
+        .filter((off) => {
+          if (!off.type) return false;
+
+          const types = off.type.split(',').map((t) => t.trim().toUpperCase());
+
+          // Allow if type contains ALL or matches designation
+          return types.includes('ALL') || types.includes(userDesignation);
+        })
+        .map((off) => ({
+          weekOffDays: off.weekOffDays.toUpperCase(),
+          weekNumbers: off.weekNumbers || [-1]
+        }));
+
+      setWeekOffs(filteredWeekOffs);
     } catch (error) {
       console.error('Error fetching week off:', error);
       showToast('error', 'Failed to load week-off configuration');

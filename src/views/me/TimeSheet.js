@@ -44,6 +44,7 @@ const TimeSheet = () => {
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [employeeCode, setEmployeeCode] = useState(localStorage.getItem('employeeCode'));
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
+  const [designation] = useState(localStorage.getItem('designation'));
   const [branch, setBranch] = useState(localStorage.getItem('branch'));
   const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
@@ -648,7 +649,18 @@ const TimeSheet = () => {
   const getCompanyWeekOff = async () => {
     try {
       const result = await apiCalls('get', `commonmaster/company/${orgId}`);
-      const weekOffConfig = result.paramObjectsMap.companyVO[0].companyWeekOffVO;
+      const weekOffConfig = result?.paramObjectsMap?.companyVO?.[0]?.companyWeekOffVO || [];
+
+      const userDesignation = designation?.toUpperCase()?.trim();
+
+      // Filter by designation
+      const filteredWeekOffConfig = weekOffConfig.filter((rule) => {
+        if (!rule.type) return false;
+
+        const types = rule.type.split(',').map((t) => t.trim().toUpperCase());
+
+        return types.includes('ALL') || types.includes(userDesignation);
+      });
 
       const currentYear = dayjs().year();
       const startYear = currentYear - 1;
@@ -658,11 +670,20 @@ const TimeSheet = () => {
 
       for (let year = startYear; year <= endYear; year++) {
         for (let month = 0; month < 12; month++) {
-          for (const config of weekOffConfig) {
+          for (const config of filteredWeekOffConfig) {
             const dayName = config.weekOffDays.toUpperCase();
             const weekNumbers = config.weekNumbers;
 
-            const dayIndex = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'].indexOf(dayName);
+            const dayIndex = [
+              'SUNDAY',
+              'MONDAY',
+              'TUESDAY',
+              'WEDNESDAY',
+              'THURSDAY',
+              'FRIDAY',
+              'SATURDAY'
+            ].indexOf(dayName);
+
             if (dayIndex === -1) continue;
 
             const daysInMonth = dayjs(`${year}-${month + 1}-01`).daysInMonth();
@@ -728,8 +749,8 @@ const TimeSheet = () => {
             title="Save"
             icon={SaveIcon}
             isLoading={isLoading}
-            // onClick={handleSave}
-            // margin="0 10px 0 10px"
+          // onClick={handleSave}
+          // margin="0 10px 0 10px"
           />
           <ActionButton title="Report" icon={DescriptionTwoToneIcon} onClick={handleReportIconClick} />
         </div>

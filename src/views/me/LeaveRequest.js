@@ -322,10 +322,10 @@ const LeaveRequest = () => {
         createdBy: loginUserName,
         leaveRequestNotifyDTO: Array.isArray(formData.allNotifyPerson)
           ? formData.allNotifyPerson.map((item) => ({
-              notify2: item.label || '',
-              notify2Code: item.code || '',
-              notify2Email: item.email || ''
-            }))
+            notify2: item.label || '',
+            notify2Code: item.code || '',
+            notify2Email: item.email || ''
+          }))
           : []
       };
 
@@ -624,8 +624,25 @@ const LeaveRequest = () => {
   const getCompanyWeekOff = async () => {
     try {
       const result = await apiCalls('get', `commonmaster/company/${orgId}`);
-      const weekOffData = result.paramObjectsMap.companyVO[0].companyWeekOffVO || [];
-      setWeekOff(weekOffData); // Store full objects
+      const weekOffConfig = result?.paramObjectsMap?.companyVO?.[0]?.companyWeekOffVO || [];
+
+      const userDesignation = designation?.toUpperCase()?.trim();
+
+      const filteredWeekOffs = weekOffConfig
+        .filter((off) => {
+          if (!off.type) return false;
+
+          const types = off.type.split(',').map((t) => t.trim().toUpperCase());
+
+          // Allow if designation matches OR type contains ALL
+          return types.includes('ALL') || types.includes(userDesignation);
+        })
+        .map((off) => ({
+          weekOffDays: off.weekOffDays.toUpperCase(),
+          weekNumbers: off.weekNumbers || [-1]
+        }));
+
+      setWeekOff(filteredWeekOffs);
     } catch (error) {
       console.error('Error fetching company week off data:', error);
     }
@@ -737,7 +754,7 @@ const LeaveRequest = () => {
               columns={listViewColumns}
               blockEdit={false}
               toEdit={getLeaveRequestById}
-              // enableEditing={false}
+            // enableEditing={false}
             />
           </div>
         ) : (
@@ -792,8 +809,8 @@ const LeaveRequest = () => {
                         value={formData.fromDate || null}
                         onChange={(newValue) => handleDateChange('fromDate', newValue)}
                         shouldDisableDate={disableWeekOffDays}
-                        // minDate={formData.effectiveFrom ? dayjs(formData.effectiveFrom) : null} // Prevent selecting dates before effectiveFrom
-                        // minDate={getMinSelectableDate()}
+                      // minDate={formData.effectiveFrom ? dayjs(formData.effectiveFrom) : null} // Prevent selecting dates before effectiveFrom
+                      // minDate={getMinSelectableDate()}
                       />
                     ) : (
                       <TextField label="From Date" size="small" value="" placeholder="Select Leave Type First" disabled />
@@ -933,8 +950,8 @@ const LeaveRequest = () => {
                   value={
                     Array.isArray(formData.allNotifyPerson)
                       ? allReportingPersonList.filter((person) =>
-                          formData.allNotifyPerson.some((selected) => selected.code === person.code)
-                        )
+                        formData.allNotifyPerson.some((selected) => selected.code === person.code)
+                      )
                       : []
                   }
                   onChange={(event, newValue) => {
