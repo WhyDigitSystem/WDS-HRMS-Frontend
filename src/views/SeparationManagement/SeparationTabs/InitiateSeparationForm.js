@@ -20,10 +20,20 @@ import dayjs from 'dayjs';
 import {
     Save as SaveIcon,
 } from '@mui/icons-material';
-import { showToast } from 'utils/toast-component';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-
+const showToast = (type, message) => {
+    toast[type](message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored"
+    });
+};
 
 const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [formData, setFormData] = useState({
@@ -49,7 +59,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-   
+
 
     const separationTypes = [
         'Resignation',
@@ -90,8 +100,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                 setEmployees(employeeList);
             }
         } catch (error) {
-            console.error('error','Error fetching employees:', error);  
-         
+            console.error('error', 'Error fetching employees:', error);
+
         } finally {
             setLoading(false);
         }
@@ -147,34 +157,30 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
         return daysMap[noticePeriod] || 30;
     };
 
-   
-
-   
-
     const handleSubmit = async () => {
         // Validation
         if (!formData.employeeId) {
-            showToast('error','Please select an employee');
+            showToast('error', 'Please select an employee');
             return;
         }
 
         if (!formData.separationType) {
-            showToast('error','Please select separation type');
+            showToast('error', 'Please select separation type');
             return;
         }
 
         if (!formData.resignationDate) {
-            showToast('error','Please select resignation date');
+            showToast('error', 'Please select resignation date');
             return;
         }
 
         if (!formData.lastWorkingDate) {
-            showToast('error','Please select last working date');
+            showToast('error', 'Please select last working date');
             return;
         }
 
         if (!formData.reasonCategory) {
-            showToast('error','Please select reason category');
+            showToast('error', 'Please select reason category');
             return;
         }
 
@@ -199,9 +205,10 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                 position: formData.position,
                 reasonCategory: formData.reasonCategory,
                 rehireEligible: formData.rehireEligible ? "Yes" : "No",
-                reportingPerson: formData.reportingManager,
-                reportingPersonCode: "", // You might need to get this from employee data
-                reportingPersonEmail: "", // You might need to get this from employee data
+                reportingManager: formData.reportingManager,
+                reportingPerson: [],
+                reportingPersonCode: [],
+                reportingPersonEmail: [],
                 resignation: formatDateForAPI(formData.resignationDate),
                 separationType: formData.separationType
             };
@@ -210,16 +217,16 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
 
             const response = await apiCalls('put', '/employeseparation/createUpdateInitiateSeparation', payload);
             console.log('Response:', response);
-            showToast('success','Save successfully!');
+            showToast('success', 'Save successfully!');
 
             if (response.status === true) {
-               
+
                 console.log('Separation initiated successfully:')
 
                 if (onSeparationCreated) {
                     onSeparationCreated();
                 }
- 
+
                 // Reset form after successful submission
                 setFormData({
                     employeeId: '',
@@ -238,161 +245,161 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     separationReason: ''
                 });
             } else {
-                showToast( 'error',response.message || 'Failed to initiate separation process');
+                showToast('error', response.message || 'Failed to initiate separation process');
             }
         } catch (error) {
-            console.error('error','Error submitting separation form:', error);
-            showToast('error','Error submitting separation form');
+            console.error('error', 'Error submitting separation form:', error);
+            showToast('error', 'Error submitting separation form');
         } finally {
             setSubmitting(false);
         }
     };
 
     const calculateLastWorkingDate = (resignationDate, noticePeriod) => {
-  if (!resignationDate || !noticePeriod) return '';
+        if (!resignationDate || !noticePeriod) return '';
 
-  const days = extractNoticeDays(noticePeriod);
+        const days = extractNoticeDays(noticePeriod);
 
-  return dayjs(resignationDate)
-    .add(days - 1, 'day')
-    .toISOString();
-};
+        return dayjs(resignationDate)
+            .add(days - 1, 'day')
+            .toISOString();
+    };
 
     return (
-        <>   
-        <ToastContainer />
-        <Box sx={{ p: 2,backgroundColor: '#f8fafc', borderRadius: 2  }}>
-            {/* Employee Info Section */}
-            <Typography sx={{ fontWeight: 700, mb: 1, color: '#1e293b' }}>
-              👤 Employee Details
-            </Typography>
-            <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <Autocomplete
-                        options={employees}
-                        getOptionLabel={(option) => option.label}
-                        value={employees.find(emp => emp.employeeCode === formData.employeeId) || null}
-                        onChange={handleEmployeeSelect}
-                        loading={loading}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Name"
-                                variant="outlined"
-                                size="small"
-                                fullWidth
-                            />
-                        )}
-                    />
-                </Grid>
+        <>
+            <ToastContainer />
+            <Box sx={{ p: 2, backgroundColor: '#f8fafc', borderRadius: 2 }}>
+                {/* Employee Info Section */}
+                <Typography sx={{ fontWeight: 700, mb: 1, color: '#1e293b' }}>
+                    👤 Employee Details
+                </Typography>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                        <Autocomplete
+                            options={employees}
+                            getOptionLabel={(option) => option.label}
+                            value={employees.find(emp => emp.employeeCode === formData.employeeId) || null}
+                            onChange={handleEmployeeSelect}
+                            loading={loading}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Name"
+                                    variant="outlined"
+                                    size="small"
+                                    fullWidth
+                                />
+                            )}
+                        />
+                    </Grid>
 
-              <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <TextField
-                        label="Code"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        disabled={!!formData.employeeId}
-                        name="Code"
-                        value={formData.employeeId}
-                        InputProps={{ readOnly: true }}
-                    />
-                </Grid>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                        <TextField
+                            label="Code"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            disabled={!!formData.employeeId}
+                            name="Code"
+                            value={formData.employeeId}
+                            InputProps={{ readOnly: true }}
+                        />
+                    </Grid>
 
-                 <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <TextField
-                        label="Department"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        disabled={!!formData.department}
-                        name="department"
-                        value={formData.department}
-                        InputProps={{ readOnly: true }}
-                    />
-                </Grid>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                        <TextField
+                            label="Department"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            disabled={!!formData.department}
+                            name="department"
+                            value={formData.department}
+                            InputProps={{ readOnly: true }}
+                        />
+                    </Grid>
 
-              <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <TextField
-                        label="Position"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        disabled={!!formData.position}
-                        name="position"
-                        value={formData.position}
-                        InputProps={{ readOnly: true }}
-                    />
-                </Grid>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                        <TextField
+                            label="Position"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            disabled={!!formData.position}
+                            name="position"
+                            value={formData.position}
+                            InputProps={{ readOnly: true }}
+                        />
+                    </Grid>
 
-                <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <TextField
-                        label="Reporting Manager"
-                        variant="outlined"
-                        size="small"
-                        fullWidth
-                        disabled={!!formData.reportingManager}
-                        name="reportingManager"
-                        value={formData.reportingManager}
-                        InputProps={{ readOnly: true }}
-                    />
-                </Grid>
-         <Grid item xs={12} sm={6} md={4} lg={3}>
-                    <FormControl fullWidth variant="outlined" size="small">
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                label={
-                                    <span>
-                                        Joining Date<span style={{ color: 'red' }}> *</span>
-                                    </span>
-                                }
-                                format="DD-MM-YYYY"
-                                value={formData.joiningDate ? dayjs(formData.joiningDate) : null}
-                                onChange={(newValue) => {
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        joiningDate: newValue ? newValue.toISOString() : '',
-                                    }));
-                                }}
-                                readOnly
-                                disabled={!!formData.joiningDate}
-                                slotProps={{
-                                    textField: {
-                                        size: 'small',
-                                        fullWidth: true,
-                                        error: false,
-                                        helperText: '',
-                                        sx: {
-                                            '& .MuiInputBase-root': {
-                                                backgroundColor: '#f9fafb',
-                                                borderRadius: '8px',
-                                            },
-                                            '& .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#94a3b8',
-                                            },
-                                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#94a3b8',
-                                            },
-                                            '& .Mui-disabled': {
-                                                backgroundColor: '#f9fafb',
-                                                color: '#334155',
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                        <TextField
+                            label="Reporting Manager"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            disabled={!!formData.reportingManager}
+                            name="reportingManager"
+                            value={formData.reportingManager}
+                            InputProps={{ readOnly: true }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+                        <FormControl fullWidth variant="outlined" size="small">
+                            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                <DatePicker
+                                    label={
+                                        <span>
+                                            Joining Date<span style={{ color: 'red' }}> *</span>
+                                        </span>
+                                    }
+                                    format="DD-MM-YYYY"
+                                    value={formData.joiningDate ? dayjs(formData.joiningDate) : null}
+                                    onChange={(newValue) => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            joiningDate: newValue ? newValue.toISOString() : '',
+                                        }));
+                                    }}
+                                    readOnly
+                                    disabled={!!formData.joiningDate}
+                                    slotProps={{
+                                        textField: {
+                                            size: 'small',
+                                            fullWidth: true,
+                                            error: false,
+                                            helperText: '',
+                                            sx: {
+                                                '& .MuiInputBase-root': {
+                                                    backgroundColor: '#f9fafb',
+                                                    borderRadius: '8px',
+                                                },
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#94a3b8',
+                                                },
+                                                '& .Mui-disabled': {
+                                                    backgroundColor: '#f9fafb',
+                                                    color: '#334155',
+                                                },
                                             },
                                         },
-                                    },
-                                }}
-                            />
-                        </LocalizationProvider>
-                    </FormControl>
+                                    }}
+                                />
+                            </LocalizationProvider>
+                        </FormControl>
+                    </Grid>
                 </Grid>
-            </Grid>
 
-            {/* Separation Details */}
-             <Typography sx={{ fontWeight: 700, mt: 2, mb: 1, color: '#1e293b' }}>
-               🚪 Separation Details
-             </Typography>
+                {/* Separation Details */}
+                <Typography sx={{ fontWeight: 700, mt: 2, mb: 1, color: '#1e293b' }}>
+                    🚪 Separation Details
+                </Typography>
 
                 <Grid container spacing={2}>
-                 <Grid item xs={12} sm={6} md={4} lg={3}>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
 
                         <Autocomplete
                             options={separationTypes}
@@ -404,7 +411,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                 <TextField
                                     {...params}
                                     // label="Type *"
-                                      label={
+                                    label={
                                         <span>
                                             Type<span style={{ color: 'red' }}> *</span>
                                         </span>
@@ -417,7 +424,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         />
                     </Grid>
 
-                        <Grid item xs={12} sm={6} md={4} lg={3}>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
                         <FormControl fullWidth variant="outlined" size="small">
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                                 {/* <DatePicker
@@ -460,14 +467,14 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                     }}
                                 /> */}
                                 <DatePicker
-  label={
-    <span>
-      Resignation/Notice Date<span style={{ color: 'red' }}> *</span>
-    </span>
-  }
-  format="DD-MM-YYYY"
-  value={formData.resignationDate ? dayjs(formData.resignationDate) : null}
-   slotProps={{
+                                    label={
+                                        <span>
+                                            Resignation/Notice Date<span style={{ color: 'red' }}> *</span>
+                                        </span>
+                                    }
+                                    format="DD-MM-YYYY"
+                                    value={formData.resignationDate ? dayjs(formData.resignationDate) : null}
+                                    slotProps={{
                                         textField: {
                                             size: 'small',
                                             fullWidth: true,
@@ -491,27 +498,27 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                             },
                                         },
                                     }}
-  onChange={(newValue) => {
-    const resignationISO = newValue ? newValue.toISOString() : '';
+                                    onChange={(newValue) => {
+                                        const resignationISO = newValue ? newValue.toISOString() : '';
 
-    setFormData((prev) => ({
-      ...prev,
-      resignationDate: resignationISO,
-      lastWorkingDate: calculateLastWorkingDate(
-        resignationISO,
-        prev.noticePeriod
-      ),
-    }));
-  }}
-/>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            resignationDate: resignationISO,
+                                            lastWorkingDate: calculateLastWorkingDate(
+                                                resignationISO,
+                                                prev.noticePeriod
+                                            ),
+                                        }));
+                                    }}
+                                />
 
                             </LocalizationProvider>
                         </FormControl>
                     </Grid>
 
-                    
-                       <Grid item xs={12} sm={6} md={4} lg={3}>
-                   
+
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+
                         {/* <TextField
                             label="Notice Period (Days)"
                             select
@@ -529,36 +536,36 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                             ))}
                         </TextField> */}
                         <TextField
-  label="Notice Period (Days)"
-  select
-  variant="outlined"
-  size="small"
-  fullWidth
-  name="noticePeriod"
-  value={formData.noticePeriod}
-  onChange={(e) => {
-    const noticePeriod = e.target.value;
+                            label="Notice Period (Days)"
+                            select
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            name="noticePeriod"
+                            value={formData.noticePeriod}
+                            onChange={(e) => {
+                                const noticePeriod = e.target.value;
 
-    setFormData((prev) => ({
-      ...prev,
-      noticePeriod,
-      lastWorkingDate: calculateLastWorkingDate(
-        prev.resignationDate,
-        noticePeriod
-      ),
-    }));
-  }}
->
-  {['15 Days', '30 Days', '45 Days', '60 Days', '90 Days'].map((d) => (
-    <MenuItem key={d} value={d}>
-      {d}
-    </MenuItem>
-  ))}
-</TextField>
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    noticePeriod,
+                                    lastWorkingDate: calculateLastWorkingDate(
+                                        prev.resignationDate,
+                                        noticePeriod
+                                    ),
+                                }));
+                            }}
+                        >
+                            {['15 Days', '30 Days', '45 Days', '60 Days', '90 Days'].map((d) => (
+                                <MenuItem key={d} value={d}>
+                                    {d}
+                                </MenuItem>
+                            ))}
+                        </TextField>
 
                     </Grid>
 
-                       <Grid item xs={12} sm={6} md={4} lg={3}>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
 
                         <FormControl fullWidth variant="outlined" size="small">
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -607,7 +614,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     </Grid>
 
 
-                      <Grid item xs={12} sm={6} md={4} lg={3}>
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
 
                         <Autocomplete
                             options={reasonCategories}
@@ -619,7 +626,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                                 <TextField
                                     {...params}
                                     // label="Reason Category *"
-                                      label={
+                                    label={
                                         <span>
                                             Reason <span style={{ color: 'red' }}> *</span>
                                         </span>
@@ -632,8 +639,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         />
                     </Grid>
 
-               <Grid item xs={12} sm={6} md={4} lg={3}>
-           
+                    <Grid item xs={12} sm={6} md={4} lg={3}>
+
                         <TextField
                             label="Rehire Eligible"
                             select
@@ -667,44 +674,44 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         />
                     </Grid>
                 </Grid>
-           
 
-            {/* Submit */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-                <Button
-                    variant="contained"
-                    startIcon={<SaveIcon />}
- sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    py: 0.55,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+                {/* Submit */}
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                    <Button
+                        variant="contained"
+                        startIcon={<SaveIcon />}
+                        sx={{
+                            background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+                            color: "white",
+                            fontWeight: 600,
+                            px: 1,
+                            py: 0.55,
+                            borderRadius: 2,
+                            letterSpacing: "0.5px",
+                            fontSize: "14px",
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
-                    onClick={handleSubmit}
+                            "&:hover": {
+                                transform: "scale(1.06)",
+                                background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+                            },
+
+                            "&:active": {
+                                transform: "scale(0.97)",
+                            }
+                        }}
+                        onClick={handleSubmit}
                     // disabled={!formData.employeeId || submitting}
-                >
-                    {submitting ? (
-                        <CircularProgress size={24} sx={{ color: 'white' }} />
-                    ) : (
-                        'Save'
-                    )}
-                </Button>
+                    >
+                        {submitting ? (
+                            <CircularProgress size={24} sx={{ color: 'white' }} />
+                        ) : (
+                            'Save'
+                        )}
+                    </Button>
+                </Box>
             </Box>
-        </Box>
-         
+
         </>
 
     );

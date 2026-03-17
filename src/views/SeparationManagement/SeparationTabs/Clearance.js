@@ -35,6 +35,13 @@ const ClearanceManagement = () => {
     const [branchCode] = useState(localStorage.getItem('branchCode'));
     const [branch] = useState(localStorage.getItem('branch'));
     const [loginUserName] = useState(localStorage.getItem('userName'));
+    const [separationDetails, setSeparationDetails] = useState([]);
+    const loginUserDesignation = localStorage.getItem("designation");
+    const loginEmployeeCode = localStorage.getItem("employeeCode");
+
+    const isSeparationRole = separationDetails
+        .map(d => d.toUpperCase())
+        .includes(loginUserDesignation?.trim().toUpperCase());
 
     // Master list of ALL clearance items that should always be visible
     const masterClearanceItems = [
@@ -51,8 +58,14 @@ const ClearanceManagement = () => {
     ];
 
     useEffect(() => {
-        getEmployeesDetails();
-    }, []);
+        if (separationDetails.length > 0) {
+            getEmployeesDetails();
+        }
+    }, [separationDetails]);
+
+    useEffect(() => {
+        getCompanyDetails();
+    }, [orgId]);
 
     // Function to handle checkbox changes
     const handleCheckboxChange = (itemId) => {
@@ -71,12 +84,38 @@ const ClearanceManagement = () => {
         return [employee.name] || '#3b82f6';
     };
 
+    const getCompanyDetails = async () => {
+        try {
+            const response = await apiCalls('get', `commonmaster/company/${orgId}`);
+
+            if (response.status === true) {
+                const company = response.paramObjectsMap.companyVO[0];
+
+                const separationList = company.separation
+                    ? company.separation.split(',').map(d => d.trim())
+                    : [];
+
+                setSeparationDetails(separationList);
+            }
+        } catch (error) {
+            console.error('Error fetching company:', error);
+        }
+    };
+
     const getEmployeesDetails = async () => {
         setLoading(true);
+
         try {
-            const response = await apiCalls('get', `/employeseparation/getInitiateSeparationByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
+
+            const empCodePayload = isSeparationRole ? "ALL" : loginEmployeeCode;
+
+            const response = await apiCalls(
+                'get',
+                `/employeseparation/getInitiateSeparationByOrgIdforclearance?branchCode=${branchCode}&orgId=${orgId}&empCode=${empCodePayload}`
+            );
 
             if (response.status === true && response.paramObjectsMap && response.paramObjectsMap.initiateSeparationVO) {
+
                 const employeeList = response.paramObjectsMap.initiateSeparationVO.map((emp) => ({
                     id: emp.id,
                     employeeCode: emp.employeeCode,
@@ -90,11 +129,18 @@ const ClearanceManagement = () => {
                     clearanceItems: emp.clearanceManagementVO || [],
                     originalData: emp
                 }));
+
                 setEmployees(employeeList);
+
+                if (!isSeparationRole && employeeList.length > 0) {
+                    setSelectedEmployee(employeeList[0]);
+                }
+
             } else {
                 console.error('No data found in response');
                 setEmployees([]);
             }
+
         } catch (error) {
             console.error('Error fetching employees:', error);
             setEmployees([]);
@@ -188,12 +234,13 @@ const ClearanceManagement = () => {
                 status: 'PENDING',
                 reasonCategory: selectedEmployee.originalData?.reasonCategory || "",
                 rehireEligible: selectedEmployee.originalData?.rehireEligible || "Yes",
-                reportingPerson: selectedEmployee.reportingManager,
-                reportingPersonCode: selectedEmployee.originalData?.reportingPersonCode || "",
-                reportingPersonEmail: selectedEmployee.originalData?.reportingPersonEmail || "",
+                reportingManager: selectedEmployee.reportingManager,
+                reportingPerson: [],
+                reportingPersonCode: [],
+                reportingPersonEmail: [],
                 resignation: selectedEmployee.originalData?.resignation || "",
                 separationType: selectedEmployee.separationType,
-                updatedBy: loginUserName // ✅ Add updatedBy field for updates
+                updatedBy: loginUserName
             };
 
             console.log('Updating clearance data with ID:', selectedEmployee.id, payload);
@@ -272,42 +319,27 @@ const ClearanceManagement = () => {
                     <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#1f2937' }}>
                         Select Employee for Clearance
                     </Typography>
-                    <Autocomplete
-                        options={employees}
-                        getOptionLabel={(option) => option.name}
-                        value={selectedEmployee}
-                        onChange={(event, newValue) => setSelectedEmployee(newValue)}
-                        loading={loading}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Select Employee"
-                                size="small"
-                                placeholder="Choose an employee to view clearance status"
-                                InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                        <React.Fragment>
-                                            {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                            {params.InputProps.endAdornment}
-                                        </React.Fragment>
-                                    ),
-                                }}
-                            />
-                        )}
-                        freeSolo={false}
-                        disableClearable={false}
-                        clearOnBlur={true}
-                        selectOnFocus={false}
-                        handleHomeEndKeys={false}
-                        sx={{
-                            width: 300,
-                            mb: selectedEmployee ? 2 : 0,
-                            '& .MuiAutocomplete-inputRoot': {
-                                paddingRight: '30px !important',
-                            }
-                        }}
-                    />
+                    {isSeparationRole && (
+                        <Autocomplete
+                            options={employees}
+                            getOptionLabel={(option) => option.name}
+                            value={selectedEmployee}
+                            onChange={(event, newValue) => setSelectedEmployee(newValue)}
+                            loading={loading}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Select Employee"
+                                    size="small"
+                                    placeholder="Choose an employee to view clearance status"
+                                />
+                            )}
+                            sx={{
+                                width: 300,
+                                mb: selectedEmployee ? 2 : 0
+                            }}
+                        />
+                    )}
 
                     {selectedEmployee && (
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -420,25 +452,25 @@ const ClearanceManagement = () => {
                                     startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
                                     onClick={handleSave}
                                     disabled={saving || clearanceItems.length === 0}
-                                     sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    py: 0.55,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
+                                    sx={{
+                                        background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
+                                        color: "white",
+                                        fontWeight: 600,
+                                        px: 1,
+                                        py: 0.55,
+                                        borderRadius: 2,
+                                        letterSpacing: "0.5px",
+                                        fontSize: "14px",
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+                                        "&:hover": {
+                                            transform: "scale(1.06)",
+                                            background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
+                                        },
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
+                                        "&:active": {
+                                            transform: "scale(0.97)",
+                                        }
+                                    }}
                                 >
                                     {saving ? 'Saving...' : 'Save'}
                                 </Button>

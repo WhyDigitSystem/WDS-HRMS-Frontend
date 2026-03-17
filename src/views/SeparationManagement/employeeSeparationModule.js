@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Container,
@@ -13,7 +13,9 @@ import {
     Payment as FinalSettlementIcon,
     PeopleAlt as ExitInterviewIcon,
     BarChart as AnalyticsIcon,
-    PersonAddDisabled as InitiateSeparationIcon
+    PersonAddDisabled as InitiateSeparationIcon,
+    Description as ExperienceLetterIcon,
+    AssignmentTurnedIn as RelievingLetterIcon
 } from '@mui/icons-material';
 
 // Import tab components
@@ -22,6 +24,9 @@ import InitiateSeparationForm from './SeparationTabs/InitiateSeparationForm';
 import AllCasesSeparation from './SeparationTabs/AllCasesSeparation';
 import ClearanceManagement from './SeparationTabs/Clearance';
 import ExitInterviewManagement from './SeparationTabs/ExitInterview';
+import ExperienceLetter from './SeparationTabs/ExperienceLetter';
+import RelievingLetter from './SeparationTabs/RelievingLetter';
+import apiCalls from 'apicall';
 
 const TabPanel = ({ children, value, index, ...other }) => (
     <div hidden={value !== index} {...other}>
@@ -32,6 +37,32 @@ const TabPanel = ({ children, value, index, ...other }) => (
 const EmployeeSeparationModule = () => {
     const [currentTab, setCurrentTab] = useState(0);
     const [refreshStats, setRefreshStats] = useState(0);
+    const [seperationDetails, setSeperationDetails] = useState([]);
+
+    const [orgId] = useState(localStorage.getItem('orgId'));
+    const loginUserRole = localStorage.getItem('designation');
+
+    useEffect(() => {
+        getCompanyDetails();
+    }, []);
+
+    const getCompanyDetails = async () => {
+        try {
+            const response = await apiCalls('get', `commonmaster/company/${orgId}`);
+
+            if (response.status === true) {
+                const company = response.paramObjectsMap.companyVO[0];
+
+                setSeperationDetails(
+                    company.separation
+                        ? company.separation.split(',').map((d) => d.trim())
+                        : []
+                );
+            }
+        } catch (error) {
+            console.error('Error fetching company:', error);
+        }
+    };
 
     const handleTabChange = (event, newValue) => {
         setCurrentTab(newValue);
@@ -42,11 +73,20 @@ const EmployeeSeparationModule = () => {
     };
 
     const tabs = [
-        {
-            label: 'Initiate Separation',
-            icon: <InitiateSeparationIcon sx={{ color: '#ef4444' }} />,
-            component: () => <InitiateSeparationForm onSeparationCreated={handleSeparationCreated} />
-        },
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
+                    label: 'Initiate Separation',
+                    icon: <InitiateSeparationIcon sx={{ color: '#ef4444' }} />,
+                    component: () => (
+                        <InitiateSeparationForm
+                            onSeparationCreated={handleSeparationCreated}
+                        />
+                    )
+                }
+            ]
+            : []),
+
         {
             label: 'All Cases',
             icon: <AllCasesIcon sx={{ color: '#3b82f6' }} />,
@@ -57,25 +97,49 @@ const EmployeeSeparationModule = () => {
             icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
             component: ClearanceManagement
         },
-        {
-            label: 'Exit Interview',
-            icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
-            component: ExitInterviewManagement
-        },
-        // {
-        //     label: 'Final Settlement',
-        //     icon: <FinalSettlementIcon sx={{ color: '#10b981' }} />,
-        // },
-        // {
-        //     label: 'Analytics',
-        //     icon: <AnalyticsIcon sx={{ color: '#0ea5e9' }} />,
-        // },
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
+                    label: 'Exit Interview',
+                    icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
+                    component: () => (
+                        <ExitInterviewManagement
+                            onSeparationCreated={handleSeparationCreated}
+                        />
+                    )
+                }
+            ]
+            : []),
+
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
+                    label: 'Experience Letter',
+                    icon: <ExperienceLetterIcon sx={{ color: '#14b8a6' }} />,
+                    component: () => (
+                        <ExperienceLetter seperationDetails={seperationDetails} />
+                    )
+                }
+            ]
+            : []),
+
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
+                    label: 'Relieving Letter',
+                    icon: <RelievingLetterIcon sx={{ color: '#6366f1' }} />,
+                    component: () => (
+                        <RelievingLetter seperationDetails={seperationDetails} />
+                    )
+                }
+            ]
+            : []),
     ];
 
     return (
         <Container
-            maxWidth={false} // ✅ allows full-width layout
-            disableGutters // ✅ removes default left/right padding
+            maxWidth={false} // allows full-width layout
+            disableGutters // removes default left/right padding
             sx={{
                 py: 2, // small vertical padding
                 px: 1, // minimal horizontal padding
@@ -107,8 +171,8 @@ const EmployeeSeparationModule = () => {
                         value={currentTab}
                         onChange={handleTabChange}
                         variant="scrollable"
-                        scrollButtons="on" // ✅ always show arrows (prevents flicker)
-                        allowScrollButtonsMobile // ✅ improves mobile UX
+                        scrollButtons="on" // always show arrows (prevents flicker)
+                        allowScrollButtonsMobile // improves mobile UX
                         TabIndicatorProps={{
                             style: {
                                 backgroundColor: '#2563eb',
@@ -130,7 +194,7 @@ const EmployeeSeparationModule = () => {
                                 mx: 0.5,
                                 px: 1.5,
                                 transition: 'background-color 0.3s ease, transform 0.2s ease',
-                                // ✅ Prevent hover from changing layout
+                                // Prevent hover from changing layout
                                 transform: 'translateY(0)',
                             },
                             '& .MuiTab-root:hover': {

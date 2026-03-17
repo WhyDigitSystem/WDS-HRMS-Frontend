@@ -15,7 +15,7 @@ const hasScreenAccess = (screenId) => {
 
 // Menu items for company setup
 const companySetupChildren = [
-  // hasScreenAccess('CREATECOMP') && {
+  // hasScreenAccess('CC') && {
   //   id: 'createCompany',
   //   title: 'Create Company',
   //   type: 'item',

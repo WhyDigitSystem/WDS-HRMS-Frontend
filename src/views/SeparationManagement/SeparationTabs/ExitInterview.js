@@ -34,6 +34,8 @@ const ExitInterviewManagement = () => {
   const [feedback, setFeedback] = useState('');
   const [interviewDate, setInterviewDate] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [reportingPersons, setReportingPersons] = useState([]); // list
+  const [selectedReportingPerson, setSelectedReportingPerson] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -47,6 +49,11 @@ const ExitInterviewManagement = () => {
   const branchCode = localStorage.getItem('branchCode');
   const branch = localStorage.getItem('branch');
   const loginUserName = localStorage.getItem('userName');
+
+  useEffect(() => {
+    fetchEmployees();
+    getNotifyList();
+  }, []);
 
   // Fetch employees from API
   const fetchEmployees = async () => {
@@ -82,9 +89,27 @@ const ExitInterviewManagement = () => {
     }
   };
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
+  const getNotifyList = async () => {
+    try {
+      const result = await apiCalls('get', `master/getReportingNameForEmployee?employeeCode=${null}&branchCode=${branchCode}&orgId=${orgId}`);
+
+      if (result?.paramObjectsMap?.employeeVO) {
+        const notifyList = result.paramObjectsMap.employeeVO.map((person) => ({
+          reportingPersonCode: person.employeeCode,
+          reportingPerson: person.employeeName,
+          notifyEmail: person.email,
+          role: person.role
+        }));
+
+        console.log('🔍 Notify List:', notifyList);
+        setReportingPersons(notifyList);
+      } else {
+        console.error('❌ No reporting persons found');
+      }
+    } catch (error) {
+      console.error('❌ Error fetching reporting persons:', error);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedEmployee || !interviewDate || !rating || !feedback.trim()) {
@@ -94,6 +119,18 @@ const ExitInterviewManagement = () => {
 
     setSaving(true);
     try {
+
+      const reportingPersonNames = selectedReportingPerson.map(
+        (person) => person.reportingPerson
+      );
+
+      const reportingPersonCodes = selectedReportingPerson.map(
+        (person) => person.reportingPersonCode
+      );
+
+      const reportingPersonEmails = selectedReportingPerson.map(
+        (person) => person.notifyEmail
+      );
       const payload = {
         id: selectedEmployee.id, // Main record ID for update
         branch: branch || '',
@@ -106,9 +143,9 @@ const ExitInterviewManagement = () => {
         employeeName: selectedEmployee.employeeName,
         exitInterviewFeedback: feedback,
         interviewDate: interviewDate
-  ? interviewDate.format('YYYY-MM-DD')
-  : null,
-        experienceRating:rating,
+          ? interviewDate.format('YYYY-MM-DD')
+          : null,
+        experienceRating: rating,
         // interviewDate: interviewDate
         joiningDate: selectedEmployee.joiningDate,
         lastWorkingDate: selectedEmployee.originalData?.lastWorkingDate || '',
@@ -117,13 +154,13 @@ const ExitInterviewManagement = () => {
         position: selectedEmployee.position,
         reasonCategory: selectedEmployee.originalData?.reasonCategory || '',
         rehireEligible: selectedEmployee.originalData?.rehireEligible || 'Yes',
-        reportingPerson: selectedEmployee.reportingManager,
-        reportingPersonCode: selectedEmployee.originalData?.reportingPersonCode || '',
-        reportingPersonEmail: selectedEmployee.originalData?.reportingPersonEmail || '',
+        reportingPerson: reportingPersonNames,
+        reportingPersonCode: reportingPersonCodes,
+        reportingPersonEmail: reportingPersonEmails,
         resignation: selectedEmployee.originalData?.resignation || '',
         separationType: selectedEmployee.separationType,
         updatedBy: loginUserName,
-        status: 'APPROVED'
+        status: 'PENDING'
       };
 
       console.log('Saving exit interview data:', payload);
@@ -138,6 +175,7 @@ const ExitInterviewManagement = () => {
         setInterviewDate(dayjs());
         setRating(0);
         setFeedback('');
+        setSelectedReportingPerson([]);
         // Refresh employee data
         fetchEmployees();
       } else {
@@ -160,8 +198,8 @@ const ExitInterviewManagement = () => {
       setFeedback('');
     } else {
       // Pre-fill interview date with today's date
-    //   setInterviewDate(new Date().toISOString().split('T')[0]);
-        setInterviewDate(dayjs());
+      //   setInterviewDate(new Date().toISOString().split('T')[0]);
+      setInterviewDate(dayjs());
       // Pre-fill rating and feedback if they exist in original data
       if (newValue.originalData) {
         setRating(newValue.originalData.experienceRating || 0);
@@ -174,8 +212,8 @@ const ExitInterviewManagement = () => {
         //   setInterviewDate(date.isValid() ? date.format('DD-MM-YYYY') : '');
         // }
         if (newValue.originalData?.interviewDate) {
-  setInterviewDate(dayjs(newValue.originalData.interviewDate));
-}
+          setInterviewDate(dayjs(newValue.originalData.interviewDate));
+        }
       }
     }
   };
@@ -203,50 +241,60 @@ const ExitInterviewManagement = () => {
             Select Employee for Exit Interview
           </Typography>
 
-          <Autocomplete
-            options={employees}
-            getOptionLabel={(option) => option.name}
-            value={selectedEmployee}
-            onChange={handleEmployeeSelect}
-            loading={loading}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Search and Select Employee *"
-                placeholder="Type to search employees..."
-                size="small"
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <React.Fragment>
-                      {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                      {params.InputProps.endAdornment}
-                    </React.Fragment>
-                  )
-                }}
-              />
-            )}
-            renderOption={(props, option) => (
-              <li {...props}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {option.name}
-                  </Typography>
-                </Box>
-              </li>
-            )}
-            sx={{
-              width: 300,
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                height: 36,
-                fontSize: '0.85rem'
-              },
-              '& .MuiInputLabel-root': {
-                fontSize: '0.85rem'
+          {/* Row for Employee + Reporting Person */}
+          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+
+            {/* Employee */}
+            <Autocomplete
+              options={employees}
+              getOptionLabel={(option) => option.name}
+              value={selectedEmployee}
+              onChange={handleEmployeeSelect}
+              loading={loading}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Employee *"
+                  placeholder="Search employee..."
+                  size="small"
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    )
+                  }}
+                />
+              )}
+              sx={{ width: 300 }}
+            />
+
+            {/* Reporting Person */}
+            <Autocomplete
+              multiple
+              options={reportingPersons}
+              getOptionLabel={(option) =>
+                option.reportingPerson
+                  ? `${option.reportingPerson} (${option.reportingPersonCode})`
+                  : ''
               }
-            }}
-          />
+              value={selectedReportingPerson}
+              onChange={(event, value) => setSelectedReportingPerson(value)}
+              loading={loading}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Reporting Person"
+                  placeholder="Select reporting manager(s)..."
+                  size="small"
+                />
+              )}
+              sx={{ width: 350 }}
+            />
+
+          </Box>
 
           {selectedEmployee && (
             <Box sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#f8fafc', borderRadius: 2 }}>
@@ -262,10 +310,12 @@ const ExitInterviewManagement = () => {
               >
                 <PersonIcon />
               </Avatar>
+
               <Box sx={{ flex: 1 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>
                   {selectedEmployee.employeeName}
                 </Typography>
+
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <WorkIcon sx={{ color: '#6b7280', mr: 1, fontSize: 18 }} />
@@ -273,12 +323,14 @@ const ExitInterviewManagement = () => {
                       {selectedEmployee.position}
                     </Typography>
                   </Box>
+
                   <Chip
                     label={selectedEmployee.department}
                     size="small"
                     variant="outlined"
                     sx={{ backgroundColor: '#eff6ff', color: '#2563eb', borderColor: '#2563eb' }}
                   />
+
                   <Chip
                     label={selectedEmployee.separationType}
                     size="small"
@@ -286,6 +338,7 @@ const ExitInterviewManagement = () => {
                     sx={{ backgroundColor: '#f0fdf4', color: '#166534', borderColor: '#166534' }}
                   />
                 </Box>
+
                 {selectedEmployee.originalData?.lastWorkingDate && (
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                     Last Working Date: {new Date(selectedEmployee.originalData.lastWorkingDate).toLocaleDateString()}

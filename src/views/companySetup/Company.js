@@ -119,6 +119,7 @@ const Company = () => {
     leavePolicy: '',
     attendanceMode: [],
     overTime: '',
+    separation: [],
     otType: '',
     otPolicy: '',
     weekOff: [],
@@ -152,6 +153,7 @@ const Company = () => {
     leavePolicy: '',
     attendanceMode: '',
     overTime: '',
+    separation: '',
     otType: '',
     otPolicy: '',
     weekOff: '',
@@ -265,37 +267,32 @@ const Company = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, checked, type, multiple } = e.target || e;
+    const { name, value, checked, type } = e.target;
 
     // Regular expressions for validation
     const nameRegex = /^[A-Za-z ]*$/;
     const numericRegex = /^[0-9]*$/;
-    const alphanumericRegex = /^[A-Za-z0-9]*$/;
 
-    let newValue = value;
     let error = '';
 
-    if (multiple) {
-      const selectedValues = Array.from(e.target.selectedOptions, (option) => option.value);
-      setFormData((prev) => ({
-        ...prev,
-        [name]: selectedValues
-      }));
-      return;
-    }
-
-    // Validation logic
+    // CEO validation
     if (name === 'ceo') {
       if (!nameRegex.test(value)) {
         error = 'Only alphabetic characters are allowed';
       }
-    } else if (name === 'pincode') {
+    }
+
+    // Pincode validation
+    if (name === 'pincode') {
       if (!numericRegex.test(value)) {
         error = 'Only numeric characters are allowed';
       } else if (value.length > 6) {
         error = 'Only 6 digits are allowed';
       }
-    } else if (name === 'mobileNo') {
+    }
+
+    // Mobile validation
+    if (name === 'mobileNo') {
       if (!numericRegex.test(value)) {
         error = 'Only numeric characters are allowed';
       } else if (value.length > 10) {
@@ -304,52 +301,21 @@ const Company = () => {
     }
 
     // Update error state
-    setFieldErrors((prevErrors) => ({
-      ...prevErrors,
+    setFieldErrors((prev) => ({
+      ...prev,
       [name]: error
     }));
 
-    // Only update form data if there's no error
-    if (!error) {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: newValue
-      }));
-    }
-
+    // Checkbox handling
     if (type === 'checkbox') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
+      setFormData((prev) => ({
+        ...prev,
         [name]: checked
       }));
-      return; // Exit here to avoid further processing for checkboxes
-    }
-
-    if (name === 'weekOff') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: value // value is already an array from MUI Select
-      }));
       return;
     }
 
-    // Handle dropdowns separately
-    if (type === 'select-one') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: value
-      }));
-      return;
-    }
-
-    // If it's not a checkbox or dropdown, process the input normally
-    if (type !== 'checkbox' && type !== 'select-one') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: newValue
-      }));
-    }
-
+    // Normal input handling
     setFormData((prev) => ({
       ...prev,
       [name]: value
@@ -406,6 +372,9 @@ const Company = () => {
           // attendanceMode: particularCompany.attendanceMode,
           attendanceMode: particularCompany.attendanceMode ? particularCompany.attendanceMode.split(',').map((item) => item.trim()) : [],
           overTime: particularCompany.otFlag,
+          separation: particularCompany.separation
+            ? particularCompany.separation.split(',').map((item) => item.trim())
+            : [],
           otType: particularCompany.otType,
           otPolicy: particularCompany.otPolicy,
           gstRegistered: particularCompany.gstregistered === 'Active',
@@ -478,6 +447,7 @@ const Company = () => {
       leavePolicy: '',
       attendanceMode: '',
       overTime: '',
+      separation: [],
       otType: '',
       otPolicy: '',
       weekOff: '',
@@ -509,6 +479,7 @@ const Company = () => {
       leavePolicy: '',
       attendanceMode: '',
       overTime: '',
+      separation: '',
       otType: '',
       otPolicy: '',
       weekOff: '',
@@ -623,6 +594,7 @@ const Company = () => {
           : null,
         leavePolicy: formData.leavePolicy,
         attendanceMode: formData.attendanceMode,
+        separation: formData.separation,
         otFlag: formData.overTime,
         otType: formData.otType,
         otPolicy: formData.otPolicy,
@@ -1003,6 +975,29 @@ const Company = () => {
                   </Select>
                   {fieldErrors.attendanceMode && <FormHelperText>{fieldErrors.attendanceMode}</FormHelperText>}
                 </FormControl>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <Autocomplete
+                  multiple
+                  size="small"
+                  options={designationData.map((d) => d.designationName)}
+                  value={Array.isArray(formData.separation) ? formData.separation : []}
+                  onChange={(event, newValue) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      separation: newValue
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Separation"
+                      error={!!fieldErrors.separation}
+                      helperText={fieldErrors.separation}
+                    />
+                  )}
+                />
               </div>
 
               <div className="col-md-3 mb-3">
