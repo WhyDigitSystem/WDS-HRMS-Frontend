@@ -1,5 +1,5 @@
 // src/components/AdvancedOfferLetterSystem/tabs/AllOffers.js
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Box,
     Grid,
@@ -77,30 +77,43 @@ const AllCasesSeparation = () => {
     ];
 
     // Calculate filtered data - REMOVE manual pagination slicing
-    const filteredSeparations = separations.filter(separation => {
-        if (!search) return true;
+    const filteredSeparations = useMemo(() => {
+        return separations.filter(separation => {
+            if (!search) return true;
 
-        const searchTerm = search.toLowerCase();
-        return (
-            separation.employeeName?.toLowerCase().includes(searchTerm) ||
-            separation.employeeCode?.toLowerCase().includes(searchTerm) ||
-            separation.position?.toLowerCase().includes(searchTerm) ||
-            separation.department?.toLowerCase().includes(searchTerm)
-        );
-    });
+            const searchTerm = search.toLowerCase();
+            return (
+                separation.employeeName?.toLowerCase().includes(searchTerm) ||
+                separation.employeeCode?.toLowerCase().includes(searchTerm) ||
+                separation.position?.toLowerCase().includes(searchTerm) ||
+                separation.department?.toLowerCase().includes(searchTerm)
+            );
+        });
+    }, [separations, search]);
 
     // Pagination configuration - EXACTLY like Candidates component
-    const paginationConfig = {
+    const paginationConfig = useMemo(() => ({
         currentPage,
         totalPages: Math.ceil(filteredSeparations.length / itemsPerPage), // Use filteredSeparations length
         itemsPerPage,
         onPageChange: (event, value) => setCurrentPage(value)
-    };
+    }), [currentPage, filteredSeparations.length, itemsPerPage]);
 
     // REMOVE manual pagination calculation - CommonListView handles this internally
     // const indexOfLastItem = currentPage * itemsPerPage;
     // const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     // const currentItems = filteredSeparations.slice(indexOfFirstItem, indexOfLastItem);
+
+    const dateRef = useRef();
+
+    useEffect(() => {
+        if (dateRef.current === formatDate) {
+            console.log("✅ date function");
+        } else {
+            console.log("❌ date function");
+        }
+        dateRef.current = formatDate;
+    });
 
     useEffect(() => {
         getAllDepartment();
@@ -209,7 +222,7 @@ const AllCasesSeparation = () => {
     };
 
     // Format date from "2025-11-17" to "17/11/2025"
-    const formatDate = (dateString) => {
+    const formatDate = useCallback((dateString) => {
         if (!dateString) return 'N/A';
 
         try {
@@ -243,19 +256,7 @@ const AllCasesSeparation = () => {
             console.error('Error formatting date:', error);
             return 'N/A';
         }
-    };
-
-    // Calculate clearance progress
-    const calculateClearanceProgress = (clearanceItems) => {
-        if (!clearanceItems || !Array.isArray(clearanceItems)) return '0/0';
-
-        const totalItems = clearanceItems.length;
-        const completedItems = clearanceItems.filter(item =>
-            item.status === 'COMPLETED' || item.completed
-        ).length;
-
-        return `${completedItems}/${totalItems}`;
-    };
+    }, []);
 
     const getStatusColor = (status, cancelFlag) => {
         if (cancelFlag === 'T') return 'error';
@@ -273,7 +274,7 @@ const AllCasesSeparation = () => {
         }
     };
 
-    const columns = [
+    const columns = useMemo(() => [
         {
             key: 'employeeName',
             label: 'Name',
@@ -411,7 +412,7 @@ const AllCasesSeparation = () => {
                 );
             }
         }
-    ];
+    ], []);
 
 
     // Define actions for the list view

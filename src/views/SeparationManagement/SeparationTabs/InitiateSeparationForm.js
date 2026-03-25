@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
     Grid,
     TextField,
@@ -36,6 +36,7 @@ const showToast = (type, message) => {
 };
 
 const InitiateSeparationForm = ({ onSeparationCreated }) => {
+    console.log("🔁 Component Rendered");
     const [formData, setFormData] = useState({
         employeeId: '',
         employeeName: '',
@@ -60,6 +61,36 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
+    // const inpRef = useRef();
+    // const empRef = useRef();
+    // const subRef = useRef();
+
+    // useEffect(() => {
+    //     if (inpRef.current === handleInputChange) {
+    //         console.log("✅ inp function");
+    //     } else {
+    //         console.log("❌ inp function");
+    //     }
+    //     inpRef.current = handleInputChange;
+    // });
+
+    // useEffect(() => {
+    //     if (empRef.current === handleEmployeeSelect) {
+    //         console.log("✅ emp function");
+    //     } else {
+    //         console.log("❌ emp function");
+    //     }
+    //     empRef.current = handleEmployeeSelect;
+    // });
+
+    // useEffect(() => {
+    //     if (subRef.current === handleSubmit) {
+    //         console.log("✅ emp function");
+    //     } else {
+    //         console.log("❌ emp function");
+    //     }
+    //     subRef.current = handleSubmit;
+    // });
 
     const separationTypes = [
         'Resignation',
@@ -107,34 +138,63 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
         }
     };
 
-    const handleEmployeeSelect = (event, selectedEmployee) => {
+    // const handleEmployeeSelect = (event, selectedEmployee) => {
+    //     if (selectedEmployee) {
+    //         setFormData({
+    //             ...formData,
+    //             employeeId: selectedEmployee.employeeCode,
+    //             employeeName: selectedEmployee.employeeName,
+    //             department: selectedEmployee.department,
+    //             position: selectedEmployee.position,
+    //             reportingManager: selectedEmployee.reportingManager,
+    //             joiningDate: selectedEmployee.joiningDate
+    //         });
+    //     } else {
+    //         setFormData({
+    //             ...formData,
+    //             employeeId: '',
+    //             employeeName: '',
+    //             department: '',
+    //             position: '',
+    //             reportingManager: '',
+    //             joiningDate: ''
+    //         });
+    //     }
+    // };
+
+    const handleEmployeeSelect = useCallback((event, selectedEmployee) => {
         if (selectedEmployee) {
-            setFormData({
-                ...formData,
+            setFormData(prev => ({
+                ...prev,
                 employeeId: selectedEmployee.employeeCode,
                 employeeName: selectedEmployee.employeeName,
                 department: selectedEmployee.department,
                 position: selectedEmployee.position,
                 reportingManager: selectedEmployee.reportingManager,
                 joiningDate: selectedEmployee.joiningDate
-            });
+            }));
         } else {
-            setFormData({
-                ...formData,
+            setFormData(prev => ({
+                ...prev,
                 employeeId: '',
                 employeeName: '',
                 department: '',
                 position: '',
                 reportingManager: '',
                 joiningDate: ''
-            });
+            }));
         }
-    };
+    }, []);
 
-    const handleInputChange = (e) => {
+    // const handleInputChange = (e) => {
+    //     const { name, value } = e.target;
+    //     setFormData((prev) => ({ ...prev, [name]: value }));
+    // };
+
+    const handleInputChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-    };
+    }, []);
 
     const formatDateForInput = (dateString) => {
         if (!dateString) return '';
@@ -157,7 +217,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
         return daysMap[noticePeriod] || 30;
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(async () => {
         // Validation
         if (!formData.employeeId) {
             showToast('error', 'Please select an employee');
@@ -179,8 +239,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
             return;
         }
 
-        if (!formData.reasonCategory) {
-            showToast('error', 'Please select reason category');
+        if (formData.separationType === 'Resignation' && !formData.reasonCategory) {
+            showToast('error', 'Please select reason');
             return;
         }
 
@@ -253,7 +313,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
         } finally {
             setSubmitting(false);
         }
-    };
+    }, []);
 
     const calculateLastWorkingDate = (resignationDate, noticePeriod) => {
         if (!resignationDate || !noticePeriod) return '';
@@ -264,6 +324,16 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
             .add(days - 1, 'day')
             .toISOString();
     };
+
+    const selectedEmployee = useMemo(() => {
+        console.log("🔥 useMemo running");
+        return employees.find(emp => emp.employeeCode === formData.employeeId) || null;
+    }, [employees, formData.employeeId]);
+
+    // const selectedEmployee = employees.find(emp => {
+    //     console.log("🔥 find running");
+    //     return emp.employeeCode === formData.employeeId;
+    // });
 
     return (
         <>
@@ -278,7 +348,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                         <Autocomplete
                             options={employees}
                             getOptionLabel={(option) => option.label}
-                            value={employees.find(emp => emp.employeeCode === formData.employeeId) || null}
+                            value={selectedEmployee}
                             onChange={handleEmployeeSelect}
                             loading={loading}
                             renderInput={(params) => (
@@ -405,7 +475,11 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                             options={separationTypes}
                             value={formData.separationType || null}
                             onChange={(event, newValue) =>
-                                setFormData((prev) => ({ ...prev, separationType: newValue }))
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    separationType: newValue,
+                                    reasonCategory: newValue === 'Resignation' ? prev.reasonCategory : ''
+                                }))
                             }
                             renderInput={(params) => (
                                 <TextField
@@ -614,30 +688,30 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                     </Grid>
 
 
-                    <Grid item xs={12} sm={6} md={4} lg={3}>
-
-                        <Autocomplete
-                            options={reasonCategories}
-                            value={formData.reasonCategory || null}
-                            onChange={(event, newValue) =>
-                                setFormData((prev) => ({ ...prev, reasonCategory: newValue }))
-                            }
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    // label="Reason Category *"
-                                    label={
-                                        <span>
-                                            Reason <span style={{ color: 'red' }}> *</span>
-                                        </span>
-                                    }
-                                    variant="outlined"
-                                    size="small"
-                                    fullWidth
-                                />
-                            )}
-                        />
-                    </Grid>
+                    {formData.separationType === 'Resignation' && (
+                        <Grid item xs={12} sm={6} md={4} lg={3}>
+                            <Autocomplete
+                                options={reasonCategories}
+                                value={formData.reasonCategory || null}
+                                onChange={(event, newValue) =>
+                                    setFormData((prev) => ({ ...prev, reasonCategory: newValue }))
+                                }
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label={
+                                            <span>
+                                                Reason <span style={{ color: 'red' }}> *</span>
+                                            </span>
+                                        }
+                                        variant="outlined"
+                                        size="small"
+                                        fullWidth
+                                    />
+                                )}
+                            />
+                        </Grid>
+                    )}
 
                     <Grid item xs={12} sm={6} md={4} lg={3}>
 

@@ -38,6 +38,7 @@ const ContractMaster = Loadable(lazy(() => import('views/basicMaster/ContractMas
 const OverTime = Loadable(lazy(() => import('views/basicMaster/OverTimeScreen.js')));
 const OTApproval = Loadable(lazy(() => import('views/basicMaster/OTApproval')));
 const GroupMaster = Loadable(lazy(() => import('views/basicMaster/groupMaster')));
+const ExitInterview = Loadable(lazy(() => import('views/basicMaster/exitInterview')));
 // const AppraisalPeroid = Loadable(lazy(() => import('views/basicMaster/AppraisalPeroid')));
 // const KRAKPI = Loadable(lazy(() => import('views/basicMaster/KRAKPI')));
 // const Weightage = Loadable(lazy(() => import('views/basicMaster/Weightage')));
@@ -69,7 +70,7 @@ const OtherPayments = Loadable(lazy(() => import('views/salaryMaster/OtherPaymen
 // me
 const PermissionRequest = Loadable(lazy(() => import('views/me/PermissionRequest')));
 const LeaveRequest = Loadable(lazy(() => import('views/me/LeaveRequest')));
-const CheckInOut= Loadable(lazy(() => import('views/me/CheckInOut')));
+const CheckInOut = Loadable(lazy(() => import('views/me/CheckInOut')));
 const Holiday = Loadable(lazy(() => import('views/me/Holiday')));
 const TimeSheet = Loadable(lazy(() => import('views/me/TimeSheet')));
 const WFH = Loadable(lazy(() => import('views/me/WFH')));
@@ -232,6 +233,10 @@ const HrmsRoute = {
     {
       path: '/basicMaster/ListOfValues',
       element: <ListOfValues />
+    },
+    {
+      path: '/basicMaster/exitInterview',
+      element: <ExitInterview />
     },
     // {
     //   path: '/basicMaster/AppraisalPeroid',
@@ -466,7 +471,7 @@ const HrmsRoute = {
     },
     {
       path: '/Appraisal/First_LevelSupervisorInput',
-      element: < First_LevelSupervisorInput/>
+      element: < First_LevelSupervisorInput />
     },
     {
       path: '/Appraisal/HRFeedback',

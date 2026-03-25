@@ -11,7 +11,8 @@ import {
   IconBuildingSkyscraper,
   IconSun,
   IconListDetails,
-  IconBeach
+  IconBeach,
+  IconMessageQuestion
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -147,6 +148,13 @@ const basicMasterChildren = [
     type: 'item',
     url: '/basicMaster/ListOfValues',
     icon: IconListDetails
+  },
+  hasScreenAccess('EXI') && {
+    id: 'exitInterview',
+    title: 'Exit Interview',
+    type: 'item',
+    url: '/basicMaster/exitInterview',
+    icon: IconMessageQuestion
   },
 ].filter(Boolean);
 

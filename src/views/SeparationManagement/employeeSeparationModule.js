@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Box,
     Container,
@@ -17,6 +17,7 @@ import {
     Description as ExperienceLetterIcon,
     AssignmentTurnedIn as RelievingLetterIcon
 } from '@mui/icons-material';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 
 // Import tab components
 import StatsCards from './StatsCards';
@@ -27,10 +28,13 @@ import ExitInterviewManagement from './SeparationTabs/ExitInterview';
 import ExperienceLetter from './SeparationTabs/ExperienceLetter';
 import RelievingLetter from './SeparationTabs/RelievingLetter';
 import apiCalls from 'apicall';
+import ExitQuestions from './SeparationTabs/ExitQuestions';
 
-const TabPanel = ({ children, value, index, ...other }) => (
-    <div hidden={value !== index} {...other}>
-        {value === index && <Box sx={{ p: 2 }}>{children}</Box>}
+const TabPanel = ({ children, value, index }) => (
+    <div hidden={value !== index}>
+        <Box sx={{ display: value === index ? 'block' : 'none' }}>
+            {children}
+        </Box>
     </div>
 );
 
@@ -45,6 +49,17 @@ const EmployeeSeparationModule = () => {
     useEffect(() => {
         getCompanyDetails();
     }, []);
+
+    const funcRef = useRef();
+
+    useEffect(() => {
+        if (funcRef.current === handleSeparationCreated) {
+            console.log("✅ Same function");
+        } else {
+            console.log("❌ New function created");
+        }
+        funcRef.current = handleSeparationCreated;
+    });
 
     const getCompanyDetails = async () => {
         try {
@@ -68,9 +83,13 @@ const EmployeeSeparationModule = () => {
         setCurrentTab(newValue);
     };
 
-    const handleSeparationCreated = () => {
+    // const handleSeparationCreated = () => {
+    //     setRefreshStats(prev => prev + 1);
+    // };
+
+    const handleSeparationCreated = useCallback(() => {
         setRefreshStats(prev => prev + 1);
-    };
+    }, []);
 
     const tabs = [
         ...(seperationDetails.includes(loginUserRole)
@@ -78,11 +97,7 @@ const EmployeeSeparationModule = () => {
                 {
                     label: 'Initiate Separation',
                     icon: <InitiateSeparationIcon sx={{ color: '#ef4444' }} />,
-                    component: () => (
-                        <InitiateSeparationForm
-                            onSeparationCreated={handleSeparationCreated}
-                        />
-                    )
+                    component: InitiateSeparationForm
                 }
             ]
             : []),
@@ -100,13 +115,18 @@ const EmployeeSeparationModule = () => {
         ...(seperationDetails.includes(loginUserRole)
             ? [
                 {
+                    label: 'Exit Questions',
+                    icon: <QuestionAnswerIcon sx={{ color: '#8b5cf6' }} />,
+                    component: ExitQuestions
+                }
+            ]
+            : []),
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
                     label: 'Exit Interview',
                     icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
-                    component: () => (
-                        <ExitInterviewManagement
-                            onSeparationCreated={handleSeparationCreated}
-                        />
-                    )
+                    component: ExitInterviewManagement
                 }
             ]
             : []),
@@ -116,9 +136,7 @@ const EmployeeSeparationModule = () => {
                 {
                     label: 'Experience Letter',
                     icon: <ExperienceLetterIcon sx={{ color: '#14b8a6' }} />,
-                    component: () => (
-                        <ExperienceLetter seperationDetails={seperationDetails} />
-                    )
+                    component: ExperienceLetter
                 }
             ]
             : []),
@@ -128,9 +146,7 @@ const EmployeeSeparationModule = () => {
                 {
                     label: 'Relieving Letter',
                     icon: <RelievingLetterIcon sx={{ color: '#6366f1' }} />,
-                    component: () => (
-                        <RelievingLetter seperationDetails={seperationDetails} />
-                    )
+                    component: RelievingLetter
                 }
             ]
             : []),
@@ -223,7 +239,9 @@ const EmployeeSeparationModule = () => {
                     const TabComponent = tab.component;
                     return (
                         <TabPanel key={index} value={currentTab} index={index}>
-                            {TabComponent ? <TabComponent /> : null}
+                            {TabComponent ? (
+                                <TabComponent onSeparationCreated={handleSeparationCreated} />
+                            ) : null}
                         </TabPanel>
                     );
                 })}
