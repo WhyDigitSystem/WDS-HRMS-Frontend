@@ -124,6 +124,11 @@ const AllCasesSeparation = () => {
     }, [orgId]);
 
     useEffect(() => {
+        // console.log("🔄 Refresh triggered from parent");
+        getAllSeparations();
+    }, []);
+
+    useEffect(() => {
         if (seperationDetails.length > 0) {
             if (!isSeparationRole) {
                 setFormData({

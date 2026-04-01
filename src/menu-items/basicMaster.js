@@ -12,7 +12,19 @@ import {
   IconSun,
   IconListDetails,
   IconBeach,
-  IconMessageQuestion
+  IconMessageQuestion,
+  IconBriefcase,
+  IconClock,
+  IconCalendar,
+  IconFileText,
+  IconClockHour4,
+  IconUserStar,
+  IconChartBar,
+  IconCalendarEvent,
+  IconScale,
+  IconAward,
+  IconTarget,
+  IconTrophy
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -77,35 +89,35 @@ const basicMasterChildren = [
     title: 'Project',
     type: 'item',
     url: '/basicMaster/ProjectMaster',
-    icon: IconIdBadge2
+    icon: IconBriefcase
   },
   hasScreenAccess('SM') && {
     id: 'shiftMaster',
     title: 'Shift',
     type: 'item',
     url: '/basicMaster/ShiftMaster',
-    icon: IconIdBadge2
+    icon: IconClock
   },
   hasScreenAccess('SA') && {
     id: 'shiftAssign',
     title: 'Shift Assign',
     type: 'item',
     url: '/basicMaster/ShiftAssign',
-    icon: IconIdBadge2
+    icon: IconCalendar
   },
   hasScreenAccess('CM') && {
     id: 'contractMaster',
     title: 'Contract',
     type: 'item',
     url: '/basicMaster/ContractMaster',
-    icon: IconIdBadge2
+    icon: IconFileText
   },
   hasScreenAccess('OTM') && {
     id: 'overTimeMaster',
     title: 'OT',
     type: 'item',
     url: '/basicMaster/OT',
-    icon: IconIdBadge2
+    icon: IconClockHour4
   },
   hasScreenAccess('LT') && {
     id: 'leaveType',
@@ -114,20 +126,6 @@ const basicMasterChildren = [
     url: '/leaveMaster/LeaveTypes',
     icon: IconBeach
   },
-  // hasScreenAccess('OT') && {
-  //   id: 'overTime',
-  //   title: 'OverTime Approval',
-  //   type: 'item',
-  //   url: '/basicMaster/OverTime',
-  //   icon: IconIdBadge2
-  // },
-  // hasScreenAccess('OT') && {
-  //   id: 'OverTimeApproval',
-  //   title: 'OverTime Approval Report',
-  //   type: 'item',
-  //   url: '/basicMaster/OverTimeApproval',
-  //   icon: IconIdBadge2
-  // },
   hasScreenAccess('GR') && {
     id: 'groupMaster',
     title: 'Group Master',
@@ -156,23 +154,72 @@ const basicMasterChildren = [
     url: '/basicMaster/exitInterview',
     icon: IconMessageQuestion
   },
+  hasScreenAccess('DEPHEAD') && {
+    id: 'departmentHead',
+    title: 'Department Head',
+    type: 'item',
+    url: '/basicMaster/departmentHead',
+    icon: IconUserStar
+  },
+  hasScreenAccess('KPI') && {
+    id: 'KRAKPI',
+    title: 'KRAKPI',
+    type: 'item',
+    url: '/basicMaster/KRAKPI',
+    icon: IconChartBar
+  },
+  hasScreenAccess('APP') && {
+    id: 'appraisalPeriod',
+    title: 'Appraisal Period',
+    type: 'item',
+    url: '/basicMaster/AppraisalPeroid',
+    icon: IconCalendarEvent
+  },
+  hasScreenAccess('WEI') && {
+    id: 'weightage',
+    title: 'Weightage',
+    type: 'item',
+    url: '/basicMaster/Weightage',
+    icon: IconScale
+  },
+  hasScreenAccess('GRADE') && {
+    id: 'grade',
+    title: 'Grade',
+    type: 'item',
+    url: '/basicMaster/Grade',
+    icon: IconAward
+  },
+  hasScreenAccess('GOALS') && {
+    id: 'goals',
+    title: 'Goals',
+    type: 'item',
+    url: '/basicMaster/Goals',
+    icon: IconTarget
+  },
+  hasScreenAccess('SCORE') && {
+    id: 'score',
+    title: 'Score',
+    type: 'item',
+    url: '/basicMaster/Score',
+    icon: IconTrophy
+  }
 ].filter(Boolean);
 
 const basicMaster =
   basicMasterChildren.length > 0
     ? {
-      id: 'basicMaster',
-      type: 'group',
-      children: [
-        {
-          id: 'basicMasterCollapse',
-          title: 'Basic Master',
-          type: 'collapse',
-          icon: IconDatabaseStar,
-          children: basicMasterChildren
-        }
-      ]
-    }
+        id: 'basicMaster',
+        type: 'group',
+        children: [
+          {
+            id: 'basicMasterCollapse',
+            title: 'Basic Master',
+            type: 'collapse',
+            icon: IconDatabaseStar,
+            children: basicMasterChildren
+          }
+        ]
+      }
     : null;
 
 export default basicMaster;

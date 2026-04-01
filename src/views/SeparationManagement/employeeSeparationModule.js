@@ -29,6 +29,8 @@ import ExperienceLetter from './SeparationTabs/ExperienceLetter';
 import RelievingLetter from './SeparationTabs/RelievingLetter';
 import apiCalls from 'apicall';
 import ExitQuestions from './SeparationTabs/ExitQuestions';
+import UserInterview from './SeparationTabs/UserInterview';
+import HrClearance from './SeparationTabs/HrClearance';
 
 const TabPanel = ({ children, value, index }) => (
     <div hidden={value !== index}>
@@ -42,9 +44,13 @@ const EmployeeSeparationModule = () => {
     const [currentTab, setCurrentTab] = useState(0);
     const [refreshStats, setRefreshStats] = useState(0);
     const [seperationDetails, setSeperationDetails] = useState([]);
+    const [hasClearanceAccess, setHasClearanceAccess] = useState(false);
 
     const [orgId] = useState(localStorage.getItem('orgId'));
     const loginUserRole = localStorage.getItem('designation');
+    const department = localStorage.getItem('department');
+    const branchCode = localStorage.getItem('branchCode');
+    const employeeCode = localStorage.getItem('employeeCode');
 
     useEffect(() => {
         getCompanyDetails();
@@ -60,6 +66,38 @@ const EmployeeSeparationModule = () => {
         }
         funcRef.current = handleSeparationCreated;
     });
+
+    useEffect(() => {
+        getAllExitQuestions();
+    }, []);
+
+    const getAllExitQuestions = async () => {
+        try {
+            const result = await apiCalls(
+                'get',
+                `/employeseparation/getDepartmentHeadByOrgId?orgId=${orgId}&branchCode=${branchCode}`
+            );
+
+            if (result) {
+                const deptHeads = result.paramObjectsMap.departmentHeadVO || [];
+
+                // Extract all employeeCodes from API
+                const apiEmployeeCodes = deptHeads.flatMap(dh =>
+                    dh.reportingHeadVO?.map(rh => rh.employeeCode) || []
+                );
+
+                // Check if logged-in user exists
+                const isAllowed = apiEmployeeCodes.includes(employeeCode);
+
+                setHasClearanceAccess(isAllowed);
+
+                // Optional: your existing data set
+                // setData(deptHeads.reverse());
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
 
     const getCompanyDetails = async () => {
         try {
@@ -107,11 +145,29 @@ const EmployeeSeparationModule = () => {
             icon: <AllCasesIcon sx={{ color: '#3b82f6' }} />,
             component: AllCasesSeparation
         },
-        {
-            label: 'Clearance',
-            icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
-            component: ClearanceManagement
-        },
+        // {
+        //     label: 'Clearance',
+        //     icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
+        //     component: ClearanceManagement
+        // },
+        ...(hasClearanceAccess
+            ? [
+                {
+                    label: 'Clearance',
+                    icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
+                    component: ClearanceManagement
+                }
+            ]
+            : []),
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
+                    label: 'Clearance Details',
+                    icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
+                    component: HrClearance
+                }
+            ]
+            : []),
         ...(seperationDetails.includes(loginUserRole)
             ? [
                 {
@@ -121,10 +177,19 @@ const EmployeeSeparationModule = () => {
                 }
             ]
             : []),
-        ...(seperationDetails.includes(loginUserRole)
+        ...(!seperationDetails.includes(loginUserRole)
             ? [
                 {
                     label: 'Exit Interview',
+                    icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
+                    component: UserInterview
+                }
+            ]
+            : []),
+        ...(seperationDetails.includes(loginUserRole)
+            ? [
+                {
+                    label: 'Interview Feedback',
                     icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
                     component: ExitInterviewManagement
                 }
@@ -154,15 +219,20 @@ const EmployeeSeparationModule = () => {
 
     return (
         <Container
-            maxWidth={false} // allows full-width layout
-            disableGutters // removes default left/right padding
+            maxWidth={false}
+            disableGutters
             sx={{
-                py: 2, // small vertical padding
-                px: 1, // minimal horizontal padding
+                py: 2,
+                px: 1,
             }}
         >
             {/* Stats Cards */}
-            <StatsCards refreshTrigger={refreshStats} />
+            {
+                !seperationDetails.includes(loginUserRole) ?
+                    null :
+                    <StatsCards refreshTrigger={refreshStats} />
+            }
+            {/* <StatsCards refreshTrigger={refreshStats} /> */}
 
             {/* Main Tabs Section */}
             <Paper
@@ -239,7 +309,7 @@ const EmployeeSeparationModule = () => {
                     const TabComponent = tab.component;
                     return (
                         <TabPanel key={index} value={currentTab} index={index}>
-                            {TabComponent ? (
+                            {currentTab === index && TabComponent ? (
                                 <TabComponent onSeparationCreated={handleSeparationCreated} />
                             ) : null}
                         </TabPanel>

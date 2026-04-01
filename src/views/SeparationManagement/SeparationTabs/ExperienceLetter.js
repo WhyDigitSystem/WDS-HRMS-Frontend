@@ -6,21 +6,23 @@ import {
     Stack,
     Button,
     Autocomplete,
-    TextField
+    TextField,
+    CircularProgress,
+    Alert
 } from '@mui/material';
 import {
     Download as DownloadIcon,
     Print as PrintIcon,
     LocationOn as LocationIcon,
     CalendarToday as CalendarIcon,
-    Business as BusinessIcon
+    Business as BusinessIcon,
+    Email as EmailIcon
 } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import apiCalls from 'apicall';
-import EmailIcon from '@mui/icons-material/Email';
 
-const ExperienceLetter = ({ seperationDetails = [] }) => {
+const ExperienceLetter = () => {
     const [companyDetails, setCompanyDetails] = useState(null);
     const [companyLogo, setCompanyLogo] = useState(null);
     const [experienceData, setExperienceData] = useState(null);
@@ -29,43 +31,54 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
     const [employees, setEmployees] = useState([]);
     const [gmDetails, setGMDetails] = useState(null);
     const [orgId] = useState(localStorage.getItem('orgId'));
+    const [branchCode] = useState(localStorage.getItem('branchCode'));
     const letterRef = useRef();
     const [isDownloading, setIsDownloading] = useState(false);
-    const branchCode = localStorage.getItem('branchCode');
-    const loginUserDesignation = localStorage.getItem('designation');
     const loginUserRole = localStorage.getItem('designation');
     const loginEmployeeCode = localStorage.getItem('employeeCode');
 
     useEffect(() => {
         getCompanyDetails();
         getGMDetails();
-
-        if (seperationDetails.includes(loginUserRole)) {
-            fetchEmployees(); // HR
-        } else {
-            getAllSeparations(loginEmployeeCode);
-        }
+        fetchEmployees();
     }, []);
 
     const fetchEmployees = async () => {
         try {
-            const apiUrl = `employeseparation/getInitiateSeparationByDepartment?branchCode=${branchCode}&empCode=ALL&department=ALL&orgId=${orgId}&type=ALL`;
+            setLoading(true);
+            const apiUrl = `/employeseparation/getInitiateSeparationByDepartment?branchCode=${branchCode}&empCode=ALL&department=ALL&orgId=${orgId}&type=ALL`;
 
             const response = await apiCalls('get', apiUrl);
 
-            if (response.status === true) {
-                const list = response.paramObjectsMap.initiateSeparationVO
-                    .filter(emp => emp.status === "APPROVED")
-                    .map((emp) => ({
-                        employeeCode: emp.employeeCode,
-                        employeeName: emp.employeeName,
-                        name: `${emp.employeeName} (${emp.employeeCode})`
-                    }));
+            if (response.status === true && response.paramObjectsMap?.initiateSeparationVO) {
+
+                // ✅ FILTER ONLY APPROVED
+                const approvedEmployees = response.paramObjectsMap.initiateSeparationVO
+                    .filter(emp => emp.status === "APPROVED");
+
+                const list = approvedEmployees.map((emp) => ({
+                    id: emp.id,
+                    employeeCode: emp.employeeCode,
+                    employeeName: emp.employeeName,
+                    name: `${emp.employeeName} (${emp.employeeCode})`,
+                    position: emp.position,
+                    joiningDate: emp.joiningDate,
+                    lastWorkingDate: emp.lastWorkingDate,
+                    employeeEmail: emp.employeeEmail,
+                    department: emp.department,
+                    separationType: emp.separationType,
+                    originalData: emp
+                }));
 
                 setEmployees(list);
+            } else {
+                setEmployees([]);
             }
         } catch (error) {
             console.error("Error fetching employees", error);
+            setEmployees([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -91,7 +104,7 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
             const response = await apiCalls('get', `employeseparation/getGeneralManagerByOrgId?orgId=${orgId}`);
 
             if (response.status === true) {
-                const gm = response.paramObjectsMap.employeeVO?.[0]; // get first GM
+                const gm = response.paramObjectsMap.employeeVO?.[0];
                 setGMDetails(gm);
             }
         } catch (error) {
@@ -113,42 +126,27 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
 
             if (response.status === true) {
                 alert("Experience letter sent successfully!");
+                return true;
             }
-
+            return false;
         } catch (error) {
             console.error("Error sending email:", error);
             alert("Failed to send email.");
+            return false;
         }
     };
 
-    const getAllSeparations = async (empCode) => {
-        if (!orgId || !branchCode) return;
-
-        try {
-            setLoading(true);
-
-            const apiUrl = `employeseparation/getInitiateSeparationByDepartment?branchCode=${branchCode}&empCode=${empCode}&department=ALL&orgId=${orgId}&type=ALL`;
-
-            const response = await apiCalls('get', apiUrl);
-
-            if (response.status === true) {
-                const data = response.paramObjectsMap.initiateSeparationVO?.[0];
-
-                if (data && data.status === "APPROVED") {
-                    setExperienceData(data);
-                } else {
-                    setExperienceData(null);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching separation:', error);
-        } finally {
-            setLoading(false);
+    const handleEmployeeSelect = (event, newValue) => {
+        setSelectedEmployee(newValue);
+        if (newValue) {
+            setExperienceData(newValue);
+        } else {
+            setExperienceData(null);
         }
     };
 
     const formatDate = (date) => {
-        if (!date) return '';
+        if (!date) return 'N/A';
         return new Date(date).toLocaleDateString('en-GB', {
             day: '2-digit',
             month: 'long',
@@ -156,51 +154,70 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
         });
     };
 
-    const handleMail = async () => {
-        try {
-            setIsDownloading(true);
-            const input = letterRef.current;
+    const generatePDFBlob = async () => {
+        const input = letterRef.current;
 
-            // Apply PDF-specific styles before capture
-            input.style.width = '900px';
-            input.style.padding = '40px';
-            input.style.backgroundColor = '#ffffff';
+        // Store original styles
+        const originalWidth = input.style.width;
+        const originalPadding = input.style.padding;
+        const originalBackground = input.style.backgroundColor;
 
-            const canvas = await html2canvas(input, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                allowTaint: false,
-                useCORS: true,
-                windowWidth: 900,
-                windowHeight: input.scrollHeight
-            });
+        // Apply PDF-specific styles before capture
+        input.style.width = '900px';
+        input.style.padding = '40px';
+        input.style.backgroundColor = '#ffffff';
 
-            const imgData = canvas.toDataURL('image/png');
+        const canvas = await html2canvas(input, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            logging: false,
+            allowTaint: false,
+            useCORS: true,
+            windowWidth: 900,
+            windowHeight: input.scrollHeight
+        });
 
-            const imgWidth = 210;
-            const pageHeight = 297;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imgData = canvas.toDataURL('image/png');
 
-            const pdf = new jsPDF({
-                orientation: imgHeight > pageHeight ? 'portrait' : 'portrait',
-                unit: 'mm',
-            });
+        const imgWidth = 210;
+        const pageHeight = 297;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            let heightLeft = imgHeight;
-            let position = 0;
+        const pdf = new jsPDF({
+            orientation: imgHeight > pageHeight ? 'portrait' : 'portrait',
+            unit: 'mm',
+        });
 
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft > 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
+        }
 
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
+        // Restore original styles
+        input.style.width = originalWidth;
+        input.style.padding = originalPadding;
+        input.style.backgroundColor = originalBackground;
 
-            // Convert PDF → File
+        return pdf;
+    };
+
+    const handleMail = async () => {
+        if (!experienceData) {
+            alert('Please select an employee first');
+            return;
+        }
+
+        try {
+            setIsDownloading(true);
+            const pdf = await generatePDFBlob();
             const pdfBlob = pdf.output('blob');
 
             const pdfFile = new File(
@@ -209,13 +226,7 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                 { type: "application/pdf" }
             );
 
-            // Call API function
             await sendExperienceLetterApi(pdfFile);
-
-            // Reset styles
-            input.style.width = '';
-            input.style.padding = '';
-
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('Failed to send email.');
@@ -225,58 +236,15 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
     };
 
     const handleDownload = async () => {
+        if (!experienceData) {
+            alert('Please select an employee first');
+            return;
+        }
+
         try {
             setIsDownloading(true);
-            const input = letterRef.current;
-
-            // Apply PDF-specific styles before capture
-            input.style.width = '900px';
-            input.style.padding = '40px';
-            input.style.backgroundColor = '#ffffff';
-
-            const canvas = await html2canvas(input, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                allowTaint: false,
-                useCORS: true,
-                windowWidth: 900,
-                windowHeight: input.scrollHeight
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-
-            // Calculate PDF dimensions to maintain aspect ratio
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            const pdf = new jsPDF({
-                orientation: imgHeight > pageHeight ? 'portrait' : 'portrait',
-                unit: 'mm',
-            });
-
-            let heightLeft = imgHeight;
-            let position = 0;
-
-            // Add first page
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-
-            // Add additional pages if content overflows
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-
-            pdf.save(`Experience_Letter_${companyDetails.employeeName.replace(/\s+/g, '_')}.pdf`);
-
-            // Reset styles
-            input.style.width = '';
-            input.style.padding = '';
-
+            const pdf = await generatePDFBlob();
+            pdf.save(`Experience_Letter_${experienceData.employeeName.replace(/\s+/g, '_')}.pdf`);
         } catch (error) {
             console.error('Error generating PDF:', error);
             alert('Failed to generate PDF. Please try again.');
@@ -286,6 +254,11 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
     };
 
     const handlePrint = () => {
+        if (!experienceData) {
+            alert('Please select an employee first');
+            return;
+        }
+
         const printContent = letterRef.current;
         const originalContents = document.body.innerHTML;
 
@@ -296,59 +269,91 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
     };
 
     return (
-        <>
-            {seperationDetails.includes(loginUserRole) && (
-                <Box sx={{ width: '100%', maxWidth: '300px', mb: 3 }}>
-                    <Autocomplete
-                        options={employees}
-                        getOptionLabel={(option) => option.name}
-                        value={selectedEmployee}
-                        onChange={(event, newValue) => {
-                            setSelectedEmployee(newValue);
+        <Box sx={{
+            p: { xs: 2, md: 3 },
+            backgroundColor: '#f0f4f8',
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+        }}>
+            <Box
+                sx={{
+                    width: "100%",
+                    maxWidth: "1100px",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start", // 👈 LEFT ALIGN
+                    mb: 2
+                }}
+            >
+                <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600, color: '#1f2937' }}>
+                    Select Employee
+                </Typography>
+                <Autocomplete
+                    options={employees}
+                    getOptionLabel={(option) => option.name}
+                    value={selectedEmployee}
+                    onChange={handleEmployeeSelect}
+                    loading={loading}
+                    sx={{
+                        width: 300, // 👈 reduce size (you can use 280 / 320 as needed)
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Search Employee *"
+                            placeholder="Type employee name or code..."
+                            size="small"
+                            InputProps={{
+                                ...params.InputProps,
+                                endAdornment: (
+                                    <>
+                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                )
+                            }}
+                        />
+                    )}
+                    fullWidth
+                />
+            </Box>
 
-                            if (newValue) {
-                                getAllSeparations(newValue.employeeCode);
-                            }
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Select Employee"
-                                placeholder="Search employee..."
-                                size="small"
-                            />
-                        )}
-                    />
-                </Box>
-            )}
-
-            {!experienceData && (
+            {/* No Employee Selected Message */}
+            {!experienceData && employees.length > 0 && (
                 <Box
                     sx={{
-                        mt: 4,
-                        p: 3,
-                        background: "#fff",
+                        width: '100%',
+                        maxWidth: '900px',
+                        p: 4,
+                        background: "#ffffff",
                         borderRadius: 2,
                         border: "1px dashed #cbd5e1",
                         textAlign: "center",
                         color: "#64748b"
                     }}
                 >
-                    Experience Letter will be available only after the separation request is <b>APPROVED</b>.
+                    <Typography variant="body1" sx={{ mb: 1 }}>
+                        👤 No Employee Selected
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Please select an employee from the dropdown above to generate the experience letter.
+                    </Typography>
                 </Box>
             )}
 
-            {experienceData && (
-                <Box sx={{
-                    p: { xs: 2, md: 3 },
-                    backgroundColor: '#f0f4f8',
-                    minHeight: '100vh',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center'
-                }}>
-                    {/* Action Buttons */}
+            {/* Loading State */}
+            {loading && !experienceData && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                </Box>
+            )}
 
+            {/* Experience Letter Content */}
+            {experienceData && (
+                <>
+                    {/* Action Buttons */}
                     <Stack
                         direction="row"
                         spacing={2}
@@ -359,29 +364,7 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                             maxWidth: '900px',
                         }}
                     >
-                        <Button
-                            variant="outlined"
-                            startIcon={<EmailIcon />}
-                            onClick={handleMail} // you can rename this to handleMail if needed
-                            sx={{
-                                borderColor: '#cbd5e1',
-                                color: '#1e293b',
-                                px: 3.5,
-                                py: 1,
-                                borderRadius: '8px',
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                fontSize: '0.95rem',
-                                backgroundColor: '#ffffff',
-                                '&:hover': {
-                                    borderColor: '#0f172a',
-                                    backgroundColor: '#f8fafc'
-                                }
-                            }}
-                        >
-                            Mail
-                        </Button>
-                        <Button
+                        {/* <Button
                             variant="outlined"
                             startIcon={<PrintIcon />}
                             onClick={handlePrint}
@@ -403,7 +386,7 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                             }}
                         >
                             Print
-                        </Button>
+                        </Button> */}
                         <Button
                             variant="contained"
                             startIcon={<DownloadIcon />}
@@ -431,6 +414,7 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                         </Button>
                     </Stack>
 
+                    {/* Experience Letter */}
                     <Paper
                         ref={letterRef}
                         elevation={0}
@@ -526,15 +510,6 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                             </Box>
                         </Box>
 
-                        {/* <Box sx={{ textAlign: 'right', mb: 4 }}>
-                            <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                                Certificate of Employment
-                            </Typography>
-                            <Typography sx={{ color: '#6b7280', fontSize: '0.9rem', mt: 0.5 }}>
-                                Ref: EXP-{new Date().getFullYear()}-{String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}
-                            </Typography>
-                        </Box> */}
-
                         {/* Employee Details Card */}
                         <Box sx={{
                             backgroundColor: '#f8fafc',
@@ -556,6 +531,14 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                                     <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.position}</Typography>
                                 </Box>
                                 <Box>
+                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Department</Typography>
+                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.department || 'N/A'}</Typography>
+                                </Box>
+                                <Box>
+                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Employee Code</Typography>
+                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.employeeCode}</Typography>
+                                </Box>
+                                <Box>
                                     <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Date of Joining</Typography>
                                     <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{formatDate(experienceData?.joiningDate)}</Typography>
                                 </Box>
@@ -569,7 +552,7 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                         {/* Letter Content */}
                         <Box sx={{ mb: 5 }}>
                             <Typography sx={{ mb: 3, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>
-                                This is to certify that <span style={{ fontWeight: 600 }}>{experienceData?.employeeName}</span> was employed with us from <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.joiningDate)}</span> to <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.lastWorkingDate)}</span> as a <span style={{ fontWeight: 600 }}>{experienceData?.position}</span>.
+                                This is to certify that <span style={{ fontWeight: 600 }}>{experienceData?.employeeName}</span> has worked with our organization as <span style={{ fontWeight: 600 }}>{experienceData?.position}</span> from <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.joiningDate)}</span> to <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.lastWorkingDate)}</span>.
                             </Typography>
 
                             <Typography sx={{ mb: 3, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>
@@ -589,7 +572,9 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                             mt: 6
                         }}>
                             <Box>
-                                <Typography sx={{ color: '#6b7280', fontSize: '0.9rem', mb: 1 }}>Place: {companyDetails?.city}</Typography>
+                                <Typography sx={{ color: '#6b7280', fontSize: '0.9rem', mb: 1 }}>
+                                    Place: {companyDetails?.city || companyDetails?.address?.split(',')[0] || 'N/A'}
+                                </Typography>
                                 <Typography sx={{ color: '#6b7280', fontSize: '0.9rem' }}>
                                     Date: {new Date().toLocaleDateString('en-GB', {
                                         day: '2-digit',
@@ -600,34 +585,20 @@ const ExperienceLetter = ({ seperationDetails = [] }) => {
                             </Box>
                             <Box sx={{ textAlign: 'end' }}>
                                 <Typography sx={{ fontWeight: 600, fontSize: '1.1rem', color: '#1f2937' }}>
-                                    {gmDetails?.employeeName}
+                                    {gmDetails?.employeeName || 'Authorized Signatory'}
                                 </Typography>
                                 <Typography sx={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                                    {gmDetails?.designation}
+                                    {gmDetails?.designation || 'General Manager'}
                                 </Typography>
                                 <Typography sx={{ color: '#64748b', fontSize: '0.75rem', mt: 0.5 }}>
                                     {companyDetails?.companyName}
                                 </Typography>
                             </Box>
                         </Box>
-
-                        {/* Footer */}
-                        <Box sx={{
-                            mt: 5,
-                            pt: 3,
-                            borderTop: '1px solid #e5e7eb',
-                            textAlign: 'center',
-                            fontSize: '0.85rem',
-                            color: '#9ca3af'
-                        }}>
-                            {/* <Typography sx={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-                                This is a system-generated document, no signature is required
-                            </Typography> */}
-                        </Box>
                     </Paper>
-                </Box>
+                </>
             )}
-        </>
+        </Box>
     );
 };
 

@@ -16,10 +16,10 @@ import {
     Stack,
     Grid,
     Divider,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-    TextField
+    TextField,
+    IconButton,
+    Tooltip,
+    AlertTitle
 } from '@mui/material';
 import {
     Person as PersonIcon,
@@ -27,7 +27,14 @@ import {
     BusinessCenter as BusinessIcon,
     QuestionAnswer as QuestionIcon,
     ExpandMore as ExpandMoreIcon,
-    Category as CategoryIcon
+    Category as CategoryIcon,
+    Refresh as RefreshIcon,
+    Edit as EditIcon,
+    Pending as PendingIcon,
+    Warning as WarningIcon,
+    CheckCircle as CheckCircleIcon,
+    Lock as LockIcon,
+    HourglassEmpty as HourglassIcon
 } from '@mui/icons-material';
 import apiCalls from 'apicall';
 
@@ -41,11 +48,14 @@ const ExitQuestions = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [questionsLoading, setQuestionsLoading] = useState(false);
+    const [statusLoading, setStatusLoading] = useState(false);
+    const [clearanceStatus, setClearanceStatus] = useState(null);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: 'success'
     });
+    const [existingQuestions, setExistingQuestions] = useState([]);
 
     const orgId = localStorage.getItem('orgId');
     const branchCode = localStorage.getItem('branchCode');
@@ -56,7 +66,6 @@ const ExitQuestions = () => {
         fetchEmployees();
     }, []);
 
-    // Fetch employees from API
     const fetchEmployees = async () => {
         setLoading(true);
         try {
@@ -72,7 +81,8 @@ const ExitQuestions = () => {
                     designation: emp.designation || emp.position,
                     separationType: emp.separationType,
                     name: `${emp.employeeName} (${emp.employeeCode})`,
-                    originalData: emp
+                    originalData: emp,
+                    exitQuestions: emp.exitInterviewVO || []
                 }));
                 setEmployees(employeeList);
             } else {
@@ -88,8 +98,32 @@ const ExitQuestions = () => {
         }
     };
 
-    // Fetch questions based on designation
-    const fetchQuestionsByDesignation = async (designation) => {
+    const fetchClearanceStatus = async (employeeCode) => {
+        setStatusLoading(true);
+        try {
+            const response = await apiCalls(
+                'get',
+                `/employeseparation/getStatusForClearance?branchCode=${branchCode}&employeeCode=${employeeCode}&orgId=${orgId}`
+            );
+
+            if (response.status === true && response.paramObjectsMap && response.paramObjectsMap.assetStatus) {
+                const statusData = response.paramObjectsMap.assetStatus[0];
+                setClearanceStatus(statusData);
+                return statusData;
+            } else {
+                setClearanceStatus(null);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching clearance status:', error);
+            setClearanceStatus(null);
+            return null;
+        } finally {
+            setStatusLoading(false);
+        }
+    };
+
+    const fetchQuestionsByDesignation = async (designation, employeeExitQuestions = []) => {
         setQuestionsLoading(true);
         try {
             const response = await apiCalls('get',
@@ -99,13 +133,11 @@ const ExitQuestions = () => {
             if (response.status === true && response.paramObjectsMap?.exitInterviewDepartmentVO) {
                 const questionsData = response.paramObjectsMap.exitInterviewDepartmentVO;
 
-                // Separate general questions and designation-specific questions
                 const general = [];
                 const designationSpecific = [];
 
                 questionsData.forEach(dept => {
                     if (dept.designation === "GENERAL") {
-                        // These are general questions that apply to everyone
                         if (dept.questionVO && dept.questionVO.length > 0) {
                             dept.questionVO.forEach(q => {
                                 general.push({
@@ -117,7 +149,6 @@ const ExitQuestions = () => {
                             });
                         }
                     } else if (dept.designation === designation) {
-                        // These are questions specific to the employee's designation
                         if (dept.questionVO && dept.questionVO.length > 0) {
                             dept.questionVO.forEach(q => {
                                 designationSpecific.push({
@@ -135,37 +166,64 @@ const ExitQuestions = () => {
                 setGeneralQuestions(general);
                 setDesignationSpecificQuestions(designationSpecific);
 
-                // Reset selected questions when new designation is selected
-                setSelectedQuestions([]);
+                if (employeeExitQuestions && employeeExitQuestions.length > 0) {
+                    const allQuestions = [...general, ...designationSpecific];
+
+                    const existingSelected = allQuestions.filter(q =>
+                        employeeExitQuestions.some(eq =>
+                            eq.questions?.trim().toLowerCase() === q.question?.trim().toLowerCase()
+                        )
+                    );
+
+                    setSelectedQuestions(existingSelected);
+                    setExistingQuestions(existingSelected);
+                } else {
+                    setSelectedQuestions([]);
+                    setExistingQuestions([]);
+                }
             } else {
                 setGeneralQuestions([]);
                 setDesignationSpecificQuestions([]);
                 setSelectedQuestions([]);
+                setExistingQuestions([]);
             }
         } catch (error) {
             console.error('Error fetching questions:', error);
             setGeneralQuestions([]);
             setDesignationSpecificQuestions([]);
+            setSelectedQuestions([]);
             showSnackbar('Error fetching questions for designation', 'error');
         } finally {
             setQuestionsLoading(false);
         }
     };
 
-    const handleEmployeeSelect = useCallback((event, newValue) => {
+    const handleEmployeeSelect = useCallback(async (event, newValue) => {
         setSelectedEmployee(newValue);
 
         if (newValue) {
             const employeeDesignation = newValue.designation || newValue.position;
             setSelectedDesignation(employeeDesignation);
-            fetchQuestionsByDesignation(employeeDesignation);
+
+            const status = await fetchClearanceStatus(newValue.employeeCode);
+
+            if (status && status.qty === 0) {
+                await fetchQuestionsByDesignation(employeeDesignation, newValue.exitQuestions || []);
+            } else {
+                setGeneralQuestions([]);
+                setDesignationSpecificQuestions([]);
+                setSelectedQuestions([]);
+                setExistingQuestions([]);
+            }
         } else {
             setSelectedDesignation('');
             setGeneralQuestions([]);
             setDesignationSpecificQuestions([]);
             setSelectedQuestions([]);
+            setExistingQuestions([]);
+            setClearanceStatus(null);
         }
-    }, [fetchQuestionsByDesignation]);
+    }, [fetchQuestionsByDesignation, fetchClearanceStatus]);
 
     const handleQuestionToggle = useCallback((question) => {
         setSelectedQuestions(prev => {
@@ -184,6 +242,11 @@ const ExitQuestions = () => {
             return;
         }
 
+        if (clearanceStatus && clearanceStatus.qty > 0) {
+            showSnackbar('Cannot save exit interview while clearance is pending. Please complete all clearance items first.', 'warning');
+            return;
+        }
+
         if (selectedQuestions.length === 0) {
             showSnackbar('Please select at least one exit interview question', 'error');
             return;
@@ -191,6 +254,16 @@ const ExitQuestions = () => {
 
         setSaving(true);
         try {
+            const hasChanges = selectedQuestions.length !== existingQuestions.length ||
+                selectedQuestions.some(q => !existingQuestions.find(eq => eq.id === q.id)) ||
+                existingQuestions.some(eq => !selectedQuestions.find(q => q.id === eq.id));
+
+            if (!hasChanges) {
+                showSnackbar('No changes to save', 'info');
+                setSaving(false);
+                return;
+            }
+
             const payload = {
                 id: selectedEmployee.id,
                 branch: branch || '',
@@ -212,10 +285,10 @@ const ExitQuestions = () => {
                 resignation: selectedEmployee.originalData?.resignation || '',
                 separationType: selectedEmployee.separationType,
                 updatedBy: loginUserName,
-                status: 'PENDING',
-                exitInterviewQuestions: selectedQuestions.map(q => ({
+                status: selectedEmployee.originalData?.status || 'PENDING',
+                exitInterviewDTO: selectedQuestions.map(q => ({
                     id: q.id,
-                    question: q.question,
+                    questions: q.question,
                     answer: '',
                     type: q.type
                 }))
@@ -226,17 +299,17 @@ const ExitQuestions = () => {
             const response = await apiCalls('put', '/employeseparation/createUpdateInitiateSeparation', payload);
 
             if (response.status === true) {
-                showSnackbar('Exit interview questions saved successfully!', 'success');
-                // Reset form after successful submission
-                setSelectedEmployee(null);
-                setSelectedDesignation('');
-                setGeneralQuestions([]);
-                setDesignationSpecificQuestions([]);
-                setSelectedQuestions([]);
-                // Refresh employee data
+                showSnackbar('Exit interview questions updated successfully!', 'success');
+                setExistingQuestions([...selectedQuestions]);
                 fetchEmployees();
+                if (selectedEmployee) {
+                    const updatedEmployee = employees.find(emp => emp.id === selectedEmployee.id);
+                    if (updatedEmployee) {
+                        setSelectedEmployee(updatedEmployee);
+                    }
+                }
             } else {
-                showSnackbar(response.message || 'Failed to save exit interview', 'error');
+                showSnackbar(response.message || 'Failed to update exit interview', 'error');
             }
         } catch (error) {
             console.error('Error saving exit interview:', error);
@@ -244,7 +317,20 @@ const ExitQuestions = () => {
         } finally {
             setSaving(false);
         }
-    }, [selectedEmployee, selectedQuestions, selectedDesignation]);
+    }, [selectedEmployee, selectedQuestions, selectedDesignation, existingQuestions, clearanceStatus]);
+
+    const handleRefresh = useCallback(() => {
+        if (selectedEmployee) {
+            const employeeDesignation = selectedEmployee.designation || selectedEmployee.position;
+            fetchClearanceStatus(selectedEmployee.employeeCode).then(status => {
+                if (status && status.qty === 0) {
+                    fetchQuestionsByDesignation(employeeDesignation, selectedEmployee.exitQuestions || []);
+                } else {
+                    showSnackbar('Clearance is still pending. Cannot refresh questions.', 'warning');
+                }
+            });
+        }
+    }, [selectedEmployee, fetchQuestionsByDesignation, fetchClearanceStatus]);
 
     const showSnackbar = (message, severity = 'success') => {
         setSnackbar({
@@ -258,7 +344,6 @@ const ExitQuestions = () => {
         setSnackbar((prev) => ({ ...prev, open: false }));
     };
 
-    // Calculate total questions
     const totalQuestions = generalQuestions.length + designationSpecificQuestions.length;
     const selectedCount = selectedQuestions.length;
 
@@ -266,18 +351,26 @@ const ExitQuestions = () => {
         return new Set(selectedQuestions.map(q => q.id));
     }, [selectedQuestions]);
 
+    const hasUnsavedChanges = useMemo(() => {
+        if (!selectedEmployee) return false;
+        return selectedQuestions.length !== existingQuestions.length ||
+            selectedQuestions.some(q => !existingQuestions.find(eq => eq.id === q.id)) ||
+            existingQuestions.some(eq => !selectedQuestions.find(q => q.id === eq.id));
+    }, [selectedQuestions, existingQuestions, selectedEmployee]);
+
+    const isClearanceCompleted = clearanceStatus && clearanceStatus.qty === 0;
+    const pendingCount = clearanceStatus ? clearanceStatus.qty : 0;
+
     return (
         <Box sx={{ p: 0, maxWidth: 1200, margin: '0 auto' }}>
-            {/* Main Card */}
             <Card sx={{ backgroundColor: '#ffffff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                 <CardContent sx={{ p: 3 }}>
                     <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#1f2937' }}>
-                        Exit Interview Questions
+                        Exit Interview Questions Management
                     </Typography>
 
-                    {/* Employee and Designation Selection */}
                     <Grid container spacing={2} sx={{ mb: 4 }}>
-                        <Grid item xs={12} md={4}>
+                        <Grid item xs={12} md={5}>
                             <Autocomplete
                                 options={employees}
                                 getOptionLabel={(option) => option.name}
@@ -318,10 +411,167 @@ const ExitQuestions = () => {
                                 }}
                             />
                         </Grid>
+
+                        {selectedEmployee && (
+                            <Grid item xs={12} md={3}>
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', height: '100%' }}>
+                                    {statusLoading ? (
+                                        <CircularProgress size={24} />
+                                    ) : (
+                                        <>
+                                            {isClearanceCompleted ? (
+                                                <Chip
+                                                    icon={<CheckCircleIcon />}
+                                                    label="Clearance Completed"
+                                                    color="success"
+                                                    size="small"
+                                                />
+                                            ) : (
+                                                <Chip
+                                                    icon={<PendingIcon />}
+                                                    label={`Pending Clearance (${pendingCount} items)`}
+                                                    color="warning"
+                                                    size="small"
+                                                />
+                                            )}
+                                            {isClearanceCompleted && (
+                                                <Chip
+                                                    label={selectedEmployee.exitQuestions?.length > 0 ? `${selectedEmployee.exitQuestions.length} Questions Assigned` : 'No Questions Assigned'}
+                                                    color={selectedEmployee.exitQuestions?.length > 0 ? "success" : "default"}
+                                                    size="small"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                            {isClearanceCompleted && (
+                                                <Tooltip title="Refresh Questions">
+                                                    <IconButton onClick={handleRefresh} size="small">
+                                                        <RefreshIcon fontSize="small" />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            )}
+                                        </>
+                                    )}
+                                </Box>
+                            </Grid>
+                        )}
                     </Grid>
 
-                    {/* Questions Section */}
-                    {selectedEmployee && (
+                    {/* Enhanced Warning Message with Better Styling */}
+                    {selectedEmployee && !statusLoading && clearanceStatus && clearanceStatus.qty > 0 && (
+                        <Box sx={{ mb: 3, ml: 3, mr: 3 }}>
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    borderRadius: 3,
+                                    p: 2.5,
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: 2,
+                                    background: 'linear-gradient(135deg, #fff8f0 0%, #fff3e6 100%)',
+                                    border: '1px solid #f0d9c2',
+                                    boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
+                                    transition: 'all 0.25s ease',
+                                    '&:hover': {
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                                    }
+                                }}
+                            >
+                                {/* Icon */}
+                                <Box
+                                    sx={{
+                                        width: 44,
+                                        height: 44,
+                                        borderRadius: 2,
+                                        background: 'linear-gradient(135deg, #f4a261, #e76f51)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        boxShadow: '0 4px 10px rgba(231,111,81,0.3)'
+                                    }}
+                                >
+                                    <PendingIcon sx={{ color: '#fff', fontSize: 22 }} />
+                                </Box>
+
+                                {/* Content */}
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography
+                                        sx={{
+                                            fontSize: '12px',
+                                            fontWeight: 700,
+                                            color: '#d97706',
+                                            letterSpacing: 0.5,
+                                            mb: 0.5
+                                        }}
+                                    >
+                                        ACTION REQUIRED
+                                    </Typography>
+
+                                    <Typography
+                                        sx={{
+                                            fontWeight: 600,
+                                            fontSize: '1rem',
+                                            color: '#3b2f2f',
+                                            mb: 1
+                                        }}
+                                    >
+                                        Clearance pending for {selectedEmployee?.employeeName}
+                                    </Typography>
+
+                                    <Typography
+                                        sx={{
+                                            fontSize: '0.85rem',
+                                            color: '#6b4f3a',
+                                            lineHeight: 1.6,
+                                            mb: 2
+                                        }}
+                                    >
+                                        Exit interview form is locked until all clearance items are completed.
+                                        Please finish the pending tasks to proceed.
+                                    </Typography>
+
+                                    {/* Status Row */}
+                                    <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                                        {/* Pending Badge */}
+                                        <Box
+                                            sx={{
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderRadius: 5,
+                                                backgroundColor: '#fde8d7',
+                                                color: '#b45309',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            {pendingCount} Pending Item{pendingCount > 1 ? 's' : ''}
+                                        </Box>
+
+                                        {/* Locked Badge */}
+                                        <Box
+                                            sx={{
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderRadius: 5,
+                                                backgroundColor: '#ffe4e6',
+                                                color: '#be123c',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 0.5
+                                            }}
+                                        >
+                                            <LockIcon sx={{ fontSize: 14 }} />
+                                            Form Locked
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </Paper>
+                        </Box>
+                    )}
+
+                    {selectedEmployee && isClearanceCompleted && (
                         <>
                             <Divider sx={{ my: 3 }} />
 
@@ -348,6 +598,14 @@ const ExitQuestions = () => {
                                                 color="primary"
                                             />
                                         )}
+                                        {hasUnsavedChanges && (
+                                            <Chip
+                                                label="Unsaved Changes"
+                                                size="small"
+                                                color="warning"
+                                                icon={<EditIcon />}
+                                            />
+                                        )}
                                     </Box>
                                 </Box>
 
@@ -358,7 +616,6 @@ const ExitQuestions = () => {
                                 ) : totalQuestions > 0 ? (
                                     <Paper variant="outlined" sx={{ p: 2, maxHeight: 550, overflowY: 'auto' }}>
                                         <Stack spacing={2}>
-                                            {/* General Questions Section */}
                                             {generalQuestions.length > 0 && (
                                                 <Box>
                                                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
@@ -411,7 +668,6 @@ const ExitQuestions = () => {
                                                 </Box>
                                             )}
 
-                                            {/* Designation Specific Questions Section */}
                                             {designationSpecificQuestions.length > 0 && (
                                                 <Box>
                                                     <Divider sx={{ my: 1 }} />
@@ -481,14 +737,13 @@ const ExitQuestions = () => {
                         </>
                     )}
 
-                    {/* Save Button */}
-                    {selectedEmployee && (
+                    {selectedEmployee && isClearanceCompleted && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, pt: 2, borderTop: '1px solid #e0e0e0' }}>
                             <Button
                                 variant="contained"
                                 size="medium"
                                 onClick={handleSubmit}
-                                disabled={!selectedEmployee || selectedQuestions.length === 0 || saving}
+                                disabled={!selectedEmployee || selectedQuestions.length === 0 || saving || !hasUnsavedChanges}
                                 startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
                                 sx={{
                                     background: 'linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)',
@@ -508,12 +763,11 @@ const ExitQuestions = () => {
                                     }
                                 }}
                             >
-                                {saving ? 'Saving...' : 'Save Questions'}
+                                {saving ? 'Saving...' : hasUnsavedChanges ? 'Save Changes' : 'No Changes'}
                             </Button>
                         </Box>
                     )}
 
-                    {/* No Employee Selected Message */}
                     {!selectedEmployee && !loading && (
                         <Paper sx={{ p: 6, textAlign: 'center', backgroundColor: '#fafafa', mt: 2 }}>
                             <PersonIcon sx={{ fontSize: 64, color: '#9e9e9e', mb: 2 }} />
@@ -526,7 +780,6 @@ const ExitQuestions = () => {
                         </Paper>
                     )}
 
-                    {/* Loading State */}
                     {loading && !selectedEmployee && (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                             <CircularProgress />
@@ -535,7 +788,6 @@ const ExitQuestions = () => {
                 </CardContent>
             </Card>
 
-            {/* Snackbar for notifications */}
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={6000}

@@ -39,12 +39,13 @@ const OverTime = Loadable(lazy(() => import('views/basicMaster/OverTimeScreen.js
 const OTApproval = Loadable(lazy(() => import('views/basicMaster/OTApproval')));
 const GroupMaster = Loadable(lazy(() => import('views/basicMaster/groupMaster')));
 const ExitInterview = Loadable(lazy(() => import('views/basicMaster/exitInterview')));
-// const AppraisalPeroid = Loadable(lazy(() => import('views/basicMaster/AppraisalPeroid')));
-// const KRAKPI = Loadable(lazy(() => import('views/basicMaster/KRAKPI')));
-// const Weightage = Loadable(lazy(() => import('views/basicMaster/Weightage')));
-// const Grade = Loadable(lazy(() => import('views/basicMaster/Grade')));
-// const Goals = Loadable(lazy(() => import('views/basicMaster/Goals')));
-// const Score = Loadable(lazy(() => import('views/basicMaster/Score')));
+const DepartmentHead = Loadable(lazy(() => import('views/basicMaster/departmentHead')));
+const AppraisalPeroid = Loadable(lazy(() => import('views/basicMaster/AppraisalPeroid')));
+const KRAKPI = Loadable(lazy(() => import('views/basicMaster/KRAKPI')));
+const Weightage = Loadable(lazy(() => import('views/basicMaster/Weightage')));
+const Grade = Loadable(lazy(() => import('views/basicMaster/Grade')));
+const Goals = Loadable(lazy(() => import('views/basicMaster/Goals')));
+const Score = Loadable(lazy(() => import('views/basicMaster/Score')));
 
 // Employee Master
 const EmployeeProfile = Loadable(lazy(() => import('views/employeeMaster/EmployeeProfile')));
@@ -238,30 +239,34 @@ const HrmsRoute = {
       path: '/basicMaster/exitInterview',
       element: <ExitInterview />
     },
-    // {
-    //   path: '/basicMaster/AppraisalPeroid',
-    //   element: <AppraisalPeroid />
-    // },
-    // {
-    //   path: '/basicMaster/KRAKPI',
-    //   element: <KRAKPI />
-    // },
-    // {
-    //   path: '/basicMaster/Weightage',
-    //   element: <Weightage />
-    // },
-    // {
-    //   path: '/basicMaster/Grade',
-    //   element: <Grade />
-    // },
-    // {
-    //   path: '/basicMaster/Goals',
-    //   element: <Goals />
-    // },
-    // {
-    //   path: '/basicMaster/Score',
-    //   element: <Score />
-    // },
+    {
+      path: '/basicMaster/departmentHead',
+      element: <DepartmentHead />
+    },
+    {
+      path: '/basicMaster/AppraisalPeroid',
+      element: <AppraisalPeroid />
+    },
+    {
+      path: '/basicMaster/KRAKPI',
+      element: <KRAKPI />
+    },
+    {
+      path: '/basicMaster/Weightage',
+      element: <Weightage />
+    },
+    {
+      path: '/basicMaster/Grade',
+      element: <Grade />
+    },
+    {
+      path: '/basicMaster/Goals',
+      element: <Goals />
+    },
+    {
+      path: '/basicMaster/Score',
+      element: <Score />
+    },
     {
       path: '/companysetup/Screens',
       element: <Screens />

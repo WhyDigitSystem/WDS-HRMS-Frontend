@@ -37,7 +37,7 @@ const showToast = (type, message) => {
 
 const InitiateSeparationForm = ({ onSeparationCreated }) => {
     console.log("🔁 Component Rendered");
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         employeeId: '',
         employeeName: '',
         department: '',
@@ -52,7 +52,8 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
         lastWorkingDate: '',
         rehireEligible: true,
         separationReason: ''
-    });
+    };
+    const [formData, setFormData] = useState(initialFormData);
     const [orgId] = useState(localStorage.getItem('orgId'));
     const [branchCode] = useState(localStorage.getItem('branchCode'));
     const [branch] = useState(localStorage.getItem('branch'));
@@ -218,24 +219,13 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     };
 
     const handleSubmit = useCallback(async () => {
-        // Validation
         if (!formData.employeeId) {
-            showToast('error', 'Please select an employee');
+            showToast('error', 'Please select employee');
             return;
         }
 
         if (!formData.separationType) {
             showToast('error', 'Please select separation type');
-            return;
-        }
-
-        if (!formData.resignationDate) {
-            showToast('error', 'Please select resignation date');
-            return;
-        }
-
-        if (!formData.lastWorkingDate) {
-            showToast('error', 'Please select last working date');
             return;
         }
 
@@ -248,18 +238,18 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
 
         try {
             const payload = {
-                branch: branch, // You might need to get this from employee data
-                branchCode: branchCode, // You might need to get this from employee data
-                createdBy: loginUserName, // Replace with actual user from your auth context
+                branch: branch,
+                branchCode: branchCode,
+                createdBy: loginUserName,
                 department: formData.department,
                 detailedReason: formData.detailedReason || formData.separationReason,
                 employeeCode: formData.employeeId,
                 employeeName: formData.employeeName,
-                exitInterviewFeedback: "", // Will be filled later
-                experienceRating: 0, // Default value
-                interviewDate: formatDateForAPI(new Date().toISOString().split('T')[0]), // Current date
-                joiningDate: formatDateForAPI(formData.joiningDate),
-                lastWorkingDate: formatDateForAPI(formData.lastWorkingDate),
+                exitInterviewFeedback: "",
+                experienceRating: 0,
+                interviewDate: new Date().toISOString().split('T')[0],
+                joiningDate: formData.joiningDate,
+                lastWorkingDate: formData.lastWorkingDate,
                 noticeDate: extractNoticeDays(formData.noticePeriod),
                 orgId: orgId,
                 position: formData.position,
@@ -269,51 +259,39 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                 reportingPerson: [],
                 reportingPersonCode: [],
                 reportingPersonEmail: [],
-                resignation: formatDateForAPI(formData.resignationDate),
+                resignation: formData.resignationDate,
                 separationType: formData.separationType
             };
 
-            console.log('Submitting payload:', payload);
+            console.log("✅ FINAL PAYLOAD:", payload);
 
-            const response = await apiCalls('put', '/employeseparation/createUpdateInitiateSeparation', payload);
-            console.log('Response:', response);
-            showToast('success', 'Save successfully!');
+            const response = await apiCalls(
+                'put',
+                '/employeseparation/createUpdateInitiateSeparation',
+                payload
+            );
 
             if (response.status === true) {
-
-                console.log('Separation initiated successfully:')
-
-                if (onSeparationCreated) {
-                    onSeparationCreated();
-                }
-
-                // Reset form after successful submission
-                setFormData({
-                    employeeId: '',
-                    employeeName: '',
-                    department: '',
-                    position: '',
-                    reportingManager: '',
-                    joiningDate: '',
-                    separationType: '',
-                    noticePeriod: '30 Days',
-                    detailedReason: '',
-                    resignationDate: '',
-                    reasonCategory: '',
-                    lastWorkingDate: '',
-                    rehireEligible: true,
-                    separationReason: ''
-                });
+                showToast('success', 'Saved successfully!');
+                onSeparationCreated?.();
+                setFormData(initialFormData);
             } else {
-                showToast('error', response.message || 'Failed to initiate separation process');
+                showToast('error', response.message);
             }
+
         } catch (error) {
-            console.error('error', 'Error submitting separation form:', error);
-            showToast('error', 'Error submitting separation form');
+            console.error(error);
+            showToast('error', 'Error submitting form');
         } finally {
             setSubmitting(false);
         }
-    }, []);
+    }, [
+        formData,          // 🔥 MOST IMPORTANT
+        branch,
+        branchCode,
+        loginUserName,
+        orgId
+    ]);
 
     const calculateLastWorkingDate = (resignationDate, noticePeriod) => {
         if (!resignationDate || !noticePeriod) return '';
@@ -326,7 +304,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     };
 
     const selectedEmployee = useMemo(() => {
-        console.log("🔥 useMemo running");
+        if (!formData.employeeId) return null; // 🔥 IMPORTANT
         return employees.find(emp => emp.employeeCode === formData.employeeId) || null;
     }, [employees, formData.employeeId]);
 

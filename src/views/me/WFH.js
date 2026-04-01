@@ -231,7 +231,7 @@ const WFH = () => {
   const sendEmailNotification = async (newRows) => {
     try {
       for (const row of newRows) {
-        const baseURL = 'http://localhost:3000/pages/confirmationPage/confirmationPage';
+        const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage';
         const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
         const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
 
