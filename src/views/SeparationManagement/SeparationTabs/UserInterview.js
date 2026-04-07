@@ -109,14 +109,18 @@ const UserInterview = () => {
                         lastWorkingDate: currentEmployee.lastWorkingDate,
                         resignation: currentEmployee.resignation,
                         reasonCategory: currentEmployee.reasonCategory,
+                        joiningDate: currentEmployee.joiningDate,
                         status: currentEmployee.status
                     });
 
                     setSeparationId(currentEmployee.id);
 
                     // Check if interview is already submitted
-                    const isAlreadySubmitted = currentEmployee.status === 'COMPLETED';
-                    setIsSubmitted(isAlreadySubmitted);
+                    const allAnswered = currentEmployee.exitInterviewVO?.every(
+                        (q) => q.answer && q.answer.trim() !== ''
+                    );
+
+                    setIsSubmitted(allAnswered);
 
                     // Extract exit interview questions
                     if (currentEmployee.exitInterviewVO && currentEmployee.exitInterviewVO.length > 0) {
@@ -226,6 +230,7 @@ const UserInterview = () => {
                 resignation: employeeInfo.resignation,
                 lastWorkingDate: employeeInfo.lastWorkingDate,
                 reasonCategory: employeeInfo.reasonCategory,
+                joiningDate: employeeInfo.joiningDate,
                 status: 'COMPLETED',
                 exitInterviewDTO: updatedExitInterviewVO,
                 updatedBy: userName,
@@ -280,6 +285,7 @@ const UserInterview = () => {
                 resignation: employeeInfo.resignation,
                 lastWorkingDate: employeeInfo.lastWorkingDate,
                 reasonCategory: employeeInfo.reasonCategory,
+                joiningDate: employeeInfo.joiningDate,
                 status: 'IN_PROGRESS',
                 exitInterviewVO: updatedExitInterviewVO,
                 updatedBy: userName,
@@ -601,7 +607,7 @@ const UserInterview = () => {
                                     rows={6}
                                     variant="outlined"
                                     label="Your Answer"
-                                    disabled={answers.length > 0}
+                                    disabled={isSubmitted}
                                     placeholder="Please provide your honest and detailed response here..."
                                     value={answers[currentQuestion.id] || ''}
                                     onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}

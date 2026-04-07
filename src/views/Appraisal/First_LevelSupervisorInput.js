@@ -11,7 +11,8 @@ import {
   Tab,
   Tabs,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Autocomplete
 } from '@mui/material';
 import dayjs from 'dayjs';
 import GridOnIcon from '@mui/icons-material/GridOn';
@@ -34,6 +35,7 @@ function PaperComponent(props) {
 
 const First_LevelSupervisorInput = () => {
   const [listViewData, setListViewData] = useState([]);
+  const [appraisalOptions, setAppraisalOptions] = useState([]);
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
   const [createdBy] = useState(localStorage.getItem('userName'));
   const [branch] = useState(localStorage.getItem('branch'));
@@ -98,6 +100,7 @@ const First_LevelSupervisorInput = () => {
       }
     };
     fetchInitialData();
+    getAppraisalDocId();
   }, []);
 
   const getAllAppraisees = async () => {
@@ -111,6 +114,26 @@ const First_LevelSupervisorInput = () => {
     } catch (error) {
       console.error('Error fetching appraisees:', error);
       showToast('error', 'Failed to fetch appraisees');
+    }
+  };
+
+  const getAppraisalDocId = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getAppraisalDocId?orgId=${orgId}`);
+
+      const list = response.paramObjectsMap.goalsVO || [];
+
+      const options = list.map((item) => ({
+        label: `${item.appraisalId} - ${item.department}`,
+        value: item.appraisalId,
+        department: item.department
+      }));
+
+      setAppraisalOptions(options);
+
+    } catch (error) {
+      console.error('Error fetching goals docid:', error);
+      showToast('error', 'Failed to fetch goals docid');
     }
   };
 
@@ -231,7 +254,7 @@ const First_LevelSupervisorInput = () => {
 
     appraiseeDetailsData.forEach((row) => {
       const errors = {};
-      
+
       if (!row.area) {
         errors.area = 'Area is required';
         isValid = false;
@@ -258,10 +281,10 @@ const First_LevelSupervisorInput = () => {
 
     // Set field errors
     setFieldErrors(errors);
-    
+
     // Validate appraisee details
     const isDetailsValid = validateAppraiseeDetails();
-    
+
     if (Object.keys(errors).length > 0 || !isDetailsValid) {
       showToast('error', 'Please fill all required fields');
       setIsLoading(false);
@@ -351,11 +374,11 @@ const First_LevelSupervisorInput = () => {
   const handleAddRow = () => {
     const newId = Date.now();
     setAppraiseeDetailsData(prev => [
-      ...prev, 
+      ...prev,
       { id: newId, area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
     ]);
     setAppraiseeDetailsErrors(prev => [
-      ...prev, 
+      ...prev,
       { area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
     ]);
   };
@@ -453,10 +476,10 @@ const First_LevelSupervisorInput = () => {
     );
 
     const newData = [];
-    
+
     selectedData.forEach((data) => {
       const combinationKey = `${data.area}|${data.goals}`;
-      
+
       // Only add if not already in the list
       if (!existingCombinations.has(combinationKey)) {
         newData.push({
@@ -476,7 +499,7 @@ const First_LevelSupervisorInput = () => {
     }
 
     // Remove initial empty row if it exists and has no data
-    const filteredExistingData = appraiseeDetailsData.filter(row => 
+    const filteredExistingData = appraiseeDetailsData.filter(row =>
       !(row.area === '' && row.keyPerformanceIndicator === '' && row.goals === '' && row.reMarks === '')
     );
 
@@ -506,16 +529,33 @@ const First_LevelSupervisorInput = () => {
 
                 {/* Appraisal ID */}
                 <div className="col-md-3 mb-3">
-                  <TextField
-                    label="Appraisal ID"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    name="appraisalId"
-                    value={formData.appraisalId}
-                    onChange={handleInputChange}
-                    error={!!fieldErrors.appraisalId}
-                    helperText={fieldErrors.appraisalId}
+                  <Autocomplete
+                    options={appraisalOptions}
+                    getOptionLabel={(option) => option.label || ''}
+                    value={
+                      appraisalOptions.find((opt) => opt.value === formData.appraisalId) || null
+                    }
+                    onChange={(event, newValue) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        appraisalId: newValue?.value || '',
+                        department: newValue?.department || '' // optional if needed
+                      }));
+
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        appraisalId: ''
+                      }));
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Appraisal ID"
+                        size="small"
+                        error={!!fieldErrors.appraisalId}
+                        helperText={fieldErrors.appraisalId}
+                      />
+                    )}
                   />
                 </div>
 

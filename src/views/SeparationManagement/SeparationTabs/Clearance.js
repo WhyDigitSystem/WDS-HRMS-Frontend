@@ -148,15 +148,20 @@ const ClearanceManagement = () => {
         }
     };
 
-    const fetchAssetAllocationDetails = async (employeeCode, departmentName) => {
+    const fetchAssetAllocationDetails = async (employeeCode) => {
         setAssetLoading(true);
         try {
             const response = await apiCalls(
                 'get',
-                `/employeseparation/getAssetAllocationDetailsForClearance?branchCode=${branchCode}&department=${encodeURIComponent(departmentName)}&employeeCode=${employeeCode}&orgId=${orgId}`
+                `/employeseparation/getAssetAllocationDetailsForClearance?branchCode=${branchCode}&department=${encodeURIComponent(department)}&employeeCode=${employeeCode}&orgId=${orgId}`
             );
 
-            if (response.status === true && response.paramObjectsMap && response.paramObjectsMap.assetAllocation) {
+            // ✅ CORRECT
+            if (
+                response.status === true &&
+                response.paramObjectsMap &&
+                response.paramObjectsMap.assetAllocation
+            ) {
                 setAssetAllocationDetails(response.paramObjectsMap.assetAllocation);
             } else {
                 setAssetAllocationDetails([]);
@@ -170,12 +175,12 @@ const ClearanceManagement = () => {
         }
     };
 
-    const fetchAssetReturnDetails = async (employeeCode, departmentName) => {
+    const fetchAssetReturnDetails = async (employeeCode) => {
         setAssetReturnLoading(true);
         try {
             const response = await apiCalls(
                 'get',
-                `/employeseparation/getAssetReturnDetailsForClearance?branchCode=${branchCode}&department=${encodeURIComponent(departmentName)}&employeeCode=${employeeCode}&orgId=${orgId}`
+                `/employeseparation/getAssetReturnDetailsForClearance?branchCode=${branchCode}&department=${encodeURIComponent(department)}&employeeCode=${employeeCode}&orgId=${orgId}`
             );
 
             if (response.status === true && response.paramObjectsMap && response.paramObjectsMap.assetReset) {
@@ -192,13 +197,13 @@ const ClearanceManagement = () => {
         }
     };
 
-    const fetchClearanceItemsByEmployee = async (employeeCode, departmentName, employeeClearanceItems = []) => {
+    const fetchClearanceItemsByEmployee = async (employeeCode, employeeClearanceItems = []) => {
         setQuestionsLoading(true);
 
         try {
             const res = await apiCalls(
                 'get',
-                `/employeseparation/getAccessoriesByEmployeeCode?branchCode=${branchCode}&department=${encodeURIComponent(departmentName)}&employeeCode=${employeeCode}&orgId=${orgId}`
+                `/employeseparation/getAccessoriesByEmployeeCode?branchCode=${branchCode}&department=${encodeURIComponent(department)}&employeeCode=${employeeCode}&orgId=${orgId}`
             );
 
             if (res.status) {
@@ -207,7 +212,8 @@ const ClearanceManagement = () => {
                 const formattedItems = assets.map((item, index) => ({
                     id: index + 1,
                     name: item.assetName,
-                    department: departmentName,
+                    assetcode: item.assetcode,
+                    department: department,
                     assignedTo: item.employeeName,
                     completed: false
                 }));
@@ -250,7 +256,6 @@ const ClearanceManagement = () => {
 
             await fetchClearanceItemsByEmployee(
                 newValue.employeeCode,
-                newValue.department,
                 newValue.clearanceItems || []
             );
 
@@ -705,10 +710,6 @@ const ClearanceManagement = () => {
                                 }}
                             >
                                 <CustomTab
-                                    label="Clearance Checklist"
-                                    icon={<BusinessIcon />}
-                                />
-                                <CustomTab
                                     label="Asset Allocation"
                                     icon={<ComputerIcon />}
                                 />
@@ -716,10 +717,309 @@ const ClearanceManagement = () => {
                                     label="Asset Return"
                                     icon={<ReturnIcon />}
                                 />
+                                <CustomTab
+                                    label="Clearance Checklist"
+                                    icon={<BusinessIcon />}
+                                />
                             </Tabs>
 
                             {/* Tab 0: Clearance Checklist */}
                             {activeTab === 0 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <ComputerIcon sx={{ color: '#7C3AED', fontSize: 28 }} />
+                                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>
+                                                Asset Allocation Details
+                                            </Typography>
+                                        </Box>
+                                        <Tooltip title="Refresh">
+                                            <IconButton
+                                                onClick={() => fetchAssetAllocationDetails(selectedEmployee.employeeCode, selectedEmployee.department)}
+                                                size="small"
+                                                sx={{
+                                                    '&:hover': {
+                                                        backgroundColor: alpha('#7C3AED', 0.1),
+                                                        transform: 'rotate(180deg)',
+                                                        transition: 'transform 0.3s ease'
+                                                    }
+                                                }}
+                                            >
+                                                <RefreshIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+
+                                    {/* Stats Cards */}
+                                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                                        <Grid item xs={12} sm={6}>
+                                            <StatsCard
+                                                title="Total Allocated Assets"
+                                                value={assetAllocationDetails.length}
+                                                icon={<ComputerIcon sx={{ fontSize: 28, color: '#fff' }} />}
+                                                color="#6366F1" // Indigo
+                                                bgColor="linear-gradient(135deg, #6366F1, #8B5CF6)"
+                                            />
+                                        </Grid>
+
+                                        <Grid item xs={12} sm={6}>
+                                            <StatsCard
+                                                title="Pending Return"
+                                                value={assetAllocationDetails.length - assetReturnDetails.length}
+                                                icon={<TrendingUpIcon sx={{ fontSize: 28, color: '#fff' }} />}
+                                                color="#F59E0B" // Amber
+                                                bgColor="linear-gradient(135deg, #F59E0B, #F97316)"
+                                            />
+                                        </Grid>
+                                    </Grid>
+
+                                    {assetLoading ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                                            <CircularProgress sx={{ color: '#7C3AED' }} />
+                                        </Box>
+                                    ) : assetAllocationDetails.length > 0 ? (
+                                        <TableContainer
+                                            component={Paper}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 3,
+                                                borderColor: '#e5e7eb',
+                                                overflow: 'hidden'
+                                            }}
+                                        >
+                                            <Table>
+                                                <TableHead sx={{ backgroundColor: alpha('#7C3AED', 0.05) }}>
+                                                    <TableRow>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Name</TableCell>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Code</TableCell>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Asset Name</TableCell>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Status</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {assetAllocationDetails.map((asset, index) => (
+                                                        <TableRow
+                                                            key={index}
+                                                            hover
+                                                            sx={{
+                                                                '&:hover': {
+                                                                    backgroundColor: alpha('#7C3AED', 0.02)
+                                                                }
+                                                            }}
+                                                        >
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: alpha('#7C3AED', 0.1), color: '#7C3AED' }}>
+                                                                        {asset.employeeName?.charAt(0)}
+                                                                    </Avatar>
+                                                                    <Typography sx={{ fontWeight: 500 }}>{asset.employeeName}</Typography>
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>{asset.employeeCode}</TableCell>
+                                                            <TableCell>
+                                                                <Chip
+                                                                    label={asset.assetName}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        backgroundColor: alpha('#7C3AED', 0.1),
+                                                                        color: '#7C3AED',
+                                                                        fontWeight: 500,
+                                                                        borderRadius: 2
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Chip
+                                                                    label="Allocated"
+                                                                    size="small"
+                                                                    icon={<CheckCircleIcon />}
+                                                                    sx={{
+                                                                        backgroundColor: alpha('#7C3AED', 0.15),
+                                                                        color: '#7C3AED',
+                                                                        fontWeight: 600,
+                                                                        borderRadius: 2
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    ) : (
+                                        <Paper
+                                            variant="outlined"
+                                            sx={{
+                                                p: 6,
+                                                textAlign: 'center',
+                                                backgroundColor: '#fafafa',
+                                                borderRadius: 3,
+                                                borderColor: '#e5e7eb'
+                                            }}
+                                        >
+                                            <InfoIcon sx={{ fontSize: 56, color: '#d1d5db', mb: 2 }} />
+                                            <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                No asset allocation records found
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                This employee has no allocated assets
+                                            </Typography>
+                                        </Paper>
+                                    )}
+                                </Box>
+                            )}
+
+                            {/* Tab 1: Asset Allocation Details */}
+                            {activeTab === 1 && (
+                                <Box sx={{ mt: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <ReturnIcon sx={{ color: '#10b981', fontSize: 28 }} />
+                                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>
+                                                Asset Return Details
+                                            </Typography>
+                                        </Box>
+                                        <Tooltip title="Refresh">
+                                            <IconButton
+                                                onClick={() => fetchAssetReturnDetails(selectedEmployee.employeeCode, selectedEmployee.department)}
+                                                size="small"
+                                                sx={{
+                                                    '&:hover': {
+                                                        backgroundColor: alpha('#10b981', 0.1),
+                                                        transform: 'rotate(180deg)',
+                                                        transition: 'transform 0.3s ease'
+                                                    }
+                                                }}
+                                            >
+                                                <RefreshIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+
+                                    {/* Stats Cards */}
+                                    <Grid container spacing={2} sx={{ mb: 3 }}>
+                                        <Grid item xs={12} sm={6}>
+                                            <StatsCard
+                                                title="Total Returned Assets"
+                                                value={assetReturnDetails.length}
+                                                icon={<ReturnIcon sx={{ fontSize: 28, color: '#fff' }} />}
+                                                color="#059669"
+                                                bgColor="linear-gradient(135deg, #059669, #10B981)"
+                                            />
+                                        </Grid>
+
+                                        <Grid item xs={12} sm={6}>
+                                            <StatsCard
+                                                title="Return Rate"
+                                                value={`${assetAllocationDetails.length > 0
+                                                    ? Math.round((assetReturnDetails.length / assetAllocationDetails.length) * 100)
+                                                    : 0
+                                                    }%`}
+                                                icon={<TrendingUpIcon sx={{ fontSize: 28, color: '#fff' }} />}
+                                                color="#16A34A"
+                                                bgColor="linear-gradient(135deg, #16A34A, #4ADE80)"
+                                            />
+                                        </Grid>
+                                    </Grid>
+
+                                    {assetReturnLoading ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+                                            <CircularProgress sx={{ color: '#10b981' }} />
+                                        </Box>
+                                    ) : assetReturnDetails.length > 0 ? (
+                                        <TableContainer
+                                            component={Paper}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 3,
+                                                borderColor: '#e5e7eb',
+                                                overflow: 'hidden'
+                                            }}
+                                        >
+                                            <Table>
+                                                <TableHead sx={{ backgroundColor: alpha('#10b981', 0.05) }}>
+                                                    <TableRow>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Name</TableCell>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Code</TableCell>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Asset Name</TableCell>
+                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Status</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {assetReturnDetails.map((asset, index) => (
+                                                        <TableRow
+                                                            key={index}
+                                                            hover
+                                                            sx={{
+                                                                '&:hover': {
+                                                                    backgroundColor: alpha('#10b981', 0.02)
+                                                                }
+                                                            }}
+                                                        >
+                                                            <TableCell>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: alpha('#10b981', 0.1), color: '#10b981' }}>
+                                                                        {asset.employeeName?.charAt(0)}
+                                                                    </Avatar>
+                                                                    <Typography sx={{ fontWeight: 500 }}>{asset.employeeName}</Typography>
+                                                                </Box>
+                                                            </TableCell>
+                                                            <TableCell>{asset.employeeCode}</TableCell>
+                                                            <TableCell>
+                                                                <Chip
+                                                                    label={asset.assetName}
+                                                                    size="small"
+                                                                    sx={{
+                                                                        backgroundColor: alpha('#10b981', 0.1),
+                                                                        color: '#10b981',
+                                                                        fontWeight: 500,
+                                                                        borderRadius: 2
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <Chip
+                                                                    label="Returned"
+                                                                    size="small"
+                                                                    icon={<CheckCircleIcon />}
+                                                                    sx={{
+                                                                        backgroundColor: alpha('#10b981', 0.15),
+                                                                        color: '#10b981',
+                                                                        fontWeight: 600,
+                                                                        borderRadius: 2
+                                                                    }}
+                                                                />
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    ) : (
+                                        <Paper
+                                            variant="outlined"
+                                            sx={{
+                                                p: 6,
+                                                textAlign: 'center',
+                                                backgroundColor: '#fafafa',
+                                                borderRadius: 3,
+                                                borderColor: '#e5e7eb'
+                                            }}
+                                        >
+                                            <InfoIcon sx={{ fontSize: 56, color: '#d1d5db', mb: 2 }} />
+                                            <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                No asset return records found
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                This employee has no returned assets recorded
+                                            </Typography>
+                                        </Paper>
+                                    )}
+                                </Box>
+                            )}
+
+                            {/* Tab 2: Asset Return Details */}
+                            {activeTab === 2 && (
                                 <Box sx={{ mt: 2 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -888,7 +1188,7 @@ const ClearanceManagement = () => {
                                                                         label={
                                                                             <Box>
                                                                                 <Typography variant="body1" sx={{ fontWeight: 600, color: '#1f2937' }}>
-                                                                                    {item.name}
+                                                                                    {item.name} - {item.assetcode}
                                                                                 </Typography>
                                                                                 <Typography variant="caption" color="text.secondary">
                                                                                     Assigned to: {item.assignedTo}
@@ -934,306 +1234,11 @@ const ClearanceManagement = () => {
                                     )}
                                 </Box>
                             )}
-
-                            {/* Tab 1: Asset Allocation Details */}
-                            {activeTab === 1 && (
-                                <Box sx={{ mt: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <ComputerIcon sx={{ color: '#7C3AED', fontSize: 28 }} />
-                                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>
-                                                Asset Allocation Details
-                                            </Typography>
-                                        </Box>
-                                        <Tooltip title="Refresh">
-                                            <IconButton
-                                                onClick={() => fetchAssetAllocationDetails(selectedEmployee.employeeCode, selectedEmployee.department)}
-                                                size="small"
-                                                sx={{
-                                                    '&:hover': {
-                                                        backgroundColor: alpha('#7C3AED', 0.1),
-                                                        transform: 'rotate(180deg)',
-                                                        transition: 'transform 0.3s ease'
-                                                    }
-                                                }}
-                                            >
-                                                <RefreshIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-
-                                    {/* Stats Cards */}
-                                    <Grid container spacing={2} sx={{ mb: 3 }}>
-                                        <Grid item xs={12} sm={6}>
-                                            <StatsCard
-                                                title="Total Allocated Assets"
-                                                value={assetAllocationDetails.length}
-                                                icon={<ComputerIcon sx={{ fontSize: 28, color: '#fff' }} />}
-                                                color="#6366F1" // Indigo
-                                                bgColor="linear-gradient(135deg, #6366F1, #8B5CF6)"
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12} sm={6}>
-                                            <StatsCard
-                                                title="Pending Return"
-                                                value={assetAllocationDetails.length - assetReturnDetails.length}
-                                                icon={<TrendingUpIcon sx={{ fontSize: 28, color: '#fff' }} />}
-                                                color="#F59E0B" // Amber
-                                                bgColor="linear-gradient(135deg, #F59E0B, #F97316)"
-                                            />
-                                        </Grid>
-                                    </Grid>
-
-                                    {assetLoading ? (
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                                            <CircularProgress sx={{ color: '#7C3AED' }} />
-                                        </Box>
-                                    ) : assetAllocationDetails.length > 0 ? (
-                                        <TableContainer
-                                            component={Paper}
-                                            variant="outlined"
-                                            sx={{
-                                                borderRadius: 3,
-                                                borderColor: '#e5e7eb',
-                                                overflow: 'hidden'
-                                            }}
-                                        >
-                                            <Table>
-                                                <TableHead sx={{ backgroundColor: alpha('#7C3AED', 0.05) }}>
-                                                    <TableRow>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Name</TableCell>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Code</TableCell>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Asset Name</TableCell>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Status</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
-                                                    {assetAllocationDetails.map((asset, index) => (
-                                                        <TableRow
-                                                            key={index}
-                                                            hover
-                                                            sx={{
-                                                                '&:hover': {
-                                                                    backgroundColor: alpha('#7C3AED', 0.02)
-                                                                }
-                                                            }}
-                                                        >
-                                                            <TableCell>
-                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: alpha('#7C3AED', 0.1), color: '#7C3AED' }}>
-                                                                        {asset.employeeName?.charAt(0)}
-                                                                    </Avatar>
-                                                                    <Typography sx={{ fontWeight: 500 }}>{asset.employeeName}</Typography>
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell>{asset.employeeCode}</TableCell>
-                                                            <TableCell>
-                                                                <Chip
-                                                                    label={asset.assetName}
-                                                                    size="small"
-                                                                    sx={{
-                                                                        backgroundColor: alpha('#7C3AED', 0.1),
-                                                                        color: '#7C3AED',
-                                                                        fontWeight: 500,
-                                                                        borderRadius: 2
-                                                                    }}
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Chip
-                                                                    label="Allocated"
-                                                                    size="small"
-                                                                    icon={<CheckCircleIcon />}
-                                                                    sx={{
-                                                                        backgroundColor: alpha('#7C3AED', 0.15),
-                                                                        color: '#7C3AED',
-                                                                        fontWeight: 600,
-                                                                        borderRadius: 2
-                                                                    }}
-                                                                />
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-                                    ) : (
-                                        <Paper
-                                            variant="outlined"
-                                            sx={{
-                                                p: 6,
-                                                textAlign: 'center',
-                                                backgroundColor: '#fafafa',
-                                                borderRadius: 3,
-                                                borderColor: '#e5e7eb'
-                                            }}
-                                        >
-                                            <InfoIcon sx={{ fontSize: 56, color: '#d1d5db', mb: 2 }} />
-                                            <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                No asset allocation records found
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                This employee has no allocated assets
-                                            </Typography>
-                                        </Paper>
-                                    )}
-                                </Box>
-                            )}
-
-                            {/* Tab 2: Asset Return Details */}
-                            {activeTab === 2 && (
-                                <Box sx={{ mt: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <ReturnIcon sx={{ color: '#10b981', fontSize: 28 }} />
-                                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1f2937' }}>
-                                                Asset Return Details
-                                            </Typography>
-                                        </Box>
-                                        <Tooltip title="Refresh">
-                                            <IconButton
-                                                onClick={() => fetchAssetReturnDetails(selectedEmployee.employeeCode, selectedEmployee.department)}
-                                                size="small"
-                                                sx={{
-                                                    '&:hover': {
-                                                        backgroundColor: alpha('#10b981', 0.1),
-                                                        transform: 'rotate(180deg)',
-                                                        transition: 'transform 0.3s ease'
-                                                    }
-                                                }}
-                                            >
-                                                <RefreshIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-
-                                    {/* Stats Cards */}
-                                    <Grid container spacing={2} sx={{ mb: 3 }}>
-                                        <Grid item xs={12} sm={6}>
-                                            <StatsCard
-                                                title="Total Returned Assets"
-                                                value={assetReturnDetails.length}
-                                                icon={<ReturnIcon sx={{ fontSize: 28, color: '#fff' }} />}
-                                                color="#059669"
-                                                bgColor="linear-gradient(135deg, #059669, #10B981)"
-                                            />
-                                        </Grid>
-
-                                        <Grid item xs={12} sm={6}>
-                                            <StatsCard
-                                                title="Return Rate"
-                                                value={`${assetAllocationDetails.length > 0
-                                                        ? Math.round((assetReturnDetails.length / assetAllocationDetails.length) * 100)
-                                                        : 0
-                                                    }%`}
-                                                icon={<TrendingUpIcon sx={{ fontSize: 28, color: '#fff' }} />}
-                                                color="#16A34A"
-                                                bgColor="linear-gradient(135deg, #16A34A, #4ADE80)"
-                                            />
-                                        </Grid>
-                                    </Grid>
-
-                                    {assetReturnLoading ? (
-                                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-                                            <CircularProgress sx={{ color: '#10b981' }} />
-                                        </Box>
-                                    ) : assetReturnDetails.length > 0 ? (
-                                        <TableContainer
-                                            component={Paper}
-                                            variant="outlined"
-                                            sx={{
-                                                borderRadius: 3,
-                                                borderColor: '#e5e7eb',
-                                                overflow: 'hidden'
-                                            }}
-                                        >
-                                            <Table>
-                                                <TableHead sx={{ backgroundColor: alpha('#10b981', 0.05) }}>
-                                                    <TableRow>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Name</TableCell>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Employee Code</TableCell>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Asset Name</TableCell>
-                                                        <TableCell sx={{ fontWeight: 700, color: '#1f2937' }}>Status</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
-                                                    {assetReturnDetails.map((asset, index) => (
-                                                        <TableRow
-                                                            key={index}
-                                                            hover
-                                                            sx={{
-                                                                '&:hover': {
-                                                                    backgroundColor: alpha('#10b981', 0.02)
-                                                                }
-                                                            }}
-                                                        >
-                                                            <TableCell>
-                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                                    <Avatar sx={{ width: 32, height: 32, bgcolor: alpha('#10b981', 0.1), color: '#10b981' }}>
-                                                                        {asset.employeeName?.charAt(0)}
-                                                                    </Avatar>
-                                                                    <Typography sx={{ fontWeight: 500 }}>{asset.employeeName}</Typography>
-                                                                </Box>
-                                                            </TableCell>
-                                                            <TableCell>{asset.employeeCode}</TableCell>
-                                                            <TableCell>
-                                                                <Chip
-                                                                    label={asset.assetName}
-                                                                    size="small"
-                                                                    sx={{
-                                                                        backgroundColor: alpha('#10b981', 0.1),
-                                                                        color: '#10b981',
-                                                                        fontWeight: 500,
-                                                                        borderRadius: 2
-                                                                    }}
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Chip
-                                                                    label="Returned"
-                                                                    size="small"
-                                                                    icon={<CheckCircleIcon />}
-                                                                    sx={{
-                                                                        backgroundColor: alpha('#10b981', 0.15),
-                                                                        color: '#10b981',
-                                                                        fontWeight: 600,
-                                                                        borderRadius: 2
-                                                                    }}
-                                                                />
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-                                    ) : (
-                                        <Paper
-                                            variant="outlined"
-                                            sx={{
-                                                p: 6,
-                                                textAlign: 'center',
-                                                backgroundColor: '#fafafa',
-                                                borderRadius: 3,
-                                                borderColor: '#e5e7eb'
-                                            }}
-                                        >
-                                            <InfoIcon sx={{ fontSize: 56, color: '#d1d5db', mb: 2 }} />
-                                            <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                No asset return records found
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                This employee has no returned assets recorded
-                                            </Typography>
-                                        </Paper>
-                                    )}
-                                </Box>
-                            )}
                         </>
                     )}
 
                     {/* Save Button */}
-                    {selectedEmployee && clearanceItems.length > 0 && activeTab === 0 && (
+                    {selectedEmployee && clearanceItems.length > 0 && activeTab === 2 && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, pt: 2, borderTop: '1px solid #e5e7eb' }}>
                             <Button
                                 variant="contained"

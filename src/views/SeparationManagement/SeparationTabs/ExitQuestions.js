@@ -80,6 +80,7 @@ const ExitQuestions = () => {
                     position: emp.position,
                     designation: emp.designation || emp.position,
                     separationType: emp.separationType,
+                    joiningDate: emp.joiningDate,
                     name: `${emp.employeeName} (${emp.employeeCode})`,
                     originalData: emp,
                     exitQuestions: emp.exitInterviewVO || []
@@ -274,7 +275,10 @@ const ExitQuestions = () => {
                 detailedReason: selectedEmployee.originalData?.detailedReason || '',
                 employeeCode: selectedEmployee.employeeCode,
                 employeeName: selectedEmployee.employeeName,
-                joiningDate: selectedEmployee.joiningDate,
+                joiningDate:
+                    selectedEmployee.joiningDate ||
+                    selectedEmployee.originalData?.joiningDate ||
+                    "",
                 lastWorkingDate: selectedEmployee.originalData?.lastWorkingDate || '',
                 noticeDate: selectedEmployee.originalData?.noticeDate || 0,
                 orgId: parseInt(orgId),

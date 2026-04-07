@@ -117,7 +117,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
     const getAllEmployeeDetails = async () => {
         setLoading(true);
         try {
-            const response = await apiCalls('get', `/master/getAllEmployeeByOrgId?orgId=${orgId}`);
+            const response = await apiCalls('get', `/employeseparation/getSeparationEmployeeByOrgId?orgId=${orgId}`);
             if (response.status === true) {
                 const employeeList = response.paramObjectsMap.employeeVO.map((emp) => ({
                     id: emp.employeeId,

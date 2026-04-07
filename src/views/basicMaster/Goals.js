@@ -24,6 +24,7 @@ function PaperComponent(props) {
 }
 const Goals = () => {
   const [listViewData, setListViewData] = useState([]);
+  const [goalsDocId, setGoalsDocId] = useState([]);
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
   const [createdBy] = useState(localStorage.getItem('userName'));
   const [value, setValue] = useState(0);
@@ -76,7 +77,28 @@ const Goals = () => {
 
   useEffect(() => {
     getAllGoals();
+    getGoalsDocId();
   }, []);
+
+  const getGoalsDocId = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getGoalsDocId?orgId=${orgId}`);
+
+      const docId = response.paramObjectsMap.goalsDocId;
+
+      setGoalsDocId(docId);
+
+      // ✅ IMPORTANT: also set into formData
+      setFormData((prev) => ({
+        ...prev,
+        appraisalId: docId
+      }));
+
+    } catch (error) {
+      console.error('Error fetching goals docid:', error);
+      showToast('error', 'Failed to fetch goals docid');
+    }
+  };
 
   const getAllGoals = async () => {
     try {
@@ -147,7 +169,6 @@ const Goals = () => {
 
     // Prepare details payload with IDs
     const goalsDetailsVo = goalsDetailsData.map((row) => ({
-      id: row.id, // Include existing ID for updates
       area: row.area,
       indicators: row.indicator,
       goals: row.goals
@@ -156,7 +177,7 @@ const Goals = () => {
     const payload = {
       ...(editId && { id: editId }),
       active: formData.active,
-      appraisalId: parseInt(formData.appraisalId),
+      appraisalId: formData.appraisalId,
       department: formData.department,
       finYear: formData.finYear,
       orgId,
@@ -170,6 +191,7 @@ const Goals = () => {
         showToast('success', editId ? 'Goal updated successfully' : 'Goal created successfully');
         handleClear();
         getAllGoals();
+        getGoalsDocId();
       } else {
         showToast('error', response.message || 'Operation failed');
       }
@@ -284,6 +306,7 @@ const Goals = () => {
                     fullWidth
                     name="appraisalId"
                     value={formData.appraisalId}
+                    disabled
                     onChange={handleInputChange}
                     error={!!fieldErrors.appraisalId}
                     helperText={fieldErrors.appraisalId}

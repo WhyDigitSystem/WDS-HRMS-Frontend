@@ -81,8 +81,6 @@ const ExitInterviewManagement = () => {
   const branchCode = localStorage.getItem('branchCode');
   const branch = localStorage.getItem('branch');
   const loginUserName = localStorage.getItem('userName');
-  const loginUserDesignation = localStorage.getItem("designation");
-  const isHR = loginUserDesignation?.toUpperCase() === 'HR';
 
   useEffect(() => {
     fetchEmployees();
@@ -260,6 +258,16 @@ const ExitInterviewManagement = () => {
       return;
     }
 
+    // ✅ Validate all questions answered
+    const hasEmptyAnswers = exitQuestions.some(
+      (q) => !answers[q.id] || !answers[q.id].trim()
+    );
+
+    if (hasEmptyAnswers) {
+      showSnackbar('Please answer all exit interview questions', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
       const reportingPersonNames = selectedReportingPerson.map(
@@ -355,7 +363,16 @@ const ExitInterviewManagement = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const isFormValid = selectedEmployee && interviewDate && rating > 0 && feedback.trim();
+  const areAllAnswersFilled = exitQuestions.every(
+    (q) => answers[q.id] && answers[q.id].trim()
+  );
+
+  const isFormValid =
+    selectedEmployee &&
+    interviewDate &&
+    rating > 0 &&
+    feedback.trim() &&
+    areAllAnswersFilled;
   const isClearanceCompleted = clearanceStatus && clearanceStatus.qty === 0;
   const pendingCount = clearanceStatus ? clearanceStatus.qty : 0;
 
@@ -668,6 +685,7 @@ const ExitInterviewManagement = () => {
                                   multiline
                                   rows={2}
                                   variant="outlined"
+                                  disabled
                                   size="small"
                                   placeholder="Enter answer..."
                                   value={answers[q.id] || ''}

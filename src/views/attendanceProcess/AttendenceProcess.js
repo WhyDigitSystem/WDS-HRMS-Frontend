@@ -56,6 +56,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import { CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const AttendenceProcess = () => {
   const [branchList, setBranchList] = useState([]);
@@ -86,6 +87,20 @@ const AttendenceProcess = () => {
   const [dialogSearchTerm, setDialogSearchTerm] = useState('');
   const [otConfirmationDialog, setOtConfirmationDialog] = useState(false);
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteFormData, setDeleteFormData] = useState({
+    month: '',
+    year: '',
+    department: 'All',
+    branch: 'All'
+  });
+  const [deleteFieldErrors, setDeleteFieldErrors] = useState({
+    month: '',
+    year: '',
+    department: '',
+    branch: ''
+  });
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [pullAttendanceDialog, setPullAttendanceDialog] = useState(false);
   const [pullFormData, setPullFormData] = useState({
     fromDate: null,
@@ -648,6 +663,98 @@ const AttendenceProcess = () => {
     });
   };
 
+  const handleDeleteAttendance = async () => {
+    const errors = {
+      month: !deleteFormData.month ? 'Month is required' : '',
+      year: !deleteFormData.year ? 'Year is required' : '',
+      department: !deleteFormData.department ? 'Department is required' : '',
+      branch: !deleteFormData.branch ? 'Branch is required' : ''
+    };
+
+    if (Object.values(errors).some((error) => error !== '')) {
+      setDeleteFieldErrors(errors);
+      return;
+    }
+
+    setIsDeleteLoading(true);
+
+    try {
+      const apiUrl = `/checkinout/deleteAttendanceSummary?branchCode=${branchCode}&department=${deleteFormData.department}&finYear=${deleteFormData.year}&month=${deleteFormData.month}&orgId=${orgId}`;
+
+      const response = await apiCalls('delete', apiUrl);
+
+      if (response.status === true) {
+        // Get the deleted count from response
+        const deletedCount = response.paramObjectsMap?.deletedCount || 0;
+        const message = response.paramObjectsMap?.message || 'Attendance summary deleted successfully';
+
+        // Show toast with deleted count
+        showToast('success', `${message}. ${deletedCount} record(s) deleted.`);
+
+        setDeleteDialogOpen(false);
+        // Reset form
+        setDeleteFormData({
+          month: '',
+          year: '',
+          department: 'All',
+          branch: 'All'
+        });
+        // Clear the table data after successful deletion
+        setAllLeave([]);
+        setOriginalTableData([]);
+        setDialogTableData([]);
+      } else {
+        showToast('error', response.paramObjectsMap?.message || 'Failed to delete attendance summary');
+      }
+    } catch (error) {
+      console.error('Error deleting attendance:', error);
+      showToast('error', 'Error deleting attendance data');
+    } finally {
+      setIsDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteDialogOpen = () => {
+    setDeleteDialogOpen(true);
+    // Reset form when opening dialog
+    setDeleteFormData({
+      month: '',
+      year: '',
+      department: 'All',
+      branch: 'All'
+    });
+    setDeleteFieldErrors({
+      month: '',
+      year: '',
+      department: '',
+      branch: ''
+    });
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    setDeleteFormData({
+      month: '',
+      year: '',
+      department: 'All',
+      branch: 'All'
+    });
+    setDeleteFieldErrors({
+      month: '',
+      year: '',
+      department: '',
+      branch: ''
+    });
+  };
+
+  const handleDeleteInputChange = (e) => {
+    const { name, value } = e.target;
+    setDeleteFormData((prev) => ({ ...prev, [name]: value }));
+    if (deleteFieldErrors[name]) {
+      setDeleteFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
   return (
     <>
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
@@ -677,7 +784,7 @@ const AttendenceProcess = () => {
               icon={CloudDownloadIcon} // You might need to import this
               onClick={handlePullAttendance}
             />
-            <Box sx={{ display: 'flex' }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
                 variant="contained"
                 startIcon={<CloudUploadIcon />}
@@ -695,7 +802,6 @@ const AttendenceProcess = () => {
                     boxShadow: '0px 6px 12px rgba(63, 81, 181, 0.3)'
                   }
                 }}
-                // onClick={handleBulkUploadOpen}
                 onClick={() => {
                   setUploadFile({
                     title: 'Upload Check Out',
@@ -708,7 +814,30 @@ const AttendenceProcess = () => {
               >
                 Check In&out
               </Button>
+
+              <Button
+                variant="contained"
+                startIcon={<DeleteIcon />}
+                onClick={handleDeleteDialogOpen}
+                sx={{
+                  background: 'linear-gradient(193deg, #d32f2f 30%, #f44336 90%)',
+                  color: '#fff',
+                  fontWeight: 'bold',
+                  height: '40px',
+                  px: 2,
+                  py: 1,
+                  borderRadius: 3,
+                  boxShadow: '0px 4px 8px rgba(211, 47, 47, 0.2)',
+                  '&:hover': {
+                    background: 'linear-gradient(193deg, #b71c1c 30%, #d32f2f 90%)',
+                    boxShadow: '0px 6px 12px rgba(211, 47, 47, 0.3)'
+                  }
+                }}
+              >
+                Delete
+              </Button>
             </Box>
+
           </div>
         </div>
         {!listView && (
@@ -1537,6 +1666,133 @@ const AttendenceProcess = () => {
             {isPullLoading ? 'Pulling...' : 'Pull Data'}
           </Button>
           <Button onClick={handlePullCancel} color="secondary" disabled={isLoading}>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteDialogClose} maxWidth="sm" fullWidth>
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(193deg, #d32f2f 30%, #f44336 90%)',
+            color: 'white',
+            textAlign: 'center'
+          }}
+        >
+          Delete Attendance Summary
+        </DialogTitle>
+        <DialogContent sx={{ mt: 2 }}>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <FormControl size="small" variant="outlined" fullWidth error={!!deleteFieldErrors.year}>
+                <InputLabel id="year-label">Year *</InputLabel>
+                <Select
+                  labelId="year-label"
+                  label="Year *"
+                  name="year"
+                  value={deleteFormData.year}
+                  onChange={handleDeleteInputChange}
+                >
+                  <MenuItem value="">Select Year</MenuItem>
+                  <MenuItem value="2024">2024</MenuItem>
+                  <MenuItem value="2025">2025</MenuItem>
+                  <MenuItem value="2026">2026</MenuItem>
+                </Select>
+                {deleteFieldErrors.year && <FormHelperText>{deleteFieldErrors.year}</FormHelperText>}
+              </FormControl>
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <FormControl size="small" variant="outlined" fullWidth error={!!deleteFieldErrors.month}>
+                <InputLabel id="month-label">Month *</InputLabel>
+                <Select
+                  labelId="month-label"
+                  label="Month *"
+                  name="month"
+                  value={deleteFormData.month}
+                  onChange={handleDeleteInputChange}
+                >
+                  <MenuItem value="">Select Month</MenuItem>
+                  <MenuItem value="1">January</MenuItem>
+                  <MenuItem value="2">February</MenuItem>
+                  <MenuItem value="3">March</MenuItem>
+                  <MenuItem value="4">April</MenuItem>
+                  <MenuItem value="5">May</MenuItem>
+                  <MenuItem value="6">June</MenuItem>
+                  <MenuItem value="7">July</MenuItem>
+                  <MenuItem value="8">August</MenuItem>
+                  <MenuItem value="9">September</MenuItem>
+                  <MenuItem value="10">October</MenuItem>
+                  <MenuItem value="11">November</MenuItem>
+                  <MenuItem value="12">December</MenuItem>
+                </Select>
+                {deleteFieldErrors.month && <FormHelperText>{deleteFieldErrors.month}</FormHelperText>}
+              </FormControl>
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <FormControl size="small" variant="outlined" fullWidth error={!!deleteFieldErrors.department}>
+                <InputLabel id="delete-department-label">Department *</InputLabel>
+                <Select
+                  labelId="delete-department-label"
+                  label="Department *"
+                  name="department"
+                  value={deleteFormData.department}
+                  onChange={handleDeleteInputChange}
+                >
+                  <MenuItem value="All">All</MenuItem>
+                  {departmentList?.map((row) => (
+                    <MenuItem key={row.id} value={row.departmentName}>
+                      {row.departmentName}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {deleteFieldErrors.department && <FormHelperText>{deleteFieldErrors.department}</FormHelperText>}
+              </FormControl>
+            </div>
+
+            <div className="col-md-6 mb-3">
+              <FormControl size="small" variant="outlined" fullWidth error={!!deleteFieldErrors.branch}>
+                <InputLabel id="delete-branch-label">Branch *</InputLabel>
+                <Select
+                  labelId="delete-branch-label"
+                  label="Branch *"
+                  name="branch"
+                  value={deleteFormData.branch}
+                  onChange={handleDeleteInputChange}
+                >
+                  <MenuItem value="All">All</MenuItem>
+                  {branchList?.map((row) => (
+                    <MenuItem key={row.id} value={row.branch}>
+                      {row.branch}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {deleteFieldErrors.branch && <FormHelperText>{deleteFieldErrors.branch}</FormHelperText>}
+              </FormControl>
+            </div>
+          </div>
+
+          <DialogContentText sx={{ mt: 2, color: '#d32f2f' }}>
+            Warning: This action will permanently delete the attendance summary for the selected criteria. This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleDeleteAttendance}
+            variant="contained"
+            disabled={isDeleteLoading}
+            startIcon={isDeleteLoading ? <CircularProgress size={16} /> : <DeleteIcon />}
+            sx={{
+              background: 'linear-gradient(193deg, #d32f2f 30%, #f44336 90%)',
+              '&:hover': {
+                background: 'linear-gradient(193deg, #b71c1c 30%, #d32f2f 90%)'
+              }
+            }}
+          >
+            {isDeleteLoading ? 'Deleting...' : 'Delete'}
+          </Button>
+          <Button onClick={handleDeleteDialogClose} color="secondary" disabled={isDeleteLoading}>
             Cancel
           </Button>
         </DialogActions>
