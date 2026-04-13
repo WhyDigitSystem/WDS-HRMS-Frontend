@@ -136,6 +136,30 @@ const ExperienceLetter = () => {
         }
     };
 
+    const calculateExperience = (startDate, endDate) => {
+        if (!startDate || !endDate) return '';
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        let years = end.getFullYear() - start.getFullYear();
+        let months = end.getMonth() - start.getMonth();
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        let result = '';
+        if (years > 0) result += `${years} year${years > 1 ? 's' : ''}`;
+        if (months > 0) {
+            if (result) result += ' ';
+            result += `${months} month${months > 1 ? 's' : ''}`;
+        }
+
+        return result || '0 month';
+    };
+
     const handleEmployeeSelect = (event, newValue) => {
         setSelectedEmployee(newValue);
         if (newValue) {
@@ -552,7 +576,16 @@ const ExperienceLetter = () => {
                         {/* Letter Content */}
                         <Box sx={{ mb: 5 }}>
                             <Typography sx={{ mb: 3, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>
-                                This is to certify that <span style={{ fontWeight: 600 }}>{experienceData?.employeeName}</span> has worked with our organization as <span style={{ fontWeight: 600 }}>{experienceData?.position}</span> from <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.joiningDate)}</span> to <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.lastWorkingDate)}</span>.
+                                This is to certify that <span style={{ fontWeight: 600 }}>{experienceData?.employeeName}</span>
+                                has worked with our organization as <span style={{ fontWeight: 600 }}>{experienceData?.position}</span>
+                                from <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.joiningDate)}</span>
+                                to <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.lastWorkingDate)}</span>
+                                (<span style={{ fontWeight: 600 }}>
+                                    {calculateExperience(
+                                        experienceData?.joiningDate,
+                                        experienceData?.lastWorkingDate
+                                    )}
+                                </span>).
                             </Typography>
 
                             <Typography sx={{ mb: 3, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>

@@ -363,9 +363,11 @@ const ExitInterviewManagement = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const areAllAnswersFilled = exitQuestions.every(
-    (q) => answers[q.id] && answers[q.id].trim()
-  );
+  const areAllAnswersFilled =
+    exitQuestions.length > 0 &&
+    exitQuestions.every(
+      (q) => answers[q.id] && answers[q.id].trim()
+    );
 
   const isFormValid =
     selectedEmployee &&

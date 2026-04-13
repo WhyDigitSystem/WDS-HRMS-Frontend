@@ -670,7 +670,7 @@ const UserInterview = () => {
                                 </Button>
 
                                 <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                    <Button
+                                    {/* <Button
                                         variant="outlined"
                                         onClick={handleSaveProgress}
                                         disabled={saving}
@@ -690,7 +690,7 @@ const UserInterview = () => {
                                         }}
                                     >
                                         Save Progress
-                                    </Button>
+                                    </Button> */}
 
                                     {currentIndex === questions.length - 1 ? (
                                         <Button

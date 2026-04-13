@@ -42,6 +42,7 @@ const LeaveRequest = () => {
   const [totalLeaveDays, setTotalLeaveDays] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [allReportingPersonList, setAllReportingPersonList] = useState([]);
+  const [leaveBalance, setLeaveBalance] = useState([]);
   const [formData, setFormData] = useState({
     leaveType: '',
     leaveTypeCode: '',
@@ -161,14 +162,25 @@ const LeaveRequest = () => {
 
   const getLeaveType = async () => {
     try {
-      const result = await apiCalls('get', `leaveprocess/getAllLeaveTypeFromLeaveMaster?employeeCode=${employeeCode}&orgId=${orgId}`);
+      const result = await apiCalls(
+        'get',
+        `leaveprocess/getAllLeaveTypeFromLeaveMaster?employeeCode=${employeeCode}&orgId=${orgId}`
+      );
 
       const formattedLeaveList = result.paramObjectsMap.leaveRequestVO.map((leave) => ({
         ...leave,
-        leaveDays: parseFloat(leave.leaveDays).toString()
+        leaveDays: parseFloat(leave.leaveDays)
       }));
 
       setLeaveTypeList(formattedLeaveList);
+
+      // 🔥 FILTER ONLY AVAILABLE LEAVES (> 0)
+      const availableLeaves = formattedLeaveList.filter(
+        (leave) => leave.leaveDays > 0
+      );
+
+      setLeaveBalance(availableLeaves);
+
     } catch (error) {
       console.error('Error fetching leave types:', error);
     }
@@ -740,11 +752,59 @@ const LeaveRequest = () => {
     <>
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
         <div className="row d-flex ml">
-          <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-            <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
-            <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
-            <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} margin="0 10px 0 10px" />
+          <div style={{ marginBottom: '20px' }}>
+
+            {/* ✅ BUTTON ROW */}
+            <div
+              className="d-flex flex-wrap justify-content-start align-items-center"
+              style={{ gap: '10px' }}
+            >
+              <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
+              <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+              <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
+              <ActionButton
+                title="Save"
+                icon={SaveIcon}
+                isLoading={isLoading}
+                onClick={handleSave}
+              />
+            </div>
+
+            {/* ✅ LEAVE BALANCE ROW */}
+            {leaveBalance.length > 0 && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '10px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  alignItems: 'center'
+                }}
+              >
+                <span style={{ fontWeight: 600, marginRight: '10px' }}>
+                  Available Leaves:
+                </span>
+
+                {leaveBalance.map((leave) => (
+                  <div
+                    key={leave.leaveTypeCode}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#e0f2fe',
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: 500
+                    }}
+                  >
+                    {leave.leaveType} : {leave.leaveDays}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         {listView ? (
@@ -771,8 +831,10 @@ const LeaveRequest = () => {
                   onChange={handleLeaveTypeChange} // Use new function for validation
                   renderOption={(props, option) => {
                     let textColor = '#888';
-                    if (option.leaveDays === '0') textColor = 'red';
-                    else if (parseInt(option.leaveDays) > 5) textColor = 'green';
+                    const days = Number(option.leaveDays);
+
+                    if (days === 0) textColor = 'red';
+                    else if (days > 5) textColor = 'green';
                     else textColor = 'orange';
 
                     return (
