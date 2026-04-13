@@ -29,10 +29,18 @@ const Transition = React.forwardRef(function Transition(props, ref) {
     />
   );
 });
-const HRFeedback= () => {
+const HRFeedback = () => {
   // const paginationModel = { page: 0, pageSize: 5 };
-  const Engagement = [{ value: 'Yes' }, { value: 'No' }];
-  const Status = [{ value: 'Promoted' }, { value: 'Not Promoted' }];
+  const yesNoOptions = [
+    { value: 'YES' },
+    { value: 'NO' }
+  ];
+
+  const engagementOptions = [
+    { value: 'Excellent' },
+    { value: 'Good' },
+    { value: 'Poor' }
+  ];
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [open, setOpen] = useState(true);
@@ -261,39 +269,58 @@ const HRFeedback= () => {
                   {/* Promotion */}
                   <div className="col-md-3 mb-3">
                     <TextField
+                      select
                       label={
                         <span>
                           Eligibility for Promotion <span style={{ color: 'red' }}> *</span>
                         </span>
                       }
-                      variant="outlined"
                       size="small"
+                      fullWidth
                       name="promotion"
                       value={watch('promotion') || ''}
-                      fullWidth
                       {...register('promotion', { required: 'Eligibility for Promotion is required' })}
+                      onChange={(e) => {
+                        setValue('promotion', e.target.value);
+                        trigger('promotion');
+                      }}
                       error={!!errors.promotion}
                       helperText={errors.promotion?.message}
-                    />
+                    >
+                      {yesNoOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.value}
+                        </MenuItem>
+                      ))}
+                    </TextField>
                   </div>
                   {/* Increment */}
                   <div className="col-md-3 mb-3">
                     <TextField
-                      // label="Eligibility for Increment"
+                      select
                       label={
                         <span>
                           Eligibility for Increment <span style={{ color: 'red' }}> *</span>
                         </span>
                       }
-                      variant="outlined"
                       size="small"
+                      fullWidth
                       name="increment"
                       value={watch('increment') || ''}
-                      fullWidth
                       {...register('increment', { required: 'Eligibility for Increment is required' })}
+                      onChange={(e) => {
+                        setValue('increment', e.target.value);
+                        trigger('increment');
+                      }}
                       error={!!errors.increment}
                       helperText={errors.increment?.message}
-                    />
+                    >
+                      {yesNoOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.value}
+                        </MenuItem>
+                      ))}
+                    </TextField>
                   </div>
                   {/* Score */}
                   <div className="col-md-3 mb-3">
@@ -323,20 +350,17 @@ const HRFeedback= () => {
                   {/* Engagement */}
                   <div className="col-md-3 mb-3">
                     <TextField
-                      id="outlined-basic"
-                      // label="Adherance to Employee Engagement Plan"
+                      select
                       label={
                         <span>
                           Adherance to Employee Engagement Plan <span style={{ color: 'red' }}> *</span>
                         </span>
                       }
-                      select
                       size="small"
                       fullWidth
-                      variant="outlined"
                       name="engagement"
                       value={watch('engagement') || ''}
-                      {...register('engagement', { required: 'Adherance to Employee Engagement Plan is required' })}
+                      {...register('engagement', { required: 'Adherance is required' })}
                       onChange={(e) => {
                         setValue('engagement', e.target.value);
                         trigger('engagement');
@@ -344,7 +368,7 @@ const HRFeedback= () => {
                       error={!!errors.engagement}
                       helperText={errors.engagement?.message}
                     >
-                      {Engagement.map((option) => (
+                      {engagementOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.value}
                         </MenuItem>
@@ -355,17 +379,14 @@ const HRFeedback= () => {
                   {/* Promotion Status */}
                   <div className="col-md-3 mb-3">
                     <TextField
-                      id="outlined-basic"
-                      // label="Promotion Status"
+                      select
                       label={
                         <span>
                           Promotion Status <span style={{ color: 'red' }}> *</span>
                         </span>
                       }
-                      select
                       size="small"
                       fullWidth
-                      variant="outlined"
                       name="status"
                       value={watch('status') || ''}
                       {...register('status', { required: 'Promotion Status is required' })}
@@ -376,7 +397,7 @@ const HRFeedback= () => {
                       error={!!errors.status}
                       helperText={errors.status?.message}
                     >
-                      {Status.map((option) => (
+                      {yesNoOptions.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.value}
                         </MenuItem>

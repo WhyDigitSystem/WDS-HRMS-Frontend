@@ -33,11 +33,17 @@ const AppraiserReview = () => {
     const [editId, setEditId] = useState('');
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [listView, setListView] = useState(true); // Changed to true to show list view first
+    const [listView, setListView] = useState(true);
     const [reportingPersonDetails, setReportingPersonDetails] = useState([]);
     const [employeeDetailsData, setEmployeeDetailsData] = useState({
         empCode: "",
         empName: "",
+        department: "",
+        designation: "",
+        reportingHeadCode: "",
+        reportingHead: "",
+        reportingHeadDesignation: "",
+        branch: ""
     });
 
     const [formData, setFormData] = useState({
@@ -66,7 +72,6 @@ const AppraiserReview = () => {
             }
         },
         { accessorKey: 'appraisalYear', header: 'Year', size: 140 },
-        // { accessorKey: 'active', header: 'Active', size: 140 }
     ];
 
     const [goalsDetailsData, setGoalsDetailsData] = useState([{
@@ -80,8 +85,9 @@ const AppraiserReview = () => {
         comments: '',
         performanceSelf: '',
         selfRating: '',
-        appraiserrating: '',
-        apprjustification: ''
+        firstLevelSupervisor: '',  // ✅ From API - DISABLED
+        appraiserRating: '',        // ✅ Admin can select - EDITABLE
+        appraiserJustification: ''  // ✅ Admin can enter - EDITABLE
     }]);
 
     const [goalsDetailsErrors, setGoalsDetailsErrors] = useState([{
@@ -94,42 +100,10 @@ const AppraiserReview = () => {
         comments: '',
         performanceSelf: '',
         selfRating: '',
-        appraiserrating: '',
-        apprjustification: ''
+        firstLevelSupervisor: '',
+        appraiserRating: '',
+        appraiserJustification: ''
     }]);
-
-    useEffect(() => {
-        getAllPerformanceGoals();
-
-        const today = new Date();
-        const currentMonth = months[today.getMonth()];
-        const currentYear = today.getFullYear();
-
-        setSelectedMonth(currentMonth.name);
-        setFormData({ month: currentMonth.value, year: currentYear });
-    }, []); // Make sure this empty dependency array is present
-
-    useEffect(() => {
-        if (loginUserName) {
-            getReportingPerson();
-        }
-    }, [loginUserName]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            const reportingResponse = await getReportingPerson();
-            // Wait until reportingPersonDetails is updated before calling next API
-        };
-
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        if (reportingPersonDetails?.reportingto) {
-            getAllPerformanceGoals(reportingPersonDetails.reportingto);
-        }
-    }, [reportingPersonDetails]);
-
 
     const months = [
         { name: 'January', value: '01' },
@@ -149,48 +123,26 @@ const AppraiserReview = () => {
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 10 }, (_, index) => currentYear - index);
 
-    const handleSelectChange = (index, field, value) => {
-        const updatedData = [...goalsDetailsData];
-        updatedData[index][field] = value; // dynamically update the field
-        setGoalsDetailsData(updatedData);
-    };
-
-    // const handleMonthChange = (event) => {
-    //     const selected = months.find((m) => m.name === event.target.value);
-    //     setSelectedMonth(selected?.name || ''); // For display
-    //     setFormData((prev) => ({ ...prev, month: selected?.value || '' })); // For API
-    //     setFieldErrors((prev) => ({ ...prev, month: '' })); // Clear month error
-    // };
-
-    const handleMonthChange = (event) => {
-        const selectedMonthName = event.target.value;
-        setSelectedMonth(selectedMonthName); // For display and API payload
-
-        // Also store the value in formData if needed elsewhere
-        const selectedMonthObj = months.find((m) => m.name === selectedMonthName);
-        setFormData((prev) => ({ ...prev, month: selectedMonthObj?.value || '' }));
-
-        setFieldErrors((prev) => ({ ...prev, month: '' })); // Clear month error
-    };
-
-    const handleYearChange = (event) => {
-        const selectedYear = event.target.value;
-        setFormData((prev) => ({ ...prev, year: selectedYear }));
-        setFieldErrors((prev) => ({ ...prev, year: '' })); // Clear year error
-    };
+    useEffect(() => {
+        getAllPerformanceGoals();
+        const today = new Date();
+        const currentMonth = months[today.getMonth()];
+        const currentYear = today.getFullYear();
+        setSelectedMonth(currentMonth.name);
+        setFormData({ month: currentMonth.value, year: currentYear });
+    }, []);
 
     useEffect(() => {
-        const storedEmployeeCode = localStorage.getItem('employeeCode'); // or from your auth state
-        if (storedEmployeeCode) {
-            fetchEmployeeDetails(storedEmployeeCode);
+        if (loginUserName) {
+            getReportingPerson();
         }
-    }, []);
+    }, [loginUserName]);
 
     const getReportingPerson = async () => {
         try {
             const response = await apiCalls('get', `/performancegoals/getReportingUserName?username=${loginUserName}`);
             const data = response?.paramObjectsMap?.getReportingUserName?.[0] || null;
-            setReportingPersonDetails(data); // { reportingto, reportingcode }
+            setReportingPersonDetails(data);
         } catch (error) {
             console.error('Error fetching reporting person details:', error);
             showToast('Error fetching reporting person details', 'error');
@@ -198,50 +150,28 @@ const AppraiserReview = () => {
         }
     };
 
-    const fetchEmployeeDetails = async (employeeCode) => {
-        if (!employeeCode || !orgId) return;
-
+    // ✅ Fetches supervisor ratings from the API
+    const getSupervisorRatings = async (year, empCode) => {
         try {
             const response = await apiCalls(
                 'get',
-                `/goalsController/getEmployeeDetails?employeeCode=${employeeCode}&orgId=${orgId}`
+                `/performancegoals/getSupervisorRatings?appraisalYear=${year}&empCode=${empCode}&orgId=${orgId}`
             );
 
             if (response.status) {
-                const employeeData =
-                    response.paramObjectsMap?.employeeVO?.[0] ||
-                    response.paramObjectsMap?.employeeDetails ||
-                    response.data;
-
-                if (employeeData) {
-                    setEmployeeDetailsData({
-                        empCode: employeeData.empCode || "",
-                        empName: employeeData.empName || employeeData.name || "",
-                        department: employeeData.department || "",
-                        designation: employeeData.empDesignation || employeeData.designation || "",
-                        reportingHeadCode: employeeData.reportingPersonCode || "",
-                        reportingHead: employeeData.reportingPerson || "",
-                        reportingHeadDesignation: employeeData.reportingPersonRole || "",
-                        branch: employeeData.branch || "",
-                    });
-                } else {
-                    showToast('error', 'No employee data found');
-                }
-            } else {
-                showToast('error', response.message || 'Failed to fetch employee details');
+                return response.paramObjectsMap.data || [];
             }
         } catch (error) {
-            console.error('Error fetching employee details:', error);
-            showToast('error', 'Failed to fetch employee details');
+            console.error('Error fetching supervisor ratings:', error);
         }
+        return [];
     };
 
-    const getAllPerformanceGoals = async (reportingTo) => {
+    const getAllPerformanceGoals = async () => {
         try {
             setIsLoading(true);
             const response = await apiCalls(
                 'get',
-                // `/performancegoals/getPerformanceGoalsByOrgIdAndReportingPerson?orgId=${orgId}&reportingPerson=${encodeURIComponent(reportingTo)}`
                 `/performancegoals/getPerformanceGoalsByOrgIdAndReportingPerson?orgId=${orgId}&reportingPerson=${employeeName}`
             );
             if (response.status) {
@@ -259,9 +189,10 @@ const AppraiserReview = () => {
         }
     };
 
+    // ✅ Updated: Maps supervisor ratings to First-Level Supervisor (disabled) and keeps Appraiser Rating editable
     const getPerformanceGoalsById = async (row) => {
         setEditId(row.original.id);
-        setListView(false); // Switch to form view when row is clicked
+        setListView(false);
         setIsEditing(true);
 
         try {
@@ -270,7 +201,6 @@ const AppraiserReview = () => {
             if (response.status) {
                 const appraisee = response?.paramObjectsMap?.performanceGoalsVO || {};
 
-                // Set main employee details
                 setEmployeeDetailsData({
                     empCode: appraisee.empCode || '',
                     empName: appraisee.empName || '',
@@ -281,7 +211,6 @@ const AppraiserReview = () => {
                     designation: appraisee.designation || ''
                 });
 
-                // Set form data
                 setFormData({
                     finYear: appraisee.finYear || '',
                     month: appraisee.pmonth || '',
@@ -289,14 +218,30 @@ const AppraiserReview = () => {
                     active: appraisee.active === 'Active',
                 });
 
-                // Fix: Set selected month for display - find by name instead of value
                 const monthObj = months.find(m => m.name === appraisee.pmonth);
                 setSelectedMonth(monthObj?.name || appraisee.pmonth || '');
 
-                // Set goals details for the table
+                // ✅ Fetch supervisor ratings
+                const supervisorData = await getSupervisorRatings(
+                    appraisee.appraisalYear,
+                    appraisee.empCode
+                );
+
+                // ✅ Create a map for quick lookup by goals (perspective)
+                const supervisorRatingMap = new Map();
+                supervisorData.forEach(item => {
+                    supervisorRatingMap.set(item.goals, {
+                        score: item.score,
+                        supervisorRating: item.score,
+                        detailsId: item.detailsId
+                    });
+                });
+
                 const details = appraisee.performanceGoalsDtlVO || [];
-                setGoalsDetailsData(
-                    details.map(detail => ({
+                const mappedData = details.map((detail) => {
+                    const supervisorMatch = supervisorRatingMap.get(detail.perspective);
+
+                    return {
                         id: detail.id,
                         perspective: detail.perspective || '',
                         objectiveDescription: detail.objectivedesc || '',
@@ -306,13 +251,23 @@ const AppraiserReview = () => {
                         performance: detail.performance || '',
                         comments: detail.comments || '',
                         performanceSelf: detail.performanceself || '',
-                        selfRating: detail.selfrating || '',
-                        appraiserrating: detail.appraiserrating || '',
-                        apprjustification: detail.apprjustification || ''
-                    }))
-                );
 
-                // Reset errors for details table
+                        // ✅ Self Rating
+                        selfRating: detail.selfrating?.toString() || '',
+
+                        // ✅ First-Level Supervisor - From API (DISABLED)
+                        firstLevelSupervisor: supervisorMatch?.supervisorRating || '',
+
+                        // ✅ Appraiser Rating - From saved data (EDITABLE)
+                        appraiserRating: detail.appraiserrating || '',
+
+                        // ✅ Appraiser Justification - From saved data (EDITABLE)
+                        appraiserJustification: detail.apprjustification || ''
+                    };
+                });
+
+                setGoalsDetailsData(mappedData);
+
                 setGoalsDetailsErrors(
                     details.map(() => ({
                         perspective: '',
@@ -324,8 +279,9 @@ const AppraiserReview = () => {
                         comments: '',
                         performanceSelf: '',
                         selfRating: '',
-                        appraiserrating: '',
-                        apprjustification: ''
+                        firstLevelSupervisor: '',
+                        appraiserRating: '',
+                        appraiserJustification: ''
                     }))
                 );
 
@@ -339,30 +295,20 @@ const AppraiserReview = () => {
     };
 
     const handleSave = async () => {
-        // First remove any empty rows
         const nonEmptyDetailsData = goalsDetailsData.filter(row =>
             row.perspective ||
             row.objectiveDescription ||
             row.assigned ||
             row.measurement ||
-            row.qtrTarget ||
-            row.performance ||
-            row.comments ||
-            row.performanceSelf ||
-            row.selfRating ||
-            row.appraiserrating ||
-            row.apprjustification
+            row.qtrTarget
         );
 
-        // Validate main form fields
         const errors = {};
         if (!employeeDetailsData.empCode) errors.employeeCode = 'Employee Code is required';
         if (!employeeDetailsData.empName) errors.employeeName = 'Employee Name is required';
-        if (!formData.month) errors.month = 'Month is required';
         if (!selectedMonth) errors.month = 'Month is required';
         if (!formData.year) errors.year = 'Year is required';
 
-        // Validate goals details
         const detailsErrors = [];
         let hasDetailErrors = false;
 
@@ -393,7 +339,6 @@ const AppraiserReview = () => {
             detailsErrors[index] = rowErrors;
         });
 
-        // Set errors if any
         if (Object.keys(errors).length > 0 || hasDetailErrors) {
             setFieldErrors(errors);
             setGoalsDetailsErrors(detailsErrors);
@@ -403,8 +348,8 @@ const AppraiserReview = () => {
 
         setIsLoading(true);
 
-        // Prepare performance goals details DTO
         const performanceGoalsDetailsDTO = nonEmptyDetailsData.map(row => ({
+            ...(row.id && !isNaN(parseInt(row.id)) && row.id.toString().length > 10 ? { id: parseInt(row.id) } : {}),
             perspective: row.perspective,
             objectivedesc: row.objectiveDescription,
             perassigned: row.assigned,
@@ -414,25 +359,22 @@ const AppraiserReview = () => {
             comments: row.comments || '',
             performanceself: row.performanceSelf || '',
             selfrating: row.selfRating ? parseInt(row.selfRating) : 0,
-            appraiserrating: row.appraiserrating, // Default value
-            apprjustification: row.apprjustification // Default value
+            appraiserrating: row.appraiserRating || '',  // ✅ Save Appraiser Rating
+            apprjustification: row.appraiserJustification || ''  // ✅ Save Appraiser Justification
         }));
 
         const payload = {
             ...(editId && { id: parseInt(editId) }),
             empCode: employeeDetailsData.empCode,
             empName: employeeDetailsData.empName,
-            // reportingto: reportingPersonDetails?.reportingto || '',
-            // reportingname: reportingPersonDetails?.reportingto || '',
             reportingto: employeeName || '',
             reportingname: employeeName || '',
-            // pmonth: formData.month,
             pmonth: selectedMonth,
             apprisalYear: formData.year.toString(),
             orgId: orgId,
-            createdBy: loginUserName, // Adjust based on your auth system
+            createdBy: loginUserName,
             performanceGoalsDetailsDTO: performanceGoalsDetailsDTO,
-            approve1: '', // Default empty values as per API
+            approve1: '',
             approve1name: '',
             approve1on: '',
             department,
@@ -446,7 +388,7 @@ const AppraiserReview = () => {
             if (response.status) {
                 showToast('success', editId ? 'Performance goal updated successfully' : 'Performance goal created successfully');
                 handleClear();
-                getAllPerformanceGoals(); // Refresh the list data
+                getAllPerformanceGoals();
                 setListView(true);
             } else {
                 showToast('error', response.message || 'Operation failed');
@@ -485,8 +427,9 @@ const AppraiserReview = () => {
                 comments: '',
                 performanceSelf: '',
                 selfRating: '',
-                appraiserrating: '',
-                apprjustification: ''
+                firstLevelSupervisor: '',
+                appraiserRating: '',
+                appraiserJustification: ''
             }
         ]);
 
@@ -500,22 +443,13 @@ const AppraiserReview = () => {
             comments: '',
             performanceSelf: '',
             selfRating: '',
-            appraiserrating: '',
-            apprjustification: ''
+            firstLevelSupervisor: '',
+            appraiserRating: '',
+            appraiserJustification: ''
         }]);
 
         setEditId('');
         setIsEditing(false);
-
-        const storedEmployeeCode = localStorage.getItem('employeeCode');
-        if (storedEmployeeCode) {
-            fetchEmployeeDetails(storedEmployeeCode);
-        } else {
-            setEmployeeDetailsData({
-                empCode: "",
-                empName: "",
-            });
-        }
 
         const today = new Date();
         const currentMonth = months[today.getMonth()];
@@ -524,10 +458,6 @@ const AppraiserReview = () => {
     };
 
     const handleAddRow = () => {
-        if (isLastRowEmpty(goalsDetailsData)) {
-            displayRowError(goalsDetailsData);
-            return;
-        }
         const newRow = {
             id: Date.now(),
             perspective: '',
@@ -539,8 +469,9 @@ const AppraiserReview = () => {
             comments: '',
             performanceSelf: '',
             selfRating: '',
-            appraiserrating: '',
-            apprjustification: ''
+            firstLevelSupervisor: '',
+            appraiserRating: '',
+            appraiserJustification: ''
         };
         setGoalsDetailsData([...goalsDetailsData, newRow]);
         setGoalsDetailsErrors([...goalsDetailsErrors, {
@@ -553,39 +484,10 @@ const AppraiserReview = () => {
             comments: '',
             performanceSelf: '',
             selfRating: '',
-            appraiserrating: '',
-            apprjustification: ''
+            firstLevelSupervisor: '',
+            appraiserRating: '',
+            appraiserJustification: ''
         }]);
-    };
-
-    const isLastRowEmpty = (table) => {
-        const lastRow = table[table.length - 1];
-        if (!lastRow) return false;
-
-        return !lastRow.perspective || !lastRow.objectiveDescription || !lastRow.assigned || !lastRow.measurement || !lastRow.qtrTarget || !lastRow.performance || !lastRow.comments || !lastRow.performanceSelf || !lastRow.selfRating || !lastRow.appraiserrating || !lastRow.apprjustification;
-    };
-
-    const displayRowError = (table) => {
-        setGoalsDetailsErrors((prevErrors) => {
-            const newErrors = [...prevErrors];
-            const lastIndex = table.length - 1;
-
-            newErrors[lastIndex] = {
-                ...newErrors[lastIndex],
-                perspective: !table[lastIndex].perspective ? 'Perspective is required' : '',
-                objectiveDescription: !table[lastIndex].objectiveDescription ? 'Objective Description is required' : '',
-                assigned: !table[lastIndex].assigned ? 'Assigned is required' : '',
-                measurement: !table[lastIndex].measurement ? 'Measurement is required' : '',
-                qtrTarget: !table[lastIndex].qtrTarget ? 'Quarter Target is required' : '',
-                performance: !table[lastIndex].performance ? 'Performance is required' : '',
-                comments: !table[lastIndex].comments ? 'Comments is required' : '',
-                performanceSelf: !table[lastIndex].performanceSelf ? 'Performance Self is required' : '',
-                selfRating: !table[lastIndex].selfRating ? 'Self Rating is required' : '',
-                appraiserrating: !table[lastIndex].appraiserrating ? 'Appraiser Rating is required' : '',
-                apprjustification: !table[lastIndex].apprjustification ? 'Appraiser Justification is required' : ''
-            };
-            return newErrors;
-        });
     };
 
     const handleDeleteRow = (id) => {
@@ -599,7 +501,6 @@ const AppraiserReview = () => {
     };
 
     const handleView = () => {
-        // Refresh data when switching to list view
         if (!listView) {
             getAllPerformanceGoals();
         }
@@ -623,6 +524,32 @@ const AppraiserReview = () => {
         }
     };
 
+    const handleSelectChange = (index, field, value) => {
+        const updatedData = [...goalsDetailsData];
+        updatedData[index][field] = value;
+        setGoalsDetailsData(updatedData);
+
+        if (value) {
+            const newErrors = [...goalsDetailsErrors];
+            newErrors[index] = { ...newErrors[index], [field]: '' };
+            setGoalsDetailsErrors(newErrors);
+        }
+    };
+
+    const handleMonthChange = (event) => {
+        const selectedMonthName = event.target.value;
+        setSelectedMonth(selectedMonthName);
+        const selectedMonthObj = months.find((m) => m.name === selectedMonthName);
+        setFormData((prev) => ({ ...prev, month: selectedMonthObj?.value || '' }));
+        setFieldErrors((prev) => ({ ...prev, month: '' }));
+    };
+
+    const handleYearChange = (event) => {
+        const selectedYear = event.target.value;
+        setFormData((prev) => ({ ...prev, year: selectedYear }));
+        setFieldErrors((prev) => ({ ...prev, year: '' }));
+    };
+
     return (
         <>
             <div>
@@ -631,19 +558,7 @@ const AppraiserReview = () => {
             <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px' }}>
                 <div className="row d-flex ml">
                     <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-                        {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
-                        {/* <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} /> */}
-
-                        {/* Conditional buttons for List View vs Form View */}
                         {listView ? (
-                            // <ActionButton
-                            //     title="Add New"
-                            //     icon={AddIcon}
-                            //     onClick={() => {
-                            //         setListView(false);
-                            //         handleClear(); // Clear form for new entry
-                            //     }}
-                            // />
                             <></>
                         ) : (
                             <>
@@ -651,7 +566,7 @@ const AppraiserReview = () => {
                                     title="Back to List"
                                     icon={FormatListBulletedTwoToneIcon}
                                     onClick={() => {
-                                        getAllPerformanceGoals(); 
+                                        getAllPerformanceGoals();
                                         setListView(true);
                                     }}
                                 />
@@ -660,11 +575,6 @@ const AppraiserReview = () => {
                                     icon={SaveIcon}
                                     onClick={handleSave}
                                 />
-                                {/* <ActionButton
-                                    title="Upload"
-                                    icon={UploadIcon}
-                                    isLoading={isLoading}
-                                /> */}
                             </>
                         )}
                     </div>
@@ -673,7 +583,6 @@ const AppraiserReview = () => {
                         isLoading ? (
                             <div>Loading data...</div>
                         ) : (
-                            // List View
                             <CommonListViewTable
                                 data={listViewData}
                                 columns={listViewColumns}
@@ -683,42 +592,34 @@ const AppraiserReview = () => {
                             />
                         )
                     ) : (
-                        // Form View
                         <>
                             <div className="row d-flex ml">
-
                                 <div className="col-md-3 mb-1">
                                     <TextField
-                                        id="outlined-textarea-zip"
                                         label="Employee Code"
                                         variant="outlined"
                                         size="small"
                                         fullWidth
-                                        name="employeeCode"
                                         value={employeeDetailsData.empCode}
                                         disabled
-                                        inputProps={{ maxLength: 10 }}
                                     />
                                 </div>
 
                                 <div className="col-md-3 mb-1">
                                     <TextField
-                                        id="outlined-textarea-name"
                                         label="Employee Name"
                                         variant="outlined"
                                         size="small"
                                         fullWidth
-                                        name="employeeName"
                                         value={employeeDetailsData.empName}
                                         disabled
-                                        inputProps={{ maxLength: 50 }}
                                     />
                                 </div>
 
                                 <div className="col-md-3 mb-1">
                                     <FormControl size="small" variant="outlined" fullWidth error={!!fieldErrors.month}>
                                         <InputLabel>Select Month</InputLabel>
-                                        <Select label="Select Month" disabled value={selectedMonth} onChange={handleMonthChange}>
+                                        <Select label="Select Month" value={selectedMonth} onChange={handleMonthChange}>
                                             {months.map((m) => (
                                                 <MenuItem key={m.value} value={m.name}>
                                                     {m.name}
@@ -732,7 +633,7 @@ const AppraiserReview = () => {
                                 <div className="col-md-3 mb-1">
                                     <FormControl size="small" variant="outlined" fullWidth error={!!fieldErrors.year}>
                                         <InputLabel>Select Year</InputLabel>
-                                        <Select label="Select Year" disabled value={formData.year} onChange={handleYearChange}>
+                                        <Select label="Select Year" value={formData.year} onChange={handleYearChange}>
                                             {years.map((y) => (
                                                 <MenuItem key={y} value={y}>
                                                     {y}
@@ -742,8 +643,8 @@ const AppraiserReview = () => {
                                         {fieldErrors.year && <FormHelperText>{fieldErrors.year}</FormHelperText>}
                                     </FormControl>
                                 </div>
-
                             </div>
+
                             <div className="row">
                                 <Box sx={{ width: '100%' }}>
                                     <Tabs value={value} onChange={handleTabChange} textColor="secondary" indicatorColor="secondary">
@@ -760,45 +661,25 @@ const AppraiserReview = () => {
                                             <div className="row mt-0">
                                                 <div className="col-lg-12">
                                                     <div style={{ overflowX: 'auto', width: '100%' }}>
-                                                        <table
-                                                            className="table table-bordered"
-                                                            style={{ minWidth: '1600px', borderCollapse: 'collapse' }}
-                                                        >
+                                                        <table className="table table-bordered" style={{ minWidth: '1800px', borderCollapse: 'collapse' }}>
                                                             <thead>
-                                                                <tr
-                                                                    style={{
-                                                                        background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
-                                                                        color: 'white',
-                                                                    }}
-                                                                >
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '68px' }}>
-                                                                        Action
-                                                                    </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '50px' }}>
-                                                                        S.No
-                                                                    </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>
-                                                                        Perspective
-                                                                    </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>
-                                                                        Objective Description
-                                                                    </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '60px' }}>
-                                                                        Assigned
-                                                                    </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>
-                                                                        Measurement
-                                                                    </th>
+                                                                <tr style={{ background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)', color: 'white' }}>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '68px' }}>Action</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '50px' }}>S.No</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Perspective</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Objective Description</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '60px' }}>Assigned</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Measurement</th>
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Qtr Target</th>
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Performance</th>
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Comments</th>
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Performance Self</th>
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Self Rating</th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Appraiser</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>First-Level Supervisor</th>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Appraiser Rating</th>
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>Appraiser Justification</th>
                                                                 </tr>
                                                             </thead>
-
                                                             <tbody>
                                                                 {goalsDetailsData.map((row, index) => (
                                                                     <tr key={row.id}>
@@ -811,52 +692,38 @@ const AppraiserReview = () => {
                                                                         </td>
                                                                         <td className="text-center pt-3">{index + 1}</td>
                                                                         <td className="border px-2 py-2">
-                                                                            <select
+                                                                            <TextField
+                                                                                fullWidth
+                                                                                size="small"
                                                                                 value={row.perspective}
-                                                                                onChange={(e) => handleSelectChange(index, 'perspective', e.target.value)}
-                                                                                disabled={isEditing}
-                                                                                className={goalsDetailsErrors[index]?.perspective ? 'error form-control' : 'form-control'}
-                                                                            >
-                                                                                <option value="">Select Option</option>
-                                                                                <option value="Financial">Financial</option>
-                                                                                <option value="Customer">Customer</option>
-                                                                                <option value="Internal Processes">Internal Processes</option>
-                                                                                <option value="Learning & Growth">Learning & Growth</option>
-                                                                            </select>
-
-                                                                            {goalsDetailsErrors[index]?.perspective && (
-                                                                                <div className="mt-2" style={{ color: 'red', fontSize: '12px' }}>
-                                                                                    {goalsDetailsErrors[index].perspective}
-                                                                                </div>
-                                                                            )}
+                                                                                disabled
+                                                                                onChange={(e) => handleDetailChange(row.id, 'perspective', e.target.value)}
+                                                                                error={!!goalsDetailsErrors[index]?.perspective}
+                                                                                helperText={goalsDetailsErrors[index]?.perspective}
+                                                                            />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.objectiveDescription}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleDetailChange(row.id, 'objectiveDescription', e.target.value)}
                                                                                 error={!!goalsDetailsErrors[index]?.objectiveDescription}
                                                                                 helperText={goalsDetailsErrors[index]?.objectiveDescription}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.assigned}
+                                                                                disabled
                                                                                 placeholder="%"
-                                                                                disabled={isEditing}
                                                                                 onChange={(e) => {
                                                                                     const value = e.target.value;
-
-                                                                                    // Allow only digits and an optional '%' symbol
                                                                                     if (/^\d{0,3}%?$/.test(value)) {
-                                                                                        // Remove % to check numeric range
                                                                                         const numericPart = value.replace('%', '');
-
-                                                                                        // Allow empty or 0–100 range
                                                                                         if (numericPart === '' || Number(numericPart) <= 100) {
                                                                                             handleDetailChange(row.id, 'assigned', value);
                                                                                         }
@@ -866,56 +733,56 @@ const AppraiserReview = () => {
                                                                                 helperText={goalsDetailsErrors[index]?.assigned}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.measurement}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleDetailChange(row.id, 'measurement', e.target.value)}
                                                                                 error={!!goalsDetailsErrors[index]?.measurement}
                                                                                 helperText={goalsDetailsErrors[index]?.measurement}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.qtrTarget}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleDetailChange(row.id, 'qtrTarget', e.target.value)}
                                                                                 error={!!goalsDetailsErrors[index]?.qtrTarget}
                                                                                 helperText={goalsDetailsErrors[index]?.qtrTarget}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.performance}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleDetailChange(row.id, 'performance', e.target.value)}
                                                                                 error={!!goalsDetailsErrors[index]?.performance}
                                                                                 helperText={goalsDetailsErrors[index]?.performance}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.comments}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleDetailChange(row.id, 'comments', e.target.value)}
                                                                                 error={!!goalsDetailsErrors[index]?.comments}
                                                                                 helperText={goalsDetailsErrors[index]?.comments}
                                                                             />
                                                                         </td>
-                                                                        <td>
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.performanceSelf}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleDetailChange(row.id, 'performanceSelf', e.target.value)}
                                                                                 error={!!goalsDetailsErrors[index]?.performanceSelf}
                                                                                 helperText={goalsDetailsErrors[index]?.performanceSelf}
@@ -924,7 +791,7 @@ const AppraiserReview = () => {
                                                                         <td className="border px-2 py-2">
                                                                             <select
                                                                                 value={row.selfRating}
-                                                                                disabled={isEditing}
+                                                                                disabled
                                                                                 onChange={(e) => handleSelectChange(index, 'selfRating', e.target.value)}
                                                                                 className={goalsDetailsErrors[index]?.selfRating ? 'error form-control' : 'form-control'}
                                                                             >
@@ -933,39 +800,49 @@ const AppraiserReview = () => {
                                                                                     <option key={val} value={val}>{val}</option>
                                                                                 ))}
                                                                             </select>
-
                                                                             {goalsDetailsErrors[index]?.selfRating && (
                                                                                 <div className="mt-2" style={{ color: 'red', fontSize: '12px' }}>
                                                                                     {goalsDetailsErrors[index].selfRating}
                                                                                 </div>
                                                                             )}
                                                                         </td>
+                                                                        {/* ✅ First-Level Supervisor - DISABLED */}
+                                                                        <td className="border px-2 py-2">
+                                                                            <TextField
+                                                                                fullWidth
+                                                                                size="small"
+                                                                                value={row.firstLevelSupervisor}
+                                                                                disabled
+                                                                                placeholder="Auto-filled from API"
+                                                                            />
+                                                                        </td>
+                                                                        {/* ✅ Appraiser Rating - EDITABLE */}
                                                                         <td className="border px-2 py-2">
                                                                             <select
-                                                                                value={row.appraiserrating}
-                                                                                onChange={(e) => handleSelectChange(index, 'appraiserrating', e.target.value)}
-                                                                                className={goalsDetailsErrors[index]?.appraiserrating ? 'error form-control' : 'form-control'}
+                                                                                value={row.appraiserRating}
+                                                                                onChange={(e) => handleSelectChange(index, 'appraiserRating', e.target.value)}
+                                                                                className={goalsDetailsErrors[index]?.appraiserRating ? 'error form-control' : 'form-control'}
                                                                             >
-                                                                                <option value="">Select Option</option>
+                                                                                <option value="">Select Rating</option>
                                                                                 {[1, 2, 3, 4, 5].map((val) => (
                                                                                     <option key={val} value={val}>{val}</option>
                                                                                 ))}
                                                                             </select>
-
-                                                                            {goalsDetailsErrors[index]?.appraiserrating && (
+                                                                            {goalsDetailsErrors[index]?.appraiserRating && (
                                                                                 <div className="mt-2" style={{ color: 'red', fontSize: '12px' }}>
-                                                                                    {goalsDetailsErrors[index].appraiserrating}
+                                                                                    {goalsDetailsErrors[index].appraiserRating}
                                                                                 </div>
                                                                             )}
                                                                         </td>
-                                                                        <td>
+                                                                        {/* ✅ Appraiser Justification - EDITABLE */}
+                                                                        <td className="border px-2 py-2">
                                                                             <TextField
                                                                                 fullWidth
                                                                                 size="small"
-                                                                                value={row.apprjustification}
-                                                                                onChange={(e) => handleDetailChange(row.id, 'apprjustification', e.target.value)}
-                                                                                error={!!goalsDetailsErrors[index]?.apprjustification}
-                                                                                helperText={goalsDetailsErrors[index]?.apprjustification}
+                                                                                value={row.appraiserJustification}
+                                                                                onChange={(e) => handleDetailChange(row.id, 'appraiserJustification', e.target.value)}
+                                                                                error={!!goalsDetailsErrors[index]?.appraiserJustification}
+                                                                                helperText={goalsDetailsErrors[index]?.appraiserJustification}
                                                                             />
                                                                         </td>
                                                                     </tr>
@@ -986,4 +863,5 @@ const AppraiserReview = () => {
         </>
     );
 };
+
 export default AppraiserReview;

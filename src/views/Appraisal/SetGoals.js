@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FormatListBulletedTwoToneIcon from '@mui/icons-material/FormatListBulletedTwoTone';
 import SaveIcon from '@mui/icons-material/Save';
 import SearchIcon from '@mui/icons-material/Search';
-import { TextField, Box, Tab, Tabs, Autocomplete } from '@mui/material';
+import { TextField, Box, Tab, Tabs, FormControlLabel, Checkbox, Autocomplete, CircularProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
 import ActionButton from 'utils/ActionButton';
 import ToastComponent, { showToast } from 'utils/toast-component';
@@ -20,15 +20,22 @@ const SetGoals = () => {
   const [editId, setEditId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [listView, setListView] = useState(false);
-  const finYear = localStorage.getItem('finYear');
+  const [isLoadingGoals, setIsLoadingGoals] = useState(false);
 
-  // Initialize formData with employee code from localStorage
+  // New state variables for employee autocomplete
+  const [employeeOptions, setEmployeeOptions] = useState([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedAppraisal, setSelectedAppraisal] = useState(null);
+
   const [formData, setFormData] = useState({
     appraisalId: '',
-    code: localStorage.getItem('employeeCode') || '',
+    code: '',
     name: '',
+    designation: '',
     supervisorCode: '',
-    supervisorName: ''
+    supervisorName: '',
+    finYear: ''
   });
 
   const [fieldErrors, setFieldErrors] = useState({
@@ -51,27 +58,203 @@ const SetGoals = () => {
     { accessorKey: 'supervisorName', header: 'Supv Name', size: 140 }
   ];
 
-  // Consolidated initialization
-  useEffect(() => {
-    const initializeComponent = async () => {
-      await getPreGoalsByOrgId();
+  // Fetch KRA and KPI data based on Appraisal ID and Designation
+  const fetchGoalsByAppraisalAndDesignation = async (appraisalId, designation) => {
+    if (!appraisalId || !designation) return;
 
-      const employeeCode = localStorage.getItem('employeeCode');
-      if (employeeCode) {
-        await fetchEmployeeDetails(employeeCode);
-      }
-    };
-
-    initializeComponent();
-    getAppraisalDocId();
-  }, []);
-
-  // getPreGoalsByOrgId
-  const getPreGoalsByOrgId = async () => {
+    setIsLoadingGoals(true);
     try {
-      const response = await apiCalls('get', `/goalsController/getPreGoalsByOrgId?orgId=${orgId}`);
+      const response = await apiCalls(
+        'get',
+        `/goalsController/getGoalsByOrgIdByDesignation?appraisalid=${appraisalId}&designation=${encodeURIComponent(designation)}&orgId=${orgId}`
+      );
+
+      if (response.status && response.paramObjectsMap.goalsVO?.length > 0) {
+        const goalsData = response.paramObjectsMap.goalsVO[0];
+
+        // ✅ ADD THIS (VERY IMPORTANT)
+        setFormData((prev) => ({
+          ...prev,
+          finYear: goalsData.finYear   // 🔥 dynamic finYear from API
+        }));
+
+        if (goalsData.goalsDetailsVO?.length > 0) {
+          const populatedDetails = goalsData.goalsDetailsVO.map((detail) => ({
+            id: null,
+            area: detail.area,
+            keyPerformanceIndicator: detail.indicators,
+            goals: detail.goals || ''
+          }));
+
+          setGoalsDetailsData(populatedDetails);
+          setGoalsDetailsErrors(populatedDetails.map(() => ({ area: '', keyPerformanceIndicator: '', goals: '' })));
+        } else {
+          resetGoalsDetails();
+        }
+
+        setEditId('');
+      } else {
+        resetGoalsDetails();
+        setEditId('');
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      resetGoalsDetails();
+      setEditId('');
+    } finally {
+      setIsLoadingGoals(false);
+    }
+  };
+
+  const resetGoalsDetails = () => {
+    setGoalsDetailsData([{ id: null, area: '', keyPerformanceIndicator: '', goals: '' }]);
+    setGoalsDetailsErrors([{ area: '', keyPerformanceIndicator: '', goals: '' }]);
+  };
+
+  // Fetch all employees
+  const getAllEmployees = async () => {
+    const orgIdVal = parseInt(localStorage.getItem('orgId'));
+    const branchCode = localStorage.getItem('branch');
+
+    if (!orgIdVal || !branchCode) return;
+
+    setIsLoadingEmployees(true);
+    try {
+      const response = await apiCalls('get', `master/getAllEmployeeByOrgId?orgId=${orgIdVal}&branchCode=${branchCode}`);
+
+      if (response.status === true) {
+        const employees = response.paramObjectsMap.employeeVO || [];
+        // Format employees for Autocomplete (code - name)
+        const formattedEmployees = employees.map(emp => ({
+          code: emp.employeeCode,
+          name: emp.employee,
+          designation: emp.designation,
+          reportingPersonCode: emp.reportingPersonCode,
+          reportingPerson: emp.reportingPerson,
+          reportingPersonRole: emp.reportingRole,
+          branch: emp.branch,
+          email: emp.email,
+          mobileNo: emp.mobileNo
+        }));
+        setEmployeeOptions(formattedEmployees);
+      } else {
+        showToast('error', response.message || 'Failed to fetch employees');
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      showToast('error', 'Failed to fetch employees');
+    } finally {
+      setIsLoadingEmployees(false);
+    }
+  };
+
+  // Handle employee selection
+  const handleEmployeeSelect = (event, newValue) => {
+    setSelectedEmployee(newValue);
+
+    if (newValue) {
+      // Auto-fill all form fields
+      setFormData(prev => ({
+        ...prev,
+        code: newValue.code,
+        name: newValue.name,
+        supervisorCode: newValue.reportingPersonCode || '',
+        supervisorName: newValue.reportingPerson || '',
+        designation: newValue.designation || '',
+      }));
+
+      // Clear any field errors
+      setFieldErrors(prev => ({
+        ...prev,
+        code: '',
+        name: '',
+        supervisorCode: '',
+        supervisorName: ''
+      }));
+
+      showToast('success', `Employee ${newValue.name} selected successfully`);
+
+      // If appraisal ID is already selected, fetch goals data
+      if (formData.appraisalId && newValue.designation) {
+        fetchGoalsByAppraisalAndDesignation(formData.appraisalId, newValue.designation);
+      }
+    } else {
+      // Clear form when selection is cleared
+      setFormData(prev => ({
+        ...prev,
+        code: '',
+        name: '',
+        supervisorCode: '',
+        supervisorName: '',
+        designation: ''
+      }));
+      resetGoalsDetails();
+    }
+  };
+
+  // Handle Appraisal ID change
+  const handleAppraisalChange = (event, newValue) => {
+    setSelectedAppraisal(newValue);
+
+    setFormData((prev) => ({
+      ...prev,
+      appraisalId: newValue?.value || '',
+      department: newValue?.department || '',
+      designation: newValue?.designation || ''   // ✅ IMPORTANT
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      appraisalId: ''
+    }));
+
+    // Clear employee when appraisal changes
+    setSelectedEmployee(null);
+
+    resetGoalsDetails();
+  };
+
+  // useEffect(() => {
+  //   const fetchInitialData = async () => {
+  //     await getAllGoals();
+  //     await getAllEmployees(); // Fetch employees for dropdown
+  //     await getAppraisalDocId();
+
+  //     // Set default employee code on component mount
+  //     const defaultEmployeeCode = '';
+  //     if (defaultEmployeeCode) {
+  //       // Find and select the default employee
+  //       const defaultEmployee = employeeOptions.find(emp => emp.code === defaultEmployeeCode);
+  //       if (defaultEmployee) {
+  //         setSelectedEmployee(defaultEmployee);
+  //         setFormData(prev => ({
+  //           ...prev,
+  //           code: defaultEmployee.code,
+  //           name: defaultEmployee.name,
+  //           supervisorCode: defaultEmployee.reportingPersonCode || '',
+  //           supervisorName: defaultEmployee.reportingPerson || '',
+  //           designation: defaultEmployee.designation || ''
+  //         }));
+  //       }
+  //     }
+  //   };
+  //   fetchInitialData();
+  // }, [employeeOptions]);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      await getAllGoals();
+      await getAllEmployees();
+      await getAppraisalDocId();
+    };
+    fetchInitialData();
+  }, []);  // ✅ RUN ONLY ONCE
+
+  const getAllGoals = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getSelfGoalsByOrgId?orgId=${orgId}`);
       if (response.status) {
-        setListViewData(response.paramObjectsMap.preGoalsVO);
+        setListViewData(response.paramObjectsMap.selfGoalsVO);
       } else {
         showToast('error', response.message || 'Failed to fetch goals');
       }
@@ -88,9 +271,9 @@ const SetGoals = () => {
       const list = response.paramObjectsMap.goalsVO || [];
 
       const options = list.map((item) => ({
-        label: `${item.appraisalId} - ${item.department}`,
+        label: `${item.appraisalId} - ${item.designation}`,
         value: item.appraisalId,
-        department: item.department
+        designation: item.designation   // ✅ ADD THIS (from API)
       }));
 
       setAppraisalOptions(options);
@@ -101,98 +284,73 @@ const SetGoals = () => {
     }
   };
 
-  const fetchEmployeeDetails = async (employeeCode) => {
-    if (!employeeCode || !orgId) return;
-
-    try {
-      const response = await apiCalls('get', `goalsController/getEmployeeDetails?employeeCode=${employeeCode}&orgId=${orgId}`);
-
-      if (response?.status) {
-        // Handle different possible response structures
-        const employeeData =
-          response.paramObjectsMap?.employeeVO?.[0] ||
-          response.paramObjectsMap?.employeeDetails ||
-          response.data ||
-          response.paramObjectsMap;
-
-        if (employeeData) {
-          setFormData((prev) => ({
-            ...prev,
-            name: employeeData.empName || employeeData.name || '',
-            supervisorCode: employeeData.reportingPersonCode || employeeData.supervisorCode || '',
-            supervisorName: employeeData.reportingPerson || employeeData.supervisorName || ''
-          }));
-
-          setFieldErrors((prev) => ({
-            ...prev,
-            name: '',
-            supervisorCode: '',
-            supervisorName: ''
-          }));
-        } else {
-          showToast('warning', 'Employee details not found in response');
-        }
-      } else {
-        showToast('error', response.message || 'Failed to fetch employee details');
-      }
-    } catch (error) {
-      console.error('Error fetching employee details:', error);
-      showToast('error', 'Failed to fetch employee details');
-    }
-  };
-
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, checked, type } = e.target;
+    const updatedValue = type === 'checkbox' ? checked : value;
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: updatedValue
     }));
 
     setFieldErrors((prev) => ({
       ...prev,
       [name]: ''
     }));
-
-    // Fetch employee details when code changes
-    if (name === 'code' && value.length > 3) {
-      fetchEmployeeDetails(value);
-    }
   };
 
-  const getPreGoalsById = async (row) => {
+  const filteredEmployees = employeeOptions.filter(emp => {
+    if (!formData.designation) return true; // before selection show all
+    return emp.designation === formData.designation;
+  });
+
+  const getGoalsById = async (row) => {
     setEditId(row.original.id);
+
     try {
-      const response = await apiCalls('get', `/goalsController/getPreGoalsById?id=${row.original.id}`);
+      const response = await apiCalls(
+        'get',
+        `/goalsController/getSelfGoalsById?id=${row.original.id}`
+      );
+
       if (response.status) {
         setListView(false);
-        const goal = response.paramObjectsMap.preGoalsVO;
+        const goal = response.paramObjectsMap.selfGoalsVO;
+
         setFormData({
           appraisalId: goal.appraisalId,
           code: goal.code,
           name: goal.name,
           supervisorCode: goal.supervisorCode,
           supervisorName: goal.supervisorName,
+          designation: goal.designation,
           orgId: parseInt(orgId),
-          finYear: finYear
+          finYear: goal.finYear,
         });
 
-        // Preserve actual database IDs
+        // ✅ FIX 1: Set Appraisal dropdown
+        if (goal.appraisalId) {
+          const matchedAppraisal = appraisalOptions.find(
+            (opt) => opt.value === goal.appraisalId
+          );
+          setSelectedAppraisal(matchedAppraisal || null);
+        }
+
+        // ✅ FIX 2: Set Employee dropdown (already correct)
+        if (goal.code) {
+          const matchedEmployee = employeeOptions.find(
+            (emp) => emp.code === goal.code
+          );
+          setSelectedEmployee(matchedEmployee || null);
+        }
+
+        // ✅ Details
         setGoalsDetailsData(
-          goal.preGoalsDetailsVO.map(detail => ({
-            id: detail.id, // Actual ID from database
+          goal.selfGoalsDetailsVO.map((detail) => ({
+            id: detail.id,
             area: detail.area,
             keyPerformanceIndicator: detail.keyPerformanceIndicator,
             goals: detail.goals
-          }))
-        );
-
-        // Initialize errors array
-        setGoalsDetailsErrors(
-          goal.preGoalsDetailsVO.map(() => ({
-            area: '',
-            keyPerformanceIndicator: '',
-            goals: ''
           }))
         );
       }
@@ -218,7 +376,9 @@ const SetGoals = () => {
       return error;
     });
 
-    if (Object.keys(errors).length > 0) {
+    const hasDetailErrors = detailsErrors.some((err) => err.area || err.keyPerformanceIndicator || err.goals);
+
+    if (Object.keys(errors).length > 0 || hasDetailErrors) {
       setFieldErrors(errors);
       setGoalsDetailsErrors(detailsErrors);
       showToast('error', 'Please fill all required fields');
@@ -228,32 +388,33 @@ const SetGoals = () => {
     setIsLoading(true);
 
     // Prepare details payload with IDs
-    const preGoalsDetailsVo = goalsDetailsData.map((row) => ({
-      ...(row.id && { id: row.id }),
+    const selfGoalsDetailsVo = goalsDetailsData.map((row) => ({
+      ...(row.id && row.id > 0 && { id: row.id }),
       area: row.area,
       keyPerformanceIndicator: row.keyPerformanceIndicator,
       goals: row.goals
     }));
 
     const payload = {
-      ...(editId && { id: editId }),
+      ...(editId ? { id: editId } : {}),
       appraisalId: formData.appraisalId,
       code: formData.code,
       name: formData.name,
       supervisorCode: formData.supervisorCode,
       supervisorName: formData.supervisorName,
+      designation: formData.designation,
       orgId: parseInt(orgId),
-      finYear: finYear,
+      finYear: formData.finYear,
       createdBy,
-      preGoalsDetailsDTO: preGoalsDetailsVo
+      selfGoalsDetailsDTO: selfGoalsDetailsVo
     };
 
     try {
-      const response = await apiCalls('put', '/goalsController/createUpdatePreGoals', payload);
+      const response = await apiCalls('put', '/goalsController/createUpdateSelfGoals', payload);
       if (response.status) {
-        showToast('success', editId ? 'Pre Goal updated successfully' : 'Pre Goals created successfully');
+        showToast('success', editId ? 'My Goal updated successfully' : 'My Goal created successfully');
         handleClear();
-        getPreGoalsByOrgId();
+        getAllGoals();
       } else {
         showToast('error', response.message || 'Operation failed');
       }
@@ -266,14 +427,13 @@ const SetGoals = () => {
   };
 
   const handleClear = () => {
-    const employeeCode = localStorage.getItem('employeeCode') || '';
-
     setFormData({
       appraisalId: '',
-      code: employeeCode,
+      code: '',
       name: '',
       supervisorCode: '',
-      supervisorName: ''
+      supervisorName: '',
+      designation: ''
     });
 
     setFieldErrors({
@@ -285,15 +445,11 @@ const SetGoals = () => {
     });
 
     setGoalsDetailsData([{ id: null, area: '', keyPerformanceIndicator: '', goals: '' }]);
-
     setGoalsDetailsErrors([{ area: '', keyPerformanceIndicator: '', goals: '' }]);
 
     setEditId('');
-
-    // Refetch employee details for current employee
-    if (employeeCode) {
-      fetchEmployeeDetails(employeeCode);
-    }
+    setSelectedAppraisal(null);
+    setSelectedEmployee(null);
   };
 
   const handleAddRow = () => {
@@ -315,7 +471,6 @@ const SetGoals = () => {
     const newId = goalsDetailsData.length > 0 ? Math.min(...goalsDetailsData.map((d) => d.id)) - 1 : -1;
 
     setGoalsDetailsData((prev) => [...prev, { id: newId, area: '', keyPerformanceIndicator: '', goals: '' }]);
-
     setGoalsDetailsErrors((prev) => [...prev, { area: '', keyPerformanceIndicator: '', goals: '' }]);
   };
 
@@ -370,25 +525,13 @@ const SetGoals = () => {
           {!listView ? (
             <>
               <div className="row d-flex ml">
+                {/* Appraisal ID Autocomplete */}
                 <div className="col-md-3 mb-3">
                   <Autocomplete
                     options={appraisalOptions}
                     getOptionLabel={(option) => option.label || ''}
-                    value={
-                      appraisalOptions.find((opt) => opt.value === formData.appraisalId) || null
-                    }
-                    onChange={(event, newValue) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        appraisalId: newValue?.value || '',
-                        department: newValue?.department || '' // optional if needed
-                      }));
-
-                      setFieldErrors((prev) => ({
-                        ...prev,
-                        appraisalId: ''
-                      }));
-                    }}
+                    value={selectedAppraisal}   // ✅ controlled UI
+                    onChange={handleAppraisalChange}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -400,20 +543,44 @@ const SetGoals = () => {
                     )}
                   />
                 </div>
+
+                {/* Employee Code - Autocomplete */}
                 <div className="col-md-3 mb-3">
-                  <TextField
-                    label="Employee Code"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    name="code"
-                    value={formData.code}
-                    onChange={handleInputChange}
-                    error={!!fieldErrors.code}
-                    helperText={fieldErrors.code}
-                    disabled
+                  <Autocomplete
+                    options={filteredEmployees}   // ✅ FILTERED
+                    // loading={isLoadingEmployees}
+                    getOptionLabel={(option) => `${option.code} - ${option.name}`}
+                    value={selectedEmployee}
+                    onChange={handleEmployeeSelect}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Employee Code"
+                        variant="outlined"
+                        size="small"
+                        error={!!fieldErrors.code}
+                        helperText={fieldErrors.code}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <div>
+                          {option.code} - {option.name}
+                        </div>
+                      </li>
+                    )}
+                    isOptionEqualToValue={(option, value) => option.code === value?.code}
+                    noOptionsText={
+                      formData.designation
+                        ? 'No employees found for selected designation'
+                        : 'No employees found'
+                    }
+                    clearOnEscape
+                    freeSolo={false}
                   />
                 </div>
+
+                {/* Employee Name */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Employee Name"
@@ -421,43 +588,69 @@ const SetGoals = () => {
                     size="small"
                     fullWidth
                     name="name"
+                    disabled
                     value={formData.name}
                     onChange={handleInputChange}
                     error={!!fieldErrors.name}
                     helperText={fieldErrors.name}
-                    disabled
                   />
                 </div>
+
+                {/* Supervisor Code */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Supervisor Code"
                     variant="outlined"
                     size="small"
                     fullWidth
+                    disabled
                     name="supervisorCode"
                     value={formData.supervisorCode}
                     onChange={handleInputChange}
                     error={!!fieldErrors.supervisorCode}
                     helperText={fieldErrors.supervisorCode}
-                    disabled
                   />
                 </div>
+
+                {/* Supervisor Name */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Supervisor Name"
                     variant="outlined"
                     size="small"
                     fullWidth
+                    disabled
                     name="supervisorName"
                     value={formData.supervisorName}
                     onChange={handleInputChange}
                     error={!!fieldErrors.supervisorName}
                     helperText={fieldErrors.supervisorName}
-                    disabled
                   />
                 </div>
 
+                <div className="col-md-3 mb-3">
+                  <TextField
+                    label="Designation"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    disabled
+                    name="designation"
+                    value={formData.designation}
+                    onChange={handleInputChange}
+                    error={!!fieldErrors.designation}
+                    helperText={fieldErrors.designation}
+                  />
+                </div>
               </div>
+
+              {/* Loading indicator for goals */}
+              {isLoadingGoals && (
+                <div className="text-center my-3">
+                  <CircularProgress size={30} />
+                  <span className="ml-2">Loading goals data...</span>
+                </div>
+              )}
 
               <div className="row mt-2">
                 <Box sx={{ width: '100%' }}>
@@ -489,8 +682,8 @@ const SetGoals = () => {
                                   <th className="px-2 py-2 text-white text-center" style={{ width: '50px' }}>
                                     S.No
                                   </th>
-                                  <th className="px-2 py-2 text-white text-center">Area</th>
-                                  <th className="px-2 py-2 text-white text-center">Key Performance Indicators</th>
+                                  <th className="px-2 py-2 text-white text-center">Area (KRA)</th>
+                                  <th className="px-2 py-2 text-white text-center">Key Performance Indicators (KPI)</th>
                                   <th className="px-2 py-2 text-white text-center">Goals</th>
                                 </tr>
                               </thead>
@@ -544,7 +737,7 @@ const SetGoals = () => {
               </div>
             </>
           ) : (
-            <CommonListViewTable data={listViewData} columns={listViewColumns} enableEditing={true} toEdit={getPreGoalsById} />
+            <CommonListViewTable data={listViewData} columns={listViewColumns} enableEditing={true} toEdit={getGoalsById} />
           )}
         </div>
       </div>

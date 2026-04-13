@@ -211,7 +211,17 @@ const WFH = () => {
 
         if (response.status === true) {
           showToast('success', editId ? 'Work From Home Updated Successfully' : 'Work From Home Request created successfully');
-          await sendEmailNotification(saveData);
+
+          // ✅ ADD THIS HERE
+          console.log("API RESPONSE:", response);
+
+          const savedRow = response.paramObjectsMap?.workFromHomeVO || {
+            ...saveData,
+            id: response.paramObjectsMap?.id
+          };
+
+          await sendEmailNotification([savedRow]);
+
           handleClear();
           getAllWorkFromHomeRequests();
         } else {
@@ -228,10 +238,66 @@ const WFH = () => {
     }
   };
 
+  // const sendEmailNotification = async (newRows) => {
+  //   try {
+  //     // ✅ Ensure always array
+  //     const rows = Array.isArray(newRows) ? newRows : [newRows];
+
+  //     for (const row of rows) {
+  //       console.log("ROW DATA:", row);
+
+  //       // ❗ Skip if ID missing (prevents 412 error)
+  //       if (!row.id) {
+  //         console.error("Skipping email: ID is missing", row);
+  //         continue;
+  //       }
+
+  //       const baseURL = 'http://localhost:3000/pages/confirmationPage/confirmationPage';
+
+  //       const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName || "WORKFROMHOME"}`;
+
+  //       const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName || "WORKFROMHOME"}`;
+
+  //       const emailParams = {
+  //         name: row.reportingManager || "User",
+  //         from_name: employeeName || "System",
+  //         email: row.reportingManagerEmail || "",
+  //         date: row.wfhDate ? dayjs(row.wfhDate).format('DD-MM-YYYY') : "",
+  //         message: row.reason || "",
+  //         work_Accomplished: row.workAccomplished || "",
+  //         approve_link: approveLink,
+  //         reject_link: rejectLink,
+  //         screenName: row.screenName || "WORKFROMHOME"
+  //       };
+
+  //       console.log("EMAIL PARAMS:", emailParams);
+
+  //       // ❗ Strict email validation
+  //       if (!emailParams.email || !emailParams.email.includes('@')) {
+  //         console.error("Invalid email:", emailParams.email);
+  //         continue;
+  //       }
+
+  //       // ✅ Send Email
+  //       await emailjs.send(
+  //         'service_ywei7br',
+  //         'template_rl5cfjh',
+  //         emailParams,
+  //         '-y3NVuC6et9lUpj0-'
+  //       );
+
+  //       console.log("✅ Email sent to:", emailParams.email);
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Email Sending Failed:', error);
+  //     showToast('error', 'Failed to send email notification. Please try again.');
+  //   }
+  // };
+
   const sendEmailNotification = async (newRows) => {
     try {
       for (const row of newRows) {
-        const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage';
+        const baseURL = 'http://localhost:3000/pages/confirmationPage/confirmationPage';
         const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
         const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
 
@@ -244,7 +310,7 @@ const WFH = () => {
           work_Accomplished: row.workAccomplished,
           approve_link: approveLink,
           reject_link: rejectLink,
-          screenName: row.screenName || "WORKFROMHOME"
+          screenName: row.screenName
         };
 
         console.log('Email Params:', emailParams);
@@ -264,7 +330,7 @@ const WFH = () => {
       showToast('error', 'Failed to send email notification. Please try again.');
     }
   };
-  
+
   const handleView = () => {
     setListView(!listView);
   };

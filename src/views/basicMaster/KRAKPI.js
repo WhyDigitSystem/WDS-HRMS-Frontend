@@ -12,7 +12,8 @@ import {
     Tabs,
     FormControlLabel,
     Checkbox,
-    Autocomplete
+    Autocomplete,
+    MenuItem
 } from '@mui/material';
 import dayjs from 'dayjs';
 import GridOnIcon from '@mui/icons-material/GridOn';
@@ -64,6 +65,7 @@ const KRAKPI = () => {
     const [currentKpiId, setCurrentKpiId] = useState('');
     const [currentKraId, setCurrentKraId] = useState('');
     const [reportingPersonList, setReportingPersonList] = useState([]);
+    const [designationList, setDesignationList] = useState([]);
     const [formData, setFormData] = useState({
         appraisalId: ''
     });
@@ -98,14 +100,16 @@ const KRAKPI = () => {
 
     const listViewColumns = [
         { accessorKey: 'appraisalId', header: 'Appraisal ID', size: 140 },
+        { accessorKey: 'designation', header: 'Designation', size: 140 },
     ];
 
     useEffect(() => {
         getAllKRAKPIs();
-        getAppraisalDocId();
+        getGoalsDocId();
         getKpiDocId();
         getKraDocId();
         getAllReportingPersonList();
+        getAllDesignation();
     }, []);
 
     useEffect(() => {
@@ -136,23 +140,50 @@ const KRAKPI = () => {
         init();
     }, []);
 
-    const getAppraisalDocId = async () => {
+    const handleInputChange = (e) => {
+        const { name, value, checked, type } = e.target;
+        const updatedValue = type === 'checkbox' ? checked : value;
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: updatedValue
+        }));
+
+        setFieldErrors((prev) => ({
+            ...prev,
+            [name]: ''
+        }));
+    };
+
+    const getGoalsDocId = async () => {
         try {
-            const response = await apiCalls('get', `/goalsController/getAppraisalDocId?orgId=${orgId}`);
+            const response = await apiCalls('get', `/goalsController/getGoalsDocId?orgId=${orgId}`);
 
-            const list = response.paramObjectsMap.goalsVO || [];
+            const docId = response.paramObjectsMap.goalsDocId;
 
-            const options = list.map((item) => ({
-                label: `${item.appraisalId} - ${item.department}`,
-                value: item.appraisalId,
-                department: item.department
+            setFormData((prev) => ({
+                ...prev,
+                appraisalId: docId
             }));
 
-            setAppraisalOptions(options);
-
+            return docId; // ✅ ADD THIS
         } catch (error) {
             console.error('Error fetching goals docid:', error);
             showToast('error', 'Failed to fetch goals docid');
+            return '';
+        }
+    };
+
+    const getAllDesignation = async () => {
+        try {
+            const result = await apiCalls(
+                'get',
+                `commonmaster/getDesignationByOrgId?orgid=${orgId}`
+            );
+
+            setDesignationList(result.paramObjectsMap.designationVO || []);
+        } catch (err) {
+            console.log('error', err);
         }
     };
 
@@ -220,7 +251,8 @@ const KRAKPI = () => {
                 setListView(false);
                 const goal = response.paramObjectsMap.kpiKraVO;
                 setFormData({
-                    appraisalId: goal.appraisalId
+                    appraisalId: goal.appraisalId,
+                    designation: goal.designation || ''
                 });
 
                 // Preserve actual database IDs
@@ -329,11 +361,11 @@ const KRAKPI = () => {
             ...(editId && { id: editId }),
             active: true,
             appraisalId: formData.appraisalId,
+            designation: formData.designation,
             createdBy: loginUserName,
             kpiDTO: kpiVo,
             kpiKraDetailsDTO: kpiKraDetailsVo,
             orgId: orgId,
-            finYear: '2025',
             branchCode: branchCode,
             branch: branch,
         };
@@ -342,10 +374,8 @@ const KRAKPI = () => {
             const response = await apiCalls('put', '/goalsController/createUpdateKpiKra', payload);
             if (response.status) {
                 showToast('success', editId ? 'KRAKPI updated successfully' : 'KRAKPI created successfully');
-                handleClear();
+                await resetWithNewIds();
                 getAllKRAKPIs();
-                getKpiDocId();
-                getKraDocId();
             } else {
                 showToast('error', response.message || 'Operation failed');
             }
@@ -358,31 +388,35 @@ const KRAKPI = () => {
     };
 
     const handleClear = () => {
-        setFormData({
-            appraisalId: ''
-        });
+        setFormData((prev) => ({
+            ...prev,
+            designation: ''  // only clear this
+        }));
 
         setFieldErrors({
-            appraisalId: ''
+            appraisalId: '',
+            designation: ''
         });
 
-        setkpiDetailsData([
-            { id: null, kpiId: '', kpiDescription: '' }
-        ]);
+        // ✅ KEEP KPI ID
+        setkpiDetailsData((prev) =>
+            prev.map((row) => ({
+                ...row,
+                kpiDescription: ''
+            }))
+        );
 
-        setGoalsDetailsErrors([
-            { kpiId: '', kpiDescription: '' }
-        ]);
-
-        setDetailsTableData([
-            { id: null, kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
-        ]);
-
-        setDetailsTableErrors([
-            { kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
-        ]);
-
-        setEditId('');
+        // ✅ KEEP KRA ID
+        setDetailsTableData((prev) =>
+            prev.map((row) => ({
+                ...row,
+                kraDescription: '',
+                ro: '',
+                kpiId: '',
+                kpiKraDescription: '',
+                kpiObj: null
+            }))
+        );
     };
 
     const incrementDocId = (docId) => {
@@ -466,6 +500,41 @@ const KRAKPI = () => {
             {
                 id: newId,
                 kraId: nextKraId,
+                kraDescription: '',
+                ro: '',
+                kpiId: '',
+                kpiKraDescription: '',
+                kpiObj: null
+            }
+        ]);
+    };
+
+    const resetWithNewIds = async () => {
+        const newAppraisalId = await getGoalsDocId(); // already sets inside
+        const newKpiId = await getKpiDocId();
+        const newKraId = await getKraDocId();
+
+        setCurrentKpiId(newKpiId);
+        setCurrentKraId(newKraId);
+
+        setFormData((prev) => ({
+            ...prev,
+            appraisalId: newAppraisalId, // ensure latest
+            designation: ''
+        }));
+
+        setkpiDetailsData([
+            {
+                id: null,
+                kpiId: newKpiId,
+                kpiDescription: ''
+            }
+        ]);
+
+        setDetailsTableData([
+            {
+                id: null,
+                kraId: newKraId,
                 kraDescription: '',
                 ro: '',
                 kpiId: '',
@@ -593,32 +662,48 @@ const KRAKPI = () => {
                         <>
                             <div className="row d-flex ml">
                                 {/* Form Fields */}
-                                <div className="col-md-4 mb-3">
+                                <div className="col-md-3 mb-3">
+                                    <TextField
+                                        label="Appraisal ID"
+                                        variant="outlined"
+                                        size="small"
+                                        fullWidth
+                                        name="appraisalId"
+                                        value={formData.appraisalId}
+                                        disabled
+                                        onChange={handleInputChange}
+                                        error={!!fieldErrors.appraisalId}
+                                        helperText={fieldErrors.appraisalId}
+                                    />
+                                </div>
+
+                                <div className="col-md-3 mb-3">
                                     <Autocomplete
-                                        options={appraisalOptions}
-                                        getOptionLabel={(option) => option.label || ''}
+                                        options={designationList}
+                                        getOptionLabel={(option) => option.designationName || ''}
+
                                         value={
-                                            appraisalOptions.find((opt) => opt.value === formData.appraisalId) || null
+                                            formData.designation
+                                                ? designationList.find(
+                                                    (opt) => opt.designationName === formData.designation
+                                                ) || null
+                                                : null   // ✅ THIS FIXES CLEAR
                                         }
+
                                         onChange={(event, newValue) => {
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                appraisalId: newValue?.value || '',
-                                                department: newValue?.department || '' // optional if needed
-                                            }));
-
-                                            setFieldErrors((prev) => ({
-                                                ...prev,
-                                                appraisalId: ''
+                                                designation: newValue ? newValue.designationName : ''
                                             }));
                                         }}
+
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
-                                                label="Appraisal ID"
+                                                label="Designation"
                                                 size="small"
-                                                error={!!fieldErrors.appraisalId}
-                                                helperText={fieldErrors.appraisalId}
+                                                error={!!fieldErrors.designation}
+                                                helperText={fieldErrors.designation}
                                             />
                                         )}
                                     />

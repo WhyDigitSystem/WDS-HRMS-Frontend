@@ -39,6 +39,9 @@ const PerformanceGoals = () => {
     const [listView, setListView] = useState(false);
     const [reportingPersonDetails, setReportingPersonDetails] = useState([]);
     const [companyDetails, setCompanyDetails] = useState(null);
+    const [yearOptions, setYearOptions] = useState([]);
+    const [perspectiveOptions, setPerspectiveOptions] = useState([]);
+    const [gradeOptions, setGradeOptions] = useState([]);
     const [employeeDetailsData, setEmployeeDetailsData] = useState({
         empCode: "",
         empName: "",
@@ -75,48 +78,49 @@ const PerformanceGoals = () => {
     // ];
 
     const listViewColumns = [
-  { accessorKey: 'empName', header: 'Employee', size: 140 },
-  { accessorKey: 'empCode', header: 'Code', size: 100 },
+        { accessorKey: 'empName', header: 'Employee', size: 140 },
+        { accessorKey: 'empCode', header: 'Code', size: 100 },
 
-  {
-    header: 'Perspective',
-    accessorFn: row =>
-      row.performanceGoalsDtlVO?.[0]?.perspective || '-',
-    size: 160
-  },
+        {
+            header: 'Perspective',
+            accessorFn: row =>
+                row.performanceGoalsDtlVO?.[0]?.perspective || '-',
+            size: 160
+        },
 
-  {
-    header: 'Rating',
-    accessorFn: row =>
-      row.performanceGoalsDtlVO?.[0]?.selfrating || '-',
-    size: 100
-  },
-   {
-           accessorKey: 'pmonth',
+        {
+            header: 'Rating',
+            accessorFn: row =>
+                row.performanceGoalsDtlVO?.[0]?.selfrating || '-',
+            size: 100
+        },
+        {
+            accessorKey: 'pmonth',
             header: 'Month',
             size: 140,
-           Cell: ({ cell }) => {
-             const monthNumber = cell.getValue();
-              const monthObj = months.find(m => m.value === monthNumber);
+            Cell: ({ cell }) => {
+                const monthNumber = cell.getValue();
+                const monthObj = months.find(m => m.value === monthNumber);
                 return monthObj ? monthObj.name : monthNumber;
-          }
-         },
-       { accessorKey: 'appraisalYear', header: 'Year', size: 140 },
-];
+            }
+        },
+        { accessorKey: 'appraisalYear', header: 'Year', size: 140 },
+    ];
 
-
-    const [goalsDetailsData, setGoalsDetailsData] = useState([{
-        id: null,
-        perspective: '',
-        objectiveDescription: '',
-        assigned: '',
-        measurement: '',
-        qtrTarget: '',
-        performance: '',
-        comments: '',
-        performanceSelf: '',
-        selfRating: '',
-    }]);
+    const [goalsDetailsData, setGoalsDetailsData] = useState([
+        {
+            id: Date.now(),
+            perspective: '',
+            objectiveDescription: '',
+            assigned: '',
+            measurement: '',
+            qtrTarget: '',
+            performance: '',
+            comments: '',
+            performanceSelf: '',
+            selfRating: '',
+        }
+    ]);
 
     const [goalsDetailsErrors, setGoalsDetailsErrors] = useState([{
         perspective: '',
@@ -163,8 +167,96 @@ const PerformanceGoals = () => {
         { name: 'December', value: '12' }
     ];
 
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 10 }, (_, index) => currentYear - index);
+    useEffect(() => {
+        if (employeeDetailsData.empCode && formData.year) {
+            getSelfGoalsByEmpAndYear(employeeDetailsData.empCode, formData.year);
+        }
+    }, [employeeDetailsData.empCode, formData.year]);
+
+    useEffect(() => {
+        getAllAppraisalPeriod();
+        getAllGrade();
+    }, []);
+
+    const getAllAppraisalPeriod = async () => {
+        try {
+            const response = await apiCalls(
+                'get',
+                `/goalsController/getAppraisalPeriodByOrgId?orgId=${orgId}`
+            );
+
+            if (response.status) {
+                const data = response.paramObjectsMap.appraisalVO || [];
+
+                setListViewData(data);
+
+                // ✅ Extract finYear from API
+                const yearsFromApi = data.map(item => item.finYear);
+
+                // ✅ Remove duplicates (important if multiple records)
+                const uniqueYears = [...new Set(yearsFromApi)];
+
+                setYearOptions(uniqueYears);
+
+                // ✅ Auto set first year (optional but recommended)
+                if (uniqueYears.length > 0) {
+                    setFormData((prev) => ({
+                        ...prev,
+                        year: uniqueYears[0]
+                    }));
+                }
+
+            } else {
+                showToast('error', response.message);
+            }
+        } catch (error) {
+            console.error('Error fetching goals:', error);
+        }
+    };
+
+    const getAllGrade = async () => {
+        try {
+            const response = await apiCalls(
+                'get',
+                `/goalsController/getGradeByOrgId?orgId=${orgId}`
+            );
+
+            if (response.status) {
+                const data = response.paramObjectsMap.gradeVO || [];
+
+                // ✅ Store grade data
+                setGradeOptions(data);
+
+            } else {
+                showToast('error', response.message);
+            }
+        } catch (error) {
+            console.error('Error fetching grades:', error);
+        }
+    };
+
+    const getSelfGoalsByEmpAndYear = async (empCode, year) => {
+        if (!empCode || !year) return;
+
+        try {
+            const response = await apiCalls(
+                'get',
+                `/goalsController/getSelfGoalsForPerformanceGoals?empCode=${empCode}&finYear=${year}&orgId=${orgId}`
+            );
+
+            if (response.status && response.paramObjectsMap.selfGoalsVO?.length > 0) {
+                const data = response.paramObjectsMap.selfGoalsVO[0];
+
+                // ✅ ONLY dropdown values
+                const options = data.selfGoalsDetailsVO.map(item => item.area);
+                const uniqueOptions = [...new Set(options)];
+                setPerspectiveOptions(uniqueOptions);
+            }
+
+        } catch (error) {
+            console.error('Error fetching self goals:', error);
+        }
+    };
 
     // Add company details function
     const getCompanyDetails = async () => {
@@ -191,30 +283,23 @@ const PerformanceGoals = () => {
         }
     };
 
-    // const handleSelectChange = (index, field, value) => {
-    //     const updatedData = [...goalsDetailsData];
-    //     updatedData[index][field] = value;
-    //     setGoalsDetailsData(updatedData);
-    //     setGoalsDetailsErrors((prev)=>({...prev,perspective:''}))
-    // };
+    const handleSelectChange = (index, field, value) => {
+        const updatedData = [...goalsDetailsData];
+        updatedData[index] = {
+            ...updatedData[index],
+            [field]: value
+        };
 
-   const handleSelectChange = (index, field, value) => {
-  const updatedData = [...goalsDetailsData];
-  updatedData[index][field] = value;
-  setGoalsDetailsData(updatedData);
+        setGoalsDetailsData(updatedData);
 
-  setGoalsDetailsErrors(prev => {
-    const updatedErrors = [...prev];
-    if (updatedErrors[index]) {
-      updatedErrors[index] = {
-        ...updatedErrors[index],
-        [field]: ''   
-      };
-    }
-    return updatedErrors;
-  });
-   };  
-
+        setGoalsDetailsErrors(prev => {
+            const updatedErrors = [...prev];
+            if (updatedErrors[index]) {
+                updatedErrors[index][field] = '';
+            }
+            return updatedErrors;
+        });
+    };
 
     const handleMonthChange = (event) => {
         const selectedMonthName = event.target.value;
@@ -440,7 +525,7 @@ const PerformanceGoals = () => {
             showToast('error', 'Please fill all required fields');
             return;
         }
-        
+
 
         setIsLoading(true);
 
@@ -474,6 +559,7 @@ const PerformanceGoals = () => {
             designation,
             branch,
             branchCode,
+            finYear: formData.year.toString(),
         };
 
         try {
@@ -557,6 +643,7 @@ const PerformanceGoals = () => {
             displayRowError(goalsDetailsData);
             return;
         }
+
         const newRow = {
             id: Date.now(),
             perspective: '',
@@ -569,18 +656,23 @@ const PerformanceGoals = () => {
             performanceSelf: '',
             selfRating: '',
         };
-        setGoalsDetailsData([...goalsDetailsData, newRow]);
-        setGoalsDetailsErrors([...goalsDetailsErrors, {
-            perspective: '',
-            objectiveDescription: '',
-            assigned: '',
-            measurement: '',
-            qtrTarget: '',
-            performance: '',
-            comments: '',
-            performanceSelf: '',
-            selfRating: '',
-        }]);
+
+        setGoalsDetailsData(prev => [...prev, newRow]);
+
+        setGoalsDetailsErrors(prev => [
+            ...prev,
+            {
+                perspective: '',
+                objectiveDescription: '',
+                assigned: '',
+                measurement: '',
+                qtrTarget: '',
+                performance: '',
+                comments: '',
+                performanceSelf: '',
+                selfRating: '',
+            }
+        ]);
     };
 
     const isLastRowEmpty = (table) => {
@@ -833,13 +925,13 @@ const PerformanceGoals = () => {
                         shortenText(goal.comments || '-', 30),
                         shortenText(goal.performanceself || '-', 30),
                         goal.selfrating ? goal.selfrating.toString() : '-',
-                        goal.appraiserrating?goal.appraiserrating.toString():'Pending',
+                        goal.appraiserrating ? goal.appraiserrating.toString() : 'Pending',
                     ]);
 
                     doc.autoTable({
                         startY: yPosition,
                         head: [
-                            ['#', 'Perspective', 'Objective Description', 'Assigned %', 'Measurement', 'Qtr Target', 'Performance', 'Comments', 'Performance Self', 'Self Rating','App Rating']
+                            ['#', 'Perspective', 'Objective Description', 'Assigned %', 'Measurement', 'Qtr Target', 'Performance', 'Comments', 'Performance Self', 'Self Rating', 'App Rating']
                         ],
                         body: tableData,
                         theme: 'grid',
@@ -993,7 +1085,7 @@ const PerformanceGoals = () => {
                 <div className="row d-flex ml">
                     <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
                         {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
-                        
+
                         <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
                         <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
                         <ActionButton
@@ -1002,14 +1094,14 @@ const PerformanceGoals = () => {
                             onClick={handleSave}
                         />
                         {listView && (
-                              <ActionButton
-                            title="Download PDF"
-                            icon={PictureAsPdfIcon}
-                            onClick={downloadPDF}
-                        />
+                            <ActionButton
+                                title="Download PDF"
+                                icon={PictureAsPdfIcon}
+                                onClick={downloadPDF}
+                            />
                         )
-                    }
-                      
+                        }
+
                     </div>
 
                     {!listView ? (
@@ -1045,24 +1137,10 @@ const PerformanceGoals = () => {
                                 </div>
 
                                 <div className="col-md-3 mb-1">
-                                    <FormControl size="small" variant="outlined" fullWidth error={!!fieldErrors.month}>
-                                        <InputLabel>Select Month</InputLabel>
-                                        <Select label="Select Month" value={selectedMonth} onChange={handleMonthChange}>
-                                            {months.map((m) => (
-                                                <MenuItem key={m.value} value={m.name}>
-                                                    {m.name}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        {fieldErrors.month && <FormHelperText>{fieldErrors.month}</FormHelperText>}
-                                    </FormControl>
-                                </div>
-
-                                <div className="col-md-3 mb-1">
                                     <FormControl size="small" variant="outlined" fullWidth error={!!fieldErrors.year}>
                                         <InputLabel>Select Year</InputLabel>
                                         <Select label="Select Year" value={formData.year} onChange={handleYearChange}>
-                                            {years.map((y) => (
+                                            {yearOptions.map((y) => (
                                                 <MenuItem key={y} value={y}>
                                                     {y}
                                                 </MenuItem>
@@ -1139,22 +1217,18 @@ const PerformanceGoals = () => {
                                                                         <td className="text-center pt-3">{index + 1}</td>
                                                                         <td className="border px-2 py-2">
                                                                             <select
-                                                                                value={row.perspective}
+                                                                                value={row.perspective || ''}
                                                                                 onChange={(e) => handleSelectChange(index, 'perspective', e.target.value)}
                                                                                 className={goalsDetailsErrors[index]?.perspective ? 'error form-control' : 'form-control'}
                                                                             >
-                                                                                <option value="">Select Option</option>
-                                                                                <option value="Financial">Financial</option>
-                                                                                <option value="Customer">Customer</option>
-                                                                                <option value="Internal Processes">Internal Processes</option>
-                                                                                <option value="Learning & Growth">Learning & Growth</option>
-                                                                            </select>
+                                                                                <option value="">Select Perspective</option>
 
-                                                                            {goalsDetailsErrors[index]?.perspective && (
-                                                                                <div className="mt-2" style={{ color: 'red', fontSize: '12px' }}>
-                                                                                    {goalsDetailsErrors[index].perspective}
-                                                                                </div>
-                                                                            )}
+                                                                                {perspectiveOptions.map((option, i) => (
+                                                                                    <option key={i} value={option}>
+                                                                                        {option}
+                                                                                    </option>
+                                                                                ))}
+                                                                            </select>
                                                                         </td>
                                                                         <td>
                                                                             <TextField
@@ -1242,21 +1316,18 @@ const PerformanceGoals = () => {
                                                                         </td>
                                                                         <td className="border px-2 py-2">
                                                                             <select
-                                                                                value={row.selfRating}
+                                                                                value={row.selfRating || ''}
                                                                                 onChange={(e) => handleSelectChange(index, 'selfRating', e.target.value)}
                                                                                 className={goalsDetailsErrors[index]?.selfRating ? 'error form-control' : 'form-control'}
                                                                             >
-                                                                                <option value="">Select Option</option>
-                                                                                {[1, 2, 3, 4, 5].map((val) => (
-                                                                                    <option key={val} value={val}>{val}</option>
+                                                                                <option value="">Select Rating</option>
+
+                                                                                {gradeOptions.map((grade) => (
+                                                                                    <option key={grade.id} value={grade.score}>
+                                                                                        {grade.score} - {grade.indications}
+                                                                                    </option>
                                                                                 ))}
                                                                             </select>
-
-                                                                            {goalsDetailsErrors[index]?.selfRating && (
-                                                                                <div className="mt-2" style={{ color: 'red', fontSize: '12px' }}>
-                                                                                    {goalsDetailsErrors[index].selfRating}
-                                                                                </div>
-                                                                            )}
                                                                         </td>
                                                                     </tr>
                                                                 ))}

@@ -338,6 +338,23 @@ const Task = () => {
           On Leave 🏖️
         </div>
       );
+    } else if (data.status === 'WFH') {
+      return (
+        <div
+          style={{
+            marginTop: '4px',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            color: '#1e40af',
+            backgroundColor: '#dbeafe',
+            padding: '4px 8px',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}
+        >
+          Work From Home 💻
+        </div>
+      );
     }
 
     const formatTime = (timeStr) => {
@@ -530,18 +547,28 @@ const Task = () => {
         const dateKey = loopDate.toDateString();
 
         if (entries.length > 0) {
-          const entry = entries[0];
-          if (entry.employeeStatus === 'PRESENT') {
+          const hasWFH = entries.find(e => e.employeeStatus === 'WFH');
+          const hasLeave = entries.find(e => e.employeeStatus === 'LEAVE');
+          const hasPresent = entries.find(e => e.employeeStatus === 'PRESENT');
+
+          if (hasWFH) {
             formattedData[dateKey] = {
-              checkIn: entry.checkIn,
-              checkOut: entry.checkOut,
-              totalHours: entry.totalHours?.trim() || '0:00',
-              status: 'PRESENT'
+              checkIn: hasWFH.checkIn,
+              checkOut: hasWFH.checkOut,
+              totalHours: hasWFH.totalHours?.trim() || '0:00',
+              status: 'WFH'
             };
-          } else if (entry.employeeStatus === 'LEAVE') {
+          } else if (hasLeave) {
             formattedData[dateKey] = {
               leave: true,
               status: 'LEAVE'
+            };
+          } else if (hasPresent) {
+            formattedData[dateKey] = {
+              checkIn: hasPresent.checkIn,
+              checkOut: hasPresent.checkOut,
+              totalHours: hasPresent.totalHours?.trim() || '0:00',
+              status: 'PRESENT'
             };
           }
         }
@@ -974,7 +1001,10 @@ const Task = () => {
                 allTimeSheetData.map((entry, index) => {
                   const details = entry.timeSheetDetailsVO || [];
 
-                  const isLeaveOrHoliday = entry.employeeName === 'LEAVE' || entry.employeeName === 'HOLIDAY';
+                  const isLeaveOrHoliday =
+                    entry.employeeName === 'LEAVE' ||
+                    entry.employeeName === 'HOLIDAY' ||
+                    entry.employeeName === 'WFH';
 
                   if (isLeaveOrHoliday) {
                     return (

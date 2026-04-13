@@ -67,6 +67,7 @@ const SalaryReport = Loadable(lazy(() => import('views/salaryMaster/SalaryReport
 // const Advance = Loadable(lazy(() => import('views/salaryMaster/Advance')));
 const AdvanceUpload = Loadable(lazy(() => import('views/salaryMaster/AdvanceUpload')));
 const OtherPayments = Loadable(lazy(() => import('views/salaryMaster/OtherPayments')));
+const SettlementReport = Loadable(lazy(() => import('views/salaryMaster/SettlementReport')));
 
 // me
 const PermissionRequest = Loadable(lazy(() => import('views/me/PermissionRequest')));
@@ -342,6 +343,10 @@ const HrmsRoute = {
     {
       path: '/salaryMaster/PayrollApproval',
       element: <PayrollApproval />
+    },
+    {
+      path: '/salaryMaster/SettlementReport',
+      element: <SettlementReport />
     },
     {
       path: '/salaryMaster/SalaryReport',

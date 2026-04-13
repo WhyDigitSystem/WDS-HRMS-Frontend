@@ -16,7 +16,7 @@ import {
   useMediaQuery
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { IconBell, IconX, IconCake, IconCalendarEvent, IconTicket, IconUserPlus } from '@tabler/icons-react';
+import { IconBell, IconX, IconCake, IconCalendarEvent, IconTicket, IconUserPlus, IconMail } from '@tabler/icons-react';
 import apiCalls from 'apicall';
 import { useEffect, useRef, useState } from 'react';
 import MainCard from 'ui-component/cards/MainCard';
@@ -47,15 +47,17 @@ const NotificationSection = () => {
   const empCode = localStorage.getItem('employeeCode');
   const branchCode = localStorage.getItem('branchCode');
   const [todayAnniversaries, setTodayAnniversaries] = useState([]);
+  const userId = localStorage.getItem('userId');
 
-  // Notification type counts
-  const ticketCount = notificationList.length;
+  // Separate notifications by type
+  const leaveNotifications = notificationList.filter(n => n.notificationType === 'LEAVE REQUEST');
+  const ticketCount = 0; // Tickets are now part of notificationList if they have TICKET type
   const calendarCount = calendarNotifications.length;
   const birthdayCount = birthdayNotifications.length;
   const anniversaryCount = todayAnniversaries.length;
   const newJoinerCount = todayJoiners.length;
   const upcomingJoinerCount = upcomingJoiners.length;
-  const totalNotifications = ticketCount + calendarCount + birthdayCount + anniversaryCount + newJoinerCount + upcomingJoinerCount;
+  const totalNotifications = notificationList.length + calendarCount + birthdayCount + anniversaryCount + newJoinerCount + upcomingJoinerCount;
 
   // Initialize audio
   useEffect(() => {
@@ -101,7 +103,7 @@ const NotificationSection = () => {
     try {
       setIsLoading(true);
       const result = await apiCalls('get', `/basicmaster/GetnewJoineDetails?orgId=${orgId}`);
-      
+
       if (result?.status && result?.paramObjectsMap?.employee?.length > 0) {
         const allJoiners = result.paramObjectsMap.employee;
         const today = dayjs();
@@ -111,7 +113,7 @@ const NotificationSection = () => {
 
         allJoiners.forEach(emp => {
           if (!emp.joinDate) return;
-          
+
           const joinDate = dayjs(emp.joinDate);
           const diffDays = joinDate.diff(today, 'day');
 
@@ -181,20 +183,60 @@ const NotificationSection = () => {
     }
   };
 
+  // New API: Get all notifications by userId
   const getAllNotifications = async () => {
+    if (!userId) {
+      console.error('User ID not found');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const response = await apiCalls(
-        'get',
-        `ticketcontroller/getTicketNotification?orgId=${orgId}&userName=${loginUserName}`
-      );
-      if (response?.status === true) {
-        setNotificationList(response.paramObjectsMap?.ticketVOs || []);
+      const response = await apiCalls('get', `/notification/byUserId?userId=${userId}`);
+
+      if (response?.status === true && response?.paramObjectsMap?.notificationVO) {
+        // Filter out deleted notifications
+        const activeNotifications = response.paramObjectsMap.notificationVO.filter(
+          notification => !notification.deleted
+        );
+        setNotificationList(activeNotifications);
+      } else if (Array.isArray(response)) {
+        setNotificationList(response.filter(n => !n.deleted));
+      } else {
+        setNotificationList([]);
       }
     } catch (error) {
-      console.error('Error fetching ticket notifications:', error);
+      console.error('Error fetching notifications:', error);
+      setNotificationList([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Clear single notification
+  const clearNotification = async (notificationId) => {
+    try {
+      const response = await apiCalls('put', `/notification/clear?id=${notificationId}`);
+      if (response?.status === true) {
+        // Remove the notification from the list
+        setNotificationList(prev => prev.filter(notification => notification.id !== notificationId));
+      }
+    } catch (error) {
+      console.error('Error clearing notification:', error);
+    }
+  };
+
+  // Clear all notifications
+  const clearAllNotifications = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await apiCalls('put', `/notification/clearAll?userId=${userId}`);
+      if (response?.status === true) {
+        setNotificationList([]);
+      }
+    } catch (error) {
+      console.error('Error clearing all notifications:', error);
     }
   };
 
@@ -272,7 +314,7 @@ const NotificationSection = () => {
       fetchWorkAnniversaries();
       fetchNewJoinerData();
     }
-  }, [orgId, loginUserName, empCode, branchCode]);
+  }, [orgId, loginUserName, empCode, branchCode, userId]);
 
   const handleToggle = () => {
     if (!open) {
@@ -293,11 +335,11 @@ const NotificationSection = () => {
   const handleClear = async (identifier, type, clear) => {
     try {
       setIsLoading(true);
-      if (type === 'ticket') {
+      if (type === 'notification') {
         if (clear === 'clearAll') {
-          setNotificationList([]);
+          await clearAllNotifications();
         } else {
-          setNotificationList(prev => prev.filter((_, idx) => idx !== identifier));
+          await clearNotification(identifier);
         }
       } else if (type === 'calendar') {
         if (clear === 'clearAll') {
@@ -334,7 +376,7 @@ const NotificationSection = () => {
   };
 
   const handleClearAll = () => {
-    handleClear(null, 'ticket', 'clearAll');
+    handleClear(null, 'notification', 'clearAll');
     handleClear(null, 'calendar', 'clearAll');
     handleClear(null, 'birthday', 'clearAll');
     handleClear(null, 'anniversary', 'clearAll');
@@ -374,6 +416,15 @@ const NotificationSection = () => {
       return 'Tomorrow';
     } else {
       return date.format('MMM D');
+    }
+  };
+
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return '';
+    try {
+      return dayjs(dateTimeString, 'DD-MM-YYYY HH:mm:ss A').format('MMM D, h:mm A');
+    } catch (e) {
+      return dateTimeString;
     }
   };
 
@@ -428,10 +479,10 @@ const NotificationSection = () => {
 
                     {totalNotifications > 0 && (
                       <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1 }} flexWrap="wrap">
-                        {ticketCount > 0 && (
+                        {notificationList.length > 0 && (
                           <Chip
-                            icon={<IconTicket size={16} />}
-                            label={`${ticketCount} Ticket${ticketCount > 1 ? 's' : ''}`}
+                            icon={<IconMail size={16} />}
+                            label={`${notificationList.length} Notification${notificationList.length > 1 ? 's' : ''}`}
                             color="info"
                             size="small"
                           />
@@ -493,42 +544,56 @@ const NotificationSection = () => {
                       </Typography>
                     ) : (
                       <>
-                        {ticketCount > 0 && (
+                        {/* General Notifications from API */}
+                        {notificationList.length > 0 && (
                           <>
                             <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, mb: 1 }}>
-                              <IconTicket size={20} color={theme.palette.info.main} />
+                              <IconMail size={20} color={theme.palette.info.main} />
                               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                Ticket Notifications
+                                All Notifications
                               </Typography>
                             </Stack>
-                            {notificationList.map((item, index) => (
-                              <NotificationItem
-                                key={`ticket-${item.ticketId || index}`}
-                                icon={<IconTicket size={18} color={theme.palette.info.main} />}
-                                title={item.subject || 'Ticket Notification'}
-                                description={item.description || 'No description available'}
-                                meta={
-                                  <Stack direction="row" spacing={1} alignItems="center">
-                                    <Chip size="small" label="Ticket" color="info" />
-                                    <Chip
-                                      size="small"
-                                      label={item.status || 'Unknown'}
-                                      color={
-                                        item.status === 'Open'
-                                          ? 'primary'
-                                          : item.status === 'Closed'
-                                            ? 'success'
-                                            : 'warning'
-                                      }
-                                    />
-                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                      by {item.createdBy || 'Unknown'}
-                                    </Typography>
-                                  </Stack>
-                                }
-                                onClear={() => handleClear(index, 'ticket', 'clear')}
-                              />
-                            ))}
+                            {notificationList.map((item, index) => {
+                              // Determine notification type styling
+                              let notificationColor = theme.palette.info;
+                              let notificationIcon = <IconMail size={18} color={theme.palette.info.main} />;
+
+                              if (item.notificationType === 'LEAVE REQUEST') {
+                                notificationColor = theme.palette.warning;
+                                notificationIcon = <IconCalendar size={18} color={theme.palette.warning.main} />;
+                              } else if (item.notificationType === 'TICKET') {
+                                notificationColor = theme.palette.info;
+                                notificationIcon = <IconTicket size={18} color={theme.palette.info.main} />;
+                              }
+
+                              return (
+                                <NotificationItem
+                                  key={`notification-${item.id}`}
+                                  icon={notificationIcon}
+                                  title={item.notificationType || 'Notification'}
+                                  description={item.message || 'No description available'}
+                                  meta={
+                                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                                      <Chip
+                                        size="small"
+                                        label={item.notificationType || 'General'}
+                                        color={item.notificationType === 'LEAVE REQUEST' ? 'warning' : 'info'}
+                                      />
+                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                        by {item.createdBy || 'System'}
+                                      </Typography>
+                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                        {formatDateTime(item.commonDate?.createdon)}
+                                      </Typography>
+                                      {!item.read && (
+                                        <Chip size="small" label="New" color="error" variant="outlined" />
+                                      )}
+                                    </Stack>
+                                  }
+                                  onClear={() => handleClear(item.id, 'notification', 'clear')}
+                                />
+                              );
+                            })}
                           </>
                         )}
 

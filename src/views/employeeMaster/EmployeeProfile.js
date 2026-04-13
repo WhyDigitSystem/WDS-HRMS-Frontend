@@ -30,7 +30,7 @@ import 'jspdf-autotable';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ImageIcon from '@mui/icons-material/Image';
 import { Typography } from '@mui/material';
-import { IconButton,Tooltip } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useNavigate } from 'react-router-dom';
@@ -118,6 +118,8 @@ const EmployeeProfile = () => {
     esiPercentage: '',
     pfFlag: false,
     pfPercentage: '',
+    weekOffFlag: false,
+    weekOffEligibility: false,
     branchCode: '',
     profileImage: ''
   });
@@ -156,6 +158,8 @@ const EmployeeProfile = () => {
     esiPercentage: '',
     pfFlag: false,
     pfPercentage: '',
+    weekOffFlag: false,
+    weekOffEligibility: '',
     branchCode: '',
     profileImage: ''
   });
@@ -732,6 +736,7 @@ const EmployeeProfile = () => {
         esiPercentage: formData.esiPercentage,
         pfFlag: formData.pfFlag,
         pfPercentage: formData.pfPercentage,
+        weekoffEligible: formData.weekOffEligibility === true,
         alternativeMobileNo: parseInt(formData.alternativeMobile),
         bloodGroup: formData.bloodGroup,
         branch: selectedBranch.branch,
@@ -865,6 +870,7 @@ const EmployeeProfile = () => {
           esiPercentage: employeeDetailsVO.esiPercentage || '',
           pfFlag: employeeDetailsVO.pfFlag,
           pfPercentage: employeeDetailsVO.pfPercentage || '',
+          weekOffEligibility: employeeDetailsVO.weekoffEligible === true,
           id: employeeDetailsVO.employeeId || 0
         });
 
@@ -908,11 +914,11 @@ const EmployeeProfile = () => {
       prev.map((r) =>
         r.id === row.id
           ? {
-              ...r,
-              leaveType: newValue ? newValue.leaveType : '',
-              leaveCode: newValue ? newValue.leaveCode : '',
-              totalLeave: newValue ? newValue.totalLeave : ''
-            }
+            ...r,
+            leaveType: newValue ? newValue.leaveType : '',
+            leaveCode: newValue ? newValue.leaveCode : '',
+            totalLeave: newValue ? newValue.totalLeave : ''
+          }
           : r
       )
     );
@@ -994,74 +1000,76 @@ const EmployeeProfile = () => {
 
   const handleDownloadPDF = ({ logo }) => {
     if (!listViewData || listViewData.length === 0) {
-          toast.error('No holidays available to download.');
-          return;
-        }
+      toast.error('No holidays available to download.');
+      return;
+    }
     const doc = new jsPDF({
-      orientation: 'landscape' 
+      orientation: 'landscape'
     });
- 
+
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-   
+
     // 
-  const title = 'Employee Details';
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  const titleWidth = doc.getTextWidth(title);
-  const titlePaddingX = 6;
-  const titlePaddingY = 4;
-  const titleHeight = 10;
-  const titleX = (pageW - (titleWidth + titlePaddingX * 2)) / 2;
-  const titleY = 15;
-  doc.setFillColor(220, 240, 255);
-   doc.roundedRect(
-    titleX,
-    titleY - titlePaddingY,
-    titleWidth + titlePaddingX * 2,
-    titleHeight,
-    4,
-    4,
-    'F'
-  );
+    const title = 'Employee Details';
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    const titleWidth = doc.getTextWidth(title);
+    const titlePaddingX = 6;
+    const titlePaddingY = 4;
+    const titleHeight = 10;
+    const titleX = (pageW - (titleWidth + titlePaddingX * 2)) / 2;
+    const titleY = 15;
+    doc.setFillColor(220, 240, 255);
+    doc.roundedRect(
+      titleX,
+      titleY - titlePaddingY,
+      titleWidth + titlePaddingX * 2,
+      titleHeight,
+      4,
+      4,
+      'F'
+    );
     doc.setTextColor(40, 40, 40);
-  doc.text(title, pageW / 2, titleY + 3, { align: 'center' });
-   if (logo) {
-    doc.addImage(logo, 'PNG', 5, 0, 40, 30); 
-    doc.autoTable({
-      startY: 33,
-      head:[[ 'Name','Type', 'Code', 'Department','Designation','Mobile','Active']],
-      body: listViewData.map((row) => {
-      const formatValue = (val) => (val === 0 || val === null || val === '' ? '-' : val);
-      return [
-         formatValue(row.employee),
-        formatValue(row.type),
-        formatValue(row.employeeCode),
-        formatValue(row.department),
-        formatValue(row.designation),
-        formatValue(row.mobileNo),
-        formatValue(row.active === true ? 'Active' : 'Inactive'),
-      ]
-    }),
-    
-      styles: { fontSize: 8, cellPadding: 2,
-      lineColor: [200, 200, 200],
-      lineWidth: 0.1  },
-      headStyles: { fillColor: [42, 75, 77], textColor: 255, halign: 'center' },
-      margin: { left: 14, right: 14 },
-       columnStyles: {
-        0: { halign: 'left' }, 
-        1: { halign: 'left' }, 
-        2: { halign: 'left' }, 
-         3: { halign: 'left' }, 
+    doc.text(title, pageW / 2, titleY + 3, { align: 'center' });
+    if (logo) {
+      doc.addImage(logo, 'PNG', 5, 0, 40, 30);
+      doc.autoTable({
+        startY: 33,
+        head: [['Name', 'Type', 'Code', 'Department', 'Designation', 'Mobile', 'Active']],
+        body: listViewData.map((row) => {
+          const formatValue = (val) => (val === 0 || val === null || val === '' ? '-' : val);
+          return [
+            formatValue(row.employee),
+            formatValue(row.type),
+            formatValue(row.employeeCode),
+            formatValue(row.department),
+            formatValue(row.designation),
+            formatValue(row.mobileNo),
+            formatValue(row.active === true ? 'Active' : 'Inactive'),
+          ]
+        }),
+
+        styles: {
+          fontSize: 8, cellPadding: 2,
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1
+        },
+        headStyles: { fillColor: [42, 75, 77], textColor: 255, halign: 'center' },
+        margin: { left: 14, right: 14 },
+        columnStyles: {
+          0: { halign: 'left' },
+          1: { halign: 'left' },
+          2: { halign: 'left' },
+          3: { halign: 'left' },
           4: { halign: 'left' },
-           5: { halign: 'right' },
-            6: { halign: 'left' },
-              
-      },
-    
-         didDrawPage: (data) => {
-      const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+          5: { halign: 'right' },
+          6: { halign: 'left' },
+
+        },
+
+        didDrawPage: (data) => {
+          const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
           doc.setFontSize(8).setTextColor('#555555');
           doc.text(
             `Print On: ${dayjs().format('DD-MM-YYYY hh:mm A')}`,
@@ -1070,11 +1078,11 @@ const EmployeeProfile = () => {
             { align: 'right' }
           );
           doc.text(
-          `Employee Details - ${currentPage}`,
-           pageW / 2,
-          pageH - 10,
-        { align: 'center' }
-        );
+            `Employee Details - ${currentPage}`,
+            pageW / 2,
+            pageH - 10,
+            { align: 'center' }
+          );
           doc.text(
             `Printed By: ${loginUserName}`,
             15,
@@ -1083,7 +1091,7 @@ const EmployeeProfile = () => {
           );
         }
       });
-  }
+    }
     // 
     doc.save(`Employee_Details.pdf`);
   };
@@ -1249,16 +1257,16 @@ const EmployeeProfile = () => {
         console.error('Error adding logo:', err);
       }
     }
-// 
- const allBorders = {
-  top:    { style: 'thin' },
-  left:   { style: 'thin' },
-  bottom: { style: 'thin' },
-  right:  { style: 'thin' }
-};
-// 
+    // 
+    const allBorders = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+    // 
     const titleRow = sheet.getRow(2);
-    sheet.mergeCells('C2:H3'); 
+    sheet.mergeCells('C2:H3');
     const titleCell = sheet.getCell('C2');
     titleCell.value = 'Employee Details';
     titleCell.font = { size: 16, bold: true };
@@ -1268,20 +1276,20 @@ const EmployeeProfile = () => {
     metaRow.getCell(1).value = `Print On: ${dayjs().format('DD-MM-YYYY HH:mm')} `;
     metaRow.getCell(2).value = `Printed By: ${loginUserName || 'Admin'}`;
     metaRow.font = { size: 11, bold: true };
-  for (let i = 1; i <= 2; i++) {
-  const cell = metaRow.getCell(i);
-  cell.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF593C8F'} 
-  };
-  cell.alignment = { vertical: 'middle', horizontal: 'center' };
-  cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-  cell.border = allBorders;
-}
+    for (let i = 1; i <= 2; i++) {
+      const cell = metaRow.getCell(i);
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF593C8F' }
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.border = allBorders;
+    }
     // --- Define headers ---
     const headers = [
-      'Name','Type', 'Code', 'Department','Designation','Mobile','Active'
+      'Name', 'Type', 'Code', 'Department', 'Designation', 'Mobile', 'Active'
     ];
 
     const columnWidths = headers.map(() => ({ width: 20 }));
@@ -1300,21 +1308,21 @@ const EmployeeProfile = () => {
         pattern: 'solid',
         fgColor: { argb: '3F51B5' }
       };
-         cell.border = allBorders;
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = allBorders;
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
     });
-    const formatValue = (val) => (val === 0 || val === null || val === ''? '-' : val);
+    const formatValue = (val) => (val === 0 || val === null || val === '' ? '-' : val);
     listViewData.forEach((row) => {
-     const rowData = [];
-     rowData.push(
-       formatValue(row.employee),
-       formatValue(row.type),
-       formatValue(row.employeeCode),
-       formatValue(row.department),
-       formatValue(row.designation),
-       formatValue(row.mobileNo),
-       formatValue(row.active === true ? 'Active' : 'Inactive'),
-     )
+      const rowData = [];
+      rowData.push(
+        formatValue(row.employee),
+        formatValue(row.type),
+        formatValue(row.employeeCode),
+        formatValue(row.department),
+        formatValue(row.designation),
+        formatValue(row.mobileNo),
+        formatValue(row.active === true ? 'Active' : 'Inactive'),
+      )
 
       const dataRow = sheet.addRow(rowData);
 
@@ -1326,15 +1334,15 @@ const EmployeeProfile = () => {
         };
         cell.border = allBorders;
         if (cell.value === '-') {
-      cell.alignment = {
-        horizontal: 'right',
-        indent: 1
-      };
-    } else {
-      cell.alignment = {
-        indent: 1
-      };
-    }
+          cell.alignment = {
+            horizontal: 'right',
+            indent: 1
+          };
+        } else {
+          cell.alignment = {
+            indent: 1
+          };
+        }
       });
     });
 
@@ -1399,19 +1407,19 @@ const EmployeeProfile = () => {
             }}
           />
           {!showForm && (
-           
+
             <Tooltip title="Download PDF">
-          <IconButton onClick={() => handleDownloadPDF({ logo: companyDetails[0]?.companyLogo })} isLoading={isLoading}>       
-              <PictureAsPdfIcon color="error" />
-               </IconButton>
-              </Tooltip>
+              <IconButton onClick={() => handleDownloadPDF({ logo: companyDetails[0]?.companyLogo })} isLoading={isLoading}>
+                <PictureAsPdfIcon color="error" />
+              </IconButton>
+            </Tooltip>
           )}
           {!showForm && (
-             <Tooltip title="Download Excel">
-             <IconButton onClick={() => handleDownloadExcel({ logo: companyDetails[0]?.companyLogo })}  isLoading={isLoading}>
-               <DownloadIcon color="primary" />
-            </IconButton>
-           </Tooltip>
+            <Tooltip title="Download Excel">
+              <IconButton onClick={() => handleDownloadExcel({ logo: companyDetails[0]?.companyLogo })} isLoading={isLoading}>
+                <DownloadIcon color="primary" />
+              </IconButton>
+            </Tooltip>
           )}
 
           {!showForm && (
@@ -1550,7 +1558,7 @@ const EmployeeProfile = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.employeeName}
                   helperText={fieldErrors.employeeName}
-                  // disabled={isViewMode}
+                // disabled={isViewMode}
                 />
               </div>
 
@@ -1566,7 +1574,7 @@ const EmployeeProfile = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.employeeCode}
                   helperText={fieldErrors.employeeCode}
-                  // disabled={isViewMode}
+                // disabled={isViewMode}
                 />
               </div>
 
@@ -1689,8 +1697,8 @@ const EmployeeProfile = () => {
                           textField: { size: 'small', clearable: true }
                         }}
                         format="DD-MM-YYYY"
-                        // error={fieldErrors.resignationDate}
-                        // helperText={fieldErrors.resignationDate && 'Required'}
+                      // error={fieldErrors.resignationDate}
+                      // helperText={fieldErrors.resignationDate && 'Required'}
                       />
                     </LocalizationProvider>
                   </FormControl>
@@ -2165,8 +2173,8 @@ const EmployeeProfile = () => {
                   name="bankName"
                   value={formData.bankName}
                   onChange={handleInputChange}
-                  // error={!!fieldErrors.bankName}
-                  // helperText={fieldErrors.bankName}
+                // error={!!fieldErrors.bankName}
+                // helperText={fieldErrors.bankName}
                 />
               </div>
 
@@ -2257,6 +2265,37 @@ const EmployeeProfile = () => {
                     type="number"
                     value={formData.pfPercentage || ''}
                     onChange={(e) => setFormData({ ...formData, pfPercentage: e.target.value })}
+                  />
+                </div>
+              )}
+
+              <div className="col-md-3 mb-3">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.weekOffEligibility}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          weekOffEligibility: e.target.checked // ✅ boolean
+                        }))
+                      }
+                    />
+                  }
+                  label="Week Off"
+                />
+              </div>
+
+              {formData.weekOffFlag && (
+                <div className="col-md-3 mb-3">
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Week Off"
+                    name="weekOffEligibility"
+                    type="number"
+                    value={formData.weekOffEligibility || ''}
+                    onChange={(e) => setFormData({ ...formData, weekOffEligibility: e.target.value })}
                   />
                 </div>
               )}

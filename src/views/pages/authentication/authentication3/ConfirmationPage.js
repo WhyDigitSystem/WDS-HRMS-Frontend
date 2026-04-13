@@ -185,7 +185,7 @@ const ConfirmationPage = () => {
     try {
       const screenName = searchParams.get('screenName');
 
-      const [leaveResult, permissionResult, compoOffResult, checkOutResult, checkInOutResult] = await Promise.all([
+      const [leaveResult, permissionResult, compoOffResult, checkOutResult, checkInOutResult, wfhResult] = await Promise.all([
         apiCalls(
           'get',
           `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
@@ -199,7 +199,8 @@ const ConfirmationPage = () => {
           `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
         ),
         apiCalls('get', `basicmaster/getRequestCheckOutByOrgId?orgId=${orgId}&reportingPersoncode=${notifyCode}&branch=${branch}`),
-        apiCalls('get', `basicmaster/getRequestCheckInOutByOrgId?orgId=${orgId}&reportingPersoncode=${notifyCode}&branch=${branch}`)
+        apiCalls('get', `basicmaster/getRequestCheckInOutByOrgId?orgId=${orgId}&reportingPersoncode=${notifyCode}&branch=${branch}`),
+        apiCalls('get', `leaveprocess/getPendingWorkFromHomeForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`),
       ]);
 
       // Always try to find the matched request in corresponding list
@@ -233,6 +234,15 @@ const ConfirmationPage = () => {
         employeeEmail: item.email || item.employeeEmail || '' // normalize email field
       }));
 
+      const wfhRequests = (
+        Array.isArray(wfhResult?.paramObjectsMap?.workFromHomeVO)
+          ? wfhResult.paramObjectsMap.workFromHomeVO
+          : [wfhResult?.paramObjectsMap?.workFromHomeVO].filter(Boolean)
+      ).map((item) => ({
+        ...item,
+        employeeEmail: item.email || item.employeeEmail || '' // normalize email field
+      }));
+
       // Prioritize screenName logic
       switch (screenName) {
         case 'LEAVE REQUEST': {
@@ -258,6 +268,11 @@ const ConfirmationPage = () => {
         case 'CHECKINOUTADJUSTMENT': {
           const checkInOutMatch = checkInOutRequests.find((req) => String(req.id) === String(actionId));
           await handleCheckInOutApprove(checkInOutMatch || { id: actionId });
+          break;
+        }
+        case 'WORKFROMHOME': {
+          const wfhMatch = wfhRequests.find((req) => String(req.id) === String(actionId));
+          await handleWFHApprove(wfhMatch || { id: actionId });
           break;
         }
         default: {
@@ -489,6 +504,64 @@ const ConfirmationPage = () => {
       setErrorMessage(response?.data?.paramObjectsMap?.message || 'Compo Off action completed.');
     } catch (error) {
       console.error('Error approving request:', error);
+      setErrorMessage(extractApiError(error));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleWFHApprove = async (matchedRequest = {}) => {
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/leaveprocess/createApprovalWorkFromHome?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`
+      );
+
+      const isSuccess = response.data.status === true;
+
+      // ✅ Correct extraction (NO array, NO IN/OUT)
+      const backendData = response?.data?.paramObjectsMap?.workFromHomeVO || {};
+
+      const backendStatus = backendData?.approveStatus || '';
+      setApproveStatus(backendStatus);
+
+      if (!isSuccess) {
+        setErrorMessage(
+          response?.data?.paramObjectsMap?.errorMessage || 'WFH request could not be processed.'
+        );
+        return;
+      }
+
+      // ✅ Correct template params (WFH specific)
+      const templateParams = {
+        name: matchedRequest.employeeName || backendData?.employeeName || 'Employee',
+        from_name: notify,
+        date: dayjs(matchedRequest.wfhDate || backendData?.wfhDate).format('DD-MM-YYYY'),
+        work_Accomplished: matchedRequest.workAccomplished || backendData?.workAccomplished || '',
+        reason: matchedRequest.reason || backendData?.reason || '',
+        status: backendStatus,
+        status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
+        status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
+        email: matchedRequest.employeeEmail || backendData?.employeeEmail || backendData?.email || ''
+      };
+
+      // ❗ Email check
+      // if (!templateParams.email) {
+      //   setErrorMessage("Recipient email not found. Email not sent.");
+      //   return;
+      // }
+
+      // ✅ Send Email
+      await emailjs.send(
+        'service_ywei7br',
+        'template_cb2ljdh',
+        templateParams,
+        '-y3NVuC6et9lUpj0-'
+      );
+
+      setIsSuccess(true);
+      setErrorMessage(response?.data?.paramObjectsMap?.message || 'WFH action completed.');
+    } catch (error) {
+      console.error('Error approving WFH request:', error);
       setErrorMessage(extractApiError(error));
     } finally {
       setIsLoading(false);

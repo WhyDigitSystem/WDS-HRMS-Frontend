@@ -8,7 +8,8 @@ import {
   IconFileDollar,
   IconCalculator,
   IconChartBar,
-  IconIdBadge2
+  IconIdBadge2,
+  IconFingerprint
 } from '@tabler/icons-react';
 
 // Utility to check screen access
@@ -54,6 +55,13 @@ const employeeMasterChildren = [
     type: 'item',
     url: '/basicMaster/OTApproval',
     icon: IconIdBadge2
+  },
+  hasScreenAccess('SETR') && {
+    id: 'settlementReport',
+    title: 'Settlement Report',
+    type: 'item',
+    url: '/salaryMaster/SettlementReport',
+    icon: IconFingerprint
   },
   // hasScreenAccess('AD') && {
   //   id: 'advance',

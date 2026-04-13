@@ -203,15 +203,15 @@ const AppraisalDashboard = () => {
 
     // Professional color scheme for tabs
     const tabData = [
-        {
-            label: "Perspective Ratings",
-            icon: <BarChartIcon />,
-            count: perspectiveData.length,
-            color: "#3b82f6", // Blue
-            iconColor: "#2563eb", // Darker blue for icon
-            bgColor: "#dbeafe", // Light blue background
-            indicatorColor: "#3b82f6"
-        },
+        // {
+        //     label: "Perspective Ratings",
+        //     icon: <BarChartIcon />,
+        //     count: perspectiveData.length,
+        //     color: "#3b82f6", // Blue
+        //     iconColor: "#2563eb", // Darker blue for icon
+        //     bgColor: "#dbeafe", // Light blue background
+        //     indicatorColor: "#3b82f6"
+        // },
         {
             label: "Monthly Trend",
             icon: <TrendingUpIcon />,
@@ -648,8 +648,8 @@ const AppraisalDashboard = () => {
                                 >
                                     {activeTab === index && (
                                         <Box sx={{ p: 0 }}>
-                                            {index === 0 && <PerspectiveRatingChart data={perspectiveData} />}
-                                            {index === 1 && (
+                                            {/* {index === 0 && <PerspectiveRatingChart data={perspectiveData} />} */}
+                                            {index === 0 && (
                                                 <MonthlyTrend
                                                     performanceData={employeeData?.performanceData || []}
                                                     selectedEmployee={selectedEmployee}
@@ -658,7 +658,7 @@ const AppraisalDashboard = () => {
                                                     selectedYear={selectedYear}
                                                 />
                                             )}
-                                            {index === 2 && <PerformanceGoalsDashboard performanceData={employeeData?.performanceData || []} />}
+                                            {index === 1 && <PerformanceGoalsDashboard performanceData={employeeData?.performanceData || []} />}
                                         </Box>
                                     )}
                                 </div>

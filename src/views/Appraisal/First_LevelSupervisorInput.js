@@ -36,6 +36,8 @@ function PaperComponent(props) {
 const First_LevelSupervisorInput = () => {
   const [listViewData, setListViewData] = useState([]);
   const [appraisalOptions, setAppraisalOptions] = useState([]);
+  const [employeeOptions, setEmployeeOptions] = useState([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
   const [createdBy] = useState(localStorage.getItem('userName'));
   const [branch] = useState(localStorage.getItem('branch'));
@@ -50,70 +52,130 @@ const First_LevelSupervisorInput = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [fillGridData, setFillGridData] = useState([]);
+  const [gradeList, setGradeList] = useState([]);
 
   const [formData, setFormData] = useState({
-    code: localStorage.getItem('employeeCode') || '',
-    name: '',
+    id: '',
+    appraisalId: '',
+    employeeCode: '',
+    employeeName: '',
     branch: '',
+    branchCode: '',
     department: '',
     designation: '',
-    reportingHead: '',
-    reportingHeadCode: '',
+    supervisorCode: '',
+    supervisorName: '',
     reportingHeadDesignation: '',
-    finYear: new Date().getFullYear(),
+    finyear: new Date().getFullYear().toString(),
+    createdBy: '',
+    updatedBy: '',
     active: true
   });
 
   const [fieldErrors, setFieldErrors] = useState({
-    code: '',
-    name: '',
-    department: '',
+    appraisalId: '',
+    employeeCode: '',
+    employeeName: '',
     designation: '',
-    reportingHeadCode: '',
-    reportingHead: '',
-    reportingHeadDesignation: '',
+    supervisorCode: '',
+    supervisorName: '',
+    reportingHeadDesignation: ''
   });
 
   const [appraiseeDetailsData, setAppraiseeDetailsData] = useState([
-    { id: Date.now(), area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+    { id: Date.now(), goals: '', selfInput: '', score: '', supervisorRating: '' }
   ]);
 
   const [appraiseeDetailsErrors, setAppraiseeDetailsErrors] = useState([
-    { area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+    { goals: '', selfInput: '' }
   ]);
 
   const listViewColumns = [
-    { accessorKey: 'code', header: 'Code', size: 140 },
-    { accessorKey: 'name', header: 'Name', size: 140 },
-    { accessorKey: 'department', header: 'Department', size: 140 },
+    { accessorKey: 'employeeCode', header: 'Employee Code', size: 140 },
+    { accessorKey: 'employeeName', header: 'Employee Name', size: 140 },
     { accessorKey: 'designation', header: 'Designation', size: 140 },
-    { accessorKey: 'reportingHead', header: 'Reporting Head', size: 140 },
+    { accessorKey: 'supervisorName', header: 'Supervisor Name', size: 140 },
     { accessorKey: 'reportingHeadDesignation', header: 'Reporting Head Designation', size: 140 },
-    { accessorKey: 'active', header: 'Active', size: 140 }
+    // { accessorKey: 'active', header: 'Active', size: 140 }
   ];
 
   useEffect(() => {
+    console.log('Current appraisalId:', formData.appraisalId);
     const fetchInitialData = async () => {
       await getAllAppraisees();
-      if (formData.code) {
-        await fetchEmployeeDetails(formData.code);
-      }
+      await getAllEmployees(orgId);
     };
     fetchInitialData();
     getAppraisalDocId();
+    getAllGrade();
   }, []);
 
-  const getAllAppraisees = async () => {
+  const getAllGrade = async () => {
     try {
-      const response = await apiCalls('get', `/goalsController/getAppraiseeByOrgId?orgId=${orgId}`);
+      const response = await apiCalls(
+        'get',
+        `/goalsController/getGradeByOrgId?orgId=${orgId}`
+      );
+
       if (response.status) {
-        setListViewData(response.paramObjectsMap.appraiseeVO || []);
+        setGradeList(response.paramObjectsMap.gradeVO || []);
       } else {
-        showToast('error', response.message || 'Failed to fetch appraisees');
+        showToast('error', response.message);
       }
     } catch (error) {
-      console.error('Error fetching appraisees:', error);
-      showToast('error', 'Failed to fetch appraisees');
+      console.error('Error fetching grades:', error);
+    }
+  };
+
+  const getPerformanceGoals = async (appraisalId, empCode) => {
+    if (!appraisalId || !empCode) return;
+
+    try {
+      const response = await apiCalls(
+        'get',
+        `/goalsController/getPerformanceGoalsForFirstLevelSInput?appraisalId=${appraisalId}&empCode=${empCode}&orgId=${orgId}`
+      );
+
+      if (response.status) {
+        const data = response.paramObjectsMap.performanceGoalsVO || [];
+
+        if (data.length > 0) {
+          const details = data[0].performanceGoalsDtlVO || [];
+
+          const mappedData = details.map((item) => ({
+            id: item.id || Date.now() + Math.random(),
+            goals: item.objectivedesc || '',
+            selfInput: item.performanceself || '',
+            score: '',
+            supervisorRating: ''
+          }));
+
+          setAppraiseeDetailsData(mappedData);
+        } else {
+          setAppraiseeDetailsData([]);
+        }
+      } else {
+        showToast('error', response.message);
+      }
+    } catch (error) {
+      console.error('Error fetching performance goals:', error);
+      showToast('error', 'Failed to fetch performance goals');
+    }
+  };
+
+  // ✅ UPDATED: Correctly handles the API response for getAll
+  const getAllAppraisees = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getFirstLevelSupervisorInputByOrgId?orgId=${orgId}`);
+      if (response.status) {
+        const data = response.paramObjectsMap.firstLevelSupervisorInputVO || [];
+        setListViewData(data);
+      } else {
+        showToast('error', response.message || 'Failed to fetch data');
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      showToast('error', 'Failed to fetch data');
     }
   };
 
@@ -124,9 +186,9 @@ const First_LevelSupervisorInput = () => {
       const list = response.paramObjectsMap.goalsVO || [];
 
       const options = list.map((item) => ({
-        label: `${item.appraisalId} - ${item.department}`,
+        label: `${item.appraisalId} - ${item.designation}`,
         value: item.appraisalId,
-        department: item.department
+        designation: item.designation
       }));
 
       setAppraisalOptions(options);
@@ -137,51 +199,69 @@ const First_LevelSupervisorInput = () => {
     }
   };
 
-  const fetchEmployeeDetails = async (employeeCode) => {
-    if (!employeeCode || !orgId) return;
+  const getAllEmployees = async (orgIdVal, selectedDesignation = null) => {
+    const branchCode = localStorage.getItem('branch');
 
-    setIsFetchingEmployee(true);
+    if (!orgIdVal || !branchCode) return;
+
+    setIsLoadingEmployees(true);
     try {
-      const response = await apiCalls('get', `goalsController/getEmployeeDetails?employeeCode=${employeeCode}&orgId=${orgId}`);
+      let url = `master/getAllEmployeeByOrgId?orgId=${orgIdVal}&branchCode=${branchCode}`;
 
-      if (response?.status) {
-        const employeeData = response.paramObjectsMap?.employeeVO?.[0] ||
-          response.paramObjectsMap?.employeeDetails ||
-          response.data;
+      const response = await apiCalls('get', url);
 
-        if (employeeData) {
-          setFormData(prev => ({
-            ...prev,
-            name: employeeData.empName || employeeData.name || '',
-            department: employeeData.department || '',
-            designation: employeeData.empDesignation || employeeData.designation || '',
-            reportingHeadCode: employeeData.reportingPersonCode || '',
-            reportingHead: employeeData.reportingPerson || '',
-            reportingHeadDesignation: employeeData.reportingPersonRole || '',
-            branch: employeeData.branch || ''
-          }));
+      if (response.status === true) {
+        let employees = response.paramObjectsMap.employeeVO || [];
 
-          setFieldErrors(prev => ({
-            ...prev,
-            name: '',
-            department: '',
-            designation: '',
-            reportingHeadCode: '',
-            reportingHead: '',
-            reportingHeadDesignation: ''
-          }));
-
-          // showToast('success', `Employee details loaded`);
+        if (selectedDesignation) {
+          employees = employees.filter(
+            (emp) => emp.designation === selectedDesignation
+          );
         }
+
+        const formattedEmployees = employees.map(emp => ({
+          employeeCode: emp.employeeCode,
+          employeeName: emp.employee,
+          designation: emp.designation,
+          supervisorCode: emp.reportingPersonCode,
+          supervisorName: emp.reportingPerson,
+          reportingHeadDesignation: emp.reportingRole,
+          branch: emp.branch,
+          branchCode: emp.branchCode,
+          email: emp.email,
+          mobileNo: emp.mobileNo,
+          department: emp.department
+        }));
+
+        setEmployeeOptions(formattedEmployees);
+
       } else {
-        showToast('error', response.message || 'Failed to fetch employee details');
+        showToast('error', response.message);
+        setEmployeeOptions([]);
       }
     } catch (error) {
-      console.error('Error fetching employee details:', error);
-      showToast('error', 'Failed to fetch employee details');
+      console.error(error);
+      setEmployeeOptions([]);
     } finally {
-      setIsFetchingEmployee(false);
+      setIsLoadingEmployees(false);
     }
+  };
+
+  const handleScoreChange = (id, value) => {
+    const selectedGrade = gradeList.find(g => g.score === value);
+
+    const updatedData = appraiseeDetailsData.map(row => {
+      if (row.id === id) {
+        return {
+          ...row,
+          score: value,
+          supervisorRating: selectedGrade?.grade || ''
+        };
+      }
+      return row;
+    });
+
+    setAppraiseeDetailsData(updatedData);
   };
 
   const handleInputChange = (e) => {
@@ -199,52 +279,62 @@ const First_LevelSupervisorInput = () => {
     }));
   };
 
+  // ✅ UPDATED: Correctly handles the API response for getById
   const getAppraiseeById = async (row) => {
     setEditId(row.original.id);
     try {
-      const response = await apiCalls('get', `/goalsController/getAppraiseeById?id=${row.original.id}`);
+      const response = await apiCalls('get', `/goalsController/getFirstLevelSupervisorInputById?id=${row.original.id}`);
       if (response.status) {
         setListView(false);
-        const appraisee = response.paramObjectsMap.appraiseeVO;
+        const data = response.paramObjectsMap.firstLevelSupervisorInputVO;
 
         setFormData({
-          id: appraisee.id,
-          code: appraisee.code,
-          name: appraisee.name,
-          branch: appraisee.branch,
-          department: appraisee.department,
-          designation: appraisee.designation,
-          reportingHeadCode: appraisee.reportingHeadCode,
-          reportingHead: appraisee.reportingHead,
-          reportingHeadDesignation: appraisee.reportingHeadDesignation,
-          finYear: appraisee.finYear,
-          active: appraisee.active === 'Active',
+          id: data.id || '',
+          appraisalId: data.appraisalId || '',
+          employeeCode: data.employeeCode || '',
+          employeeName: data.employeeName || '',
+          branch: data.branch || '',
+          branchCode: data.branchCode || '',
+          department: data.department || '',
+          designation: data.designation || '',
+          supervisorCode: data.supervisorCode || '',
+          supervisorName: data.supervisorName || '',
+          reportingHeadDesignation: data.reportingHeadDesignation || '',
+          finyear: data.finyear || new Date().getFullYear().toString(),
+          createdBy: data.createdBy || '',
+          updatedBy: data.updatedBy || '',
+          active: data.active || true
         });
 
-        // FIXED: Handle appraiseeDetails data properly
-        const details = appraisee.appraiseeDetailsVO || [];
-        setAppraiseeDetailsData(
-          details.map(detail => ({
-            id: detail.id || Date.now() + Math.random(),
-            area: detail.area,
-            keyPerformanceIndicator: detail.keyPerformanceIndicator,
-            goals: detail.goals,
-            reMarks: detail.reMarks
-          }))
-        );
+        // ✅ Use firstLevelSupervisorInputDetailsVO (not details)
+        const details = data.firstLevelSupervisorInputDetailsVO || [];
+
+        if (details.length > 0) {
+          setAppraiseeDetailsData(
+            details.map((detail, index) => ({
+              id: detail.id || Date.now() + index,
+              goals: detail.goals || '',
+              selfInput: detail.selfInput || '',
+              score: detail.score?.toString() || '',
+              supervisorRating: detail.supervisorRating || ''
+            }))
+          );
+        } else {
+          setAppraiseeDetailsData([
+            { id: Date.now(), goals: '', selfInput: '', score: '', supervisorRating: '' }
+          ]);
+        }
 
         setAppraiseeDetailsErrors(
-          details.map(() => ({
-            area: '',
-            keyPerformanceIndicator: '',
+          (details.length > 0 ? details : [{}]).map(() => ({
             goals: '',
-            reMarks: ''
+            selfInput: ''
           }))
         );
       }
     } catch (error) {
-      console.error('Error fetching appraisee details:', error);
-      showToast('error', 'Failed to fetch appraisee details');
+      console.error('Error fetching details:', error);
+      showToast('error', 'Failed to fetch details');
     }
   };
 
@@ -255,12 +345,12 @@ const First_LevelSupervisorInput = () => {
     appraiseeDetailsData.forEach((row) => {
       const errors = {};
 
-      if (!row.area) {
-        errors.area = 'Area is required';
-        isValid = false;
-      }
       if (!row.goals) {
         errors.goals = 'Goals are required';
+        isValid = false;
+      }
+      if (!row.selfInput) {
+        errors.selfInput = 'Self Input is required';
         isValid = false;
       }
 
@@ -274,12 +364,25 @@ const First_LevelSupervisorInput = () => {
   const handleSave = async () => {
     // Validate main form fields
     const errors = {};
-    if (!formData.code) errors.code = 'Code is required';
-    if (!formData.name) errors.name = 'Name is required';
-    if (!formData.department) errors.department = 'Department is required';
+    if (!formData.appraisalId) errors.appraisalId = 'Appraisal ID is required';
+    if (!formData.employeeCode) errors.employeeCode = 'Employee Code is required';
+    if (!formData.employeeName) errors.employeeName = 'Employee Name is required';
     if (!formData.designation) errors.designation = 'Designation is required';
+    if (!formData.supervisorCode) errors.supervisorCode = 'Supervisor Code is required';
+    if (!formData.supervisorName) errors.supervisorName = 'Supervisor Name is required';
 
-    // Set field errors
+    // Validate designation match
+    if (formData.appraisalId && formData.designation) {
+      const selectedAppraisal = appraisalOptions.find(
+        (opt) => opt.value === formData.appraisalId
+      );
+
+      if (selectedAppraisal?.designation !== formData.designation) {
+        showToast('error', 'Employee designation does not match Appraisal designation');
+        return;
+      }
+    }
+
     setFieldErrors(errors);
 
     // Validate appraisee details
@@ -287,49 +390,52 @@ const First_LevelSupervisorInput = () => {
 
     if (Object.keys(errors).length > 0 || !isDetailsValid) {
       showToast('error', 'Please fill all required fields');
-      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
 
-    const appraiseeDetailsVo = appraiseeDetailsData.map(row => ({
-      ...(editId && { id: row.id }),
-      area: row.area,
-      keyPerformanceIndicator: row.keyPerformanceIndicator,
+    const detailsVo = appraiseeDetailsData.map(row => ({
+      ...(row.id && !isNaN(parseInt(row.id)) && row.id.toString().length > 10 ? { id: parseInt(row.id) } : {}),
       goals: row.goals,
-      reMarks: row.reMarks || ''
+      selfInput: row.selfInput,
+      score: row.score ? parseInt(row.score) : 0,
+      supervisorRating: row.supervisorRating || ''
     }));
 
     const payload = {
-      ...(editId && { id: editId }),
-      active: formData.active,
-      appraiseeDetailsDTO: appraiseeDetailsVo,
-      branch,
-      code: formData.code,
-      createdBy,
-      department,
-      designation,
-      finYear: formData.finYear,
-      name: formData.name,
-      orgId,
-      reportingHead: formData.reportingHead,
-      reportingHeadCode: formData.reportingHeadCode,
+      ...(editId && { id: parseInt(editId) }),
+      appraisalId: formData.appraisalId,
+      branch: formData.branch || branch,
+      branchCode: formData.branchCode || branch,
+      createdBy: createdBy,
+      department: formData.department || department,
+      designation: formData.designation,
+      details: detailsVo,
+      employeeCode: formData.employeeCode,
+      employeeName: formData.employeeName,
+      finyear: formData.finyear,
+      orgId: orgId,
       reportingHeadDesignation: formData.reportingHeadDesignation,
+      supervisorCode: formData.supervisorCode,
+      supervisorName: formData.supervisorName,
+      updatedBy: createdBy
     };
 
+    console.log('Payload being sent:', payload);
+
     try {
-      const response = await apiCalls('put', '/goalsController/createUpdateAppraisee', payload);
+      const response = await apiCalls('put', '/goalsController/createUpdateFirstLevelSupervisorInput', payload);
       if (response.status) {
-        showToast('success', editId ? 'Appraisee updated successfully' : 'Appraisee created successfully');
+        showToast('success', editId ? 'First Level Supervisor Input updated successfully' : 'First Level Supervisor Input created successfully');
         handleClear();
         getAllAppraisees();
       } else {
         showToast('error', response.message || 'Operation failed');
       }
     } catch (error) {
-      console.error('Error saving appraisee:', error);
-      showToast('error', 'Failed to save appraisee');
+      console.error('Error saving data:', error);
+      showToast('error', 'Failed to save data');
     } finally {
       setIsLoading(false);
     }
@@ -338,34 +444,38 @@ const First_LevelSupervisorInput = () => {
   const handleClear = () => {
     setFormData({
       id: '',
-      code: localStorage.getItem('employeeCode') || '',
-      name: '',
+      appraisalId: '',
+      employeeCode: '',
+      employeeName: '',
       branch: '',
+      branchCode: '',
       department: '',
       designation: '',
-      reportingHead: '',
-      reportingHeadCode: '',
+      supervisorCode: '',
+      supervisorName: '',
       reportingHeadDesignation: '',
-      finYear: new Date().getFullYear(),
+      finyear: new Date().getFullYear().toString(),
+      createdBy: '',
+      updatedBy: '',
       active: true
     });
 
     setFieldErrors({
-      code: '',
-      name: '',
-      department: '',
+      appraisalId: '',
+      employeeCode: '',
+      employeeName: '',
       designation: '',
-      reportingHeadCode: '',
-      reportingHead: '',
-      reportingHeadDesignation: '',
+      supervisorCode: '',
+      supervisorName: '',
+      reportingHeadDesignation: ''
     });
 
     setAppraiseeDetailsData([
-      { id: Date.now(), area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+      { id: Date.now(), goals: '', selfInput: '', score: '', supervisorRating: '' }
     ]);
 
     setAppraiseeDetailsErrors([
-      { area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+      { goals: '', selfInput: '' }
     ]);
 
     setEditId('');
@@ -375,23 +485,22 @@ const First_LevelSupervisorInput = () => {
     const newId = Date.now();
     setAppraiseeDetailsData(prev => [
       ...prev,
-      { id: newId, area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+      { id: newId, goals: '', selfInput: '', score: '', supervisorRating: '' }
     ]);
     setAppraiseeDetailsErrors(prev => [
       ...prev,
-      { area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+      { goals: '', selfInput: '' }
     ]);
   };
 
   const handleDeleteRow = (id) => {
     if (appraiseeDetailsData.length <= 1) {
-      // Replace the last row with a new empty row
       const newId = Date.now();
       setAppraiseeDetailsData([
-        { id: newId, area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+        { id: newId, goals: '', selfInput: '', score: '', supervisorRating: '' }
       ]);
       setAppraiseeDetailsErrors([
-        { area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
+        { goals: '', selfInput: '' }
       ]);
       return;
     }
@@ -412,12 +521,10 @@ const First_LevelSupervisorInput = () => {
     const index = appraiseeDetailsData.findIndex(d => d.id === id);
     if (index === -1) return;
 
-    // Update data
     const newData = [...appraiseeDetailsData];
     newData[index] = { ...newData[index], [field]: value };
     setAppraiseeDetailsData(newData);
 
-    // Clear error for this field
     if (value && appraiseeDetailsErrors[index][field]) {
       const newErrors = [...appraiseeDetailsErrors];
       newErrors[index] = { ...newErrors[index], [field]: '' };
@@ -430,10 +537,9 @@ const First_LevelSupervisorInput = () => {
 
   const handleFullGrid = async () => {
     try {
-      const response = await apiCalls('get', `/goalsController/getAppraiseeFillGrid?orgId=${orgId}&employeeCode=${formData.code}`);
+      const response = await apiCalls('get', `/goalsController/getAppraiseeFillGrid?orgId=${orgId}&employeeCode=${formData.employeeCode}`);
       if (response.status) {
         setFillGridData(response.paramObjectsMap.appraiseeFillGrid || []);
-        // Reset selection when opening modal
         setSelectedRows([]);
         setSelectAll(false);
         setModalOpen(true);
@@ -459,37 +565,27 @@ const First_LevelSupervisorInput = () => {
     setSelectAll(!selectAll);
   };
 
-  const handleFillGridRemarkChange = (index, value) => {
-    setFillGridData(prevData => {
-      const newData = [...prevData];
-      newData[index] = { ...newData[index], reMarks: value };
-      return newData;
-    });
-  };
-
   const handleSubmitSelectedRows = () => {
     const selectedData = selectedRows.map((index) => fillGridData[index]);
 
-    // Create a Set of existing area+goals combinations for faster lookup
     const existingCombinations = new Set(
-      appraiseeDetailsData.map(item => `${item.area}|${item.goals}`)
+      appraiseeDetailsData.map(item => `${item.goals}|${item.selfInput}`)
     );
 
     const newData = [];
 
     selectedData.forEach((data) => {
-      const combinationKey = `${data.area}|${data.goals}`;
+      const combinationKey = `${data.objectivedesc || ''}|${data.performanceself || ''}`;
 
-      // Only add if not already in the list
       if (!existingCombinations.has(combinationKey)) {
         newData.push({
           id: Date.now() + Math.random(),
-          area: data.area || '',
-          keyPerformanceIndicator: data.keyPerformanceIndicator || '',
-          goals: data.goals || '',
-          reMarks: data.reMarks || ''
+          goals: data.objectivedesc || '',
+          selfInput: data.performanceself || '',
+          score: '',
+          supervisorRating: ''
         });
-        existingCombinations.add(combinationKey); // Prevent duplicates in this batch
+        existingCombinations.add(combinationKey);
       }
     });
 
@@ -498,9 +594,8 @@ const First_LevelSupervisorInput = () => {
       return;
     }
 
-    // Remove initial empty row if it exists and has no data
     const filteredExistingData = appraiseeDetailsData.filter(row =>
-      !(row.area === '' && row.keyPerformanceIndicator === '' && row.goals === '' && row.reMarks === '')
+      !(row.goals === '' && row.selfInput === '')
     );
 
     setAppraiseeDetailsData([...filteredExistingData, ...newData]);
@@ -517,8 +612,9 @@ const First_LevelSupervisorInput = () => {
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px' }}>
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start mb-4" style={{ marginBottom: '20px' }}>
-            <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
+            <ActionButton title="Search" icon={SearchIcon} onClick={handleFullGrid} />
             <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+            <ActionButton title="Add Row" icon={AddIcon} onClick={handleAddRow} />
             <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
             <ActionButton title="Save" icon={SaveIcon} onClick={handleSave} disabled={isLoading} />
           </div>
@@ -532,66 +628,115 @@ const First_LevelSupervisorInput = () => {
                   <Autocomplete
                     options={appraisalOptions}
                     getOptionLabel={(option) => option.label || ''}
-                    value={
-                      appraisalOptions.find((opt) => opt.value === formData.appraisalId) || null
-                    }
-                    onChange={(event, newValue) => {
+                    value={formData.appraisalId ? (appraisalOptions.find((opt) => opt.value === formData.appraisalId) || null) : null}
+                    onChange={async (event, newValue) => {
+                      const selectedDesignation = newValue?.designation || '';
+
                       setFormData((prev) => ({
                         ...prev,
                         appraisalId: newValue?.value || '',
-                        department: newValue?.department || '' // optional if needed
+                        designation: selectedDesignation,
+                        employeeCode: '',
+                        employeeName: '',
+                        department: '',
+                        supervisorCode: '',
+                        supervisorName: '',
+                        reportingHeadDesignation: '',
+                        branch: '',
+                        branchCode: ''
                       }));
 
-                      setFieldErrors((prev) => ({
-                        ...prev,
-                        appraisalId: ''
-                      }));
+                      if (selectedDesignation) {
+                        await getAllEmployees(orgId, selectedDesignation);
+                      } else {
+                        setEmployeeOptions([]);
+                      }
                     }}
+                    isOptionEqualToValue={(option, value) => option.value === value?.value}
                     renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Appraisal ID"
-                        size="small"
-                        error={!!fieldErrors.appraisalId}
-                        helperText={fieldErrors.appraisalId}
-                      />
+                      <TextField {...params} label="Appraisal ID" size="small" required error={!!fieldErrors.appraisalId} helperText={fieldErrors.appraisalId} />
                     )}
                   />
                 </div>
 
                 {/* Employee Code */}
                 <div className="col-md-3 mb-3">
-                  <TextField
-                    label="Code"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    name="code"
-                    value={formData.code}
-                    onChange={handleInputChange}
-                    error={!!fieldErrors.code}
-                    helperText={fieldErrors.code}
-                    disabled
+                  <Autocomplete
+                    options={employeeOptions}
+                    getOptionLabel={(option) => `${option.employeeCode} - ${option.employeeName}`}
+                    value={
+                      employeeOptions.find((opt) => opt.employeeCode === formData.employeeCode) || null
+                    }
+                    loading={isLoadingEmployees}
+                    onChange={async (event, newValue) => {
+                      if (newValue) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          employeeCode: newValue.employeeCode,
+                          employeeName: newValue.employeeName,
+                          designation: newValue.designation,
+                          department: newValue.department || '',
+                          supervisorCode: newValue.supervisorCode || '',
+                          supervisorName: newValue.supervisorName || '',
+                          reportingHeadDesignation: newValue.reportingHeadDesignation || '',
+                          branch: newValue.branch || '',
+                          branchCode: newValue.branchCode || ''
+                        }));
+
+                        await getPerformanceGoals(
+                          formData.appraisalId,
+                          newValue.employeeCode
+                        );
+
+                      } else {
+                        setFormData((prev) => ({
+                          ...prev,
+                          employeeCode: '',
+                          employeeName: '',
+                          designation: '',
+                          department: '',
+                          supervisorCode: '',
+                          supervisorName: '',
+                          reportingHeadDesignation: '',
+                          branch: '',
+                          branchCode: ''
+                        }));
+
+                        setAppraiseeDetailsData([]);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Employee Code"
+                        size="small"
+                        error={!!fieldErrors.employeeCode}
+                        helperText={fieldErrors.employeeCode}
+                        required
+                      />
+                    )}
+                    noOptionsText={!formData.appraisalId ? "Please select Appraisal ID first" : "No employees found"}
+                    disabled={!formData.appraisalId || isLoadingEmployees}
                   />
                 </div>
 
                 {/* Employee Name */}
                 <div className="col-md-3 mb-3">
                   <TextField
-                    label="Name"
+                    label="Employee Name"
                     variant="outlined"
                     size="small"
                     fullWidth
-                    name="name"
-                    value={formData.name}
+                    name="employeeName"
+                    value={formData.employeeName}
                     onChange={handleInputChange}
-                    error={!!fieldErrors.name}
-                    helperText={fieldErrors.name}
+                    error={!!fieldErrors.employeeName}
+                    helperText={fieldErrors.employeeName}
                     disabled
                   />
                 </div>
 
-                {/* department */}
+                {/* Department */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Department"
@@ -601,13 +746,11 @@ const First_LevelSupervisorInput = () => {
                     name="department"
                     value={formData.department}
                     onChange={handleInputChange}
-                    error={!!fieldErrors.department}
-                    helperText={fieldErrors.department}
                     disabled
                   />
                 </div>
 
-                {/* designation */}
+                {/* Designation */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Designation"
@@ -623,39 +766,39 @@ const First_LevelSupervisorInput = () => {
                   />
                 </div>
 
-                {/* reportingHeadCode */}
+                {/* Supervisor Code */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Supervisor Code"
                     variant="outlined"
                     size="small"
                     fullWidth
-                    name="reportingHeadCode"
-                    value={formData.reportingHeadCode}
+                    name="supervisorCode"
+                    value={formData.supervisorCode}
                     onChange={handleInputChange}
-                    error={!!fieldErrors.reportingHeadCode}
-                    helperText={fieldErrors.reportingHeadCode}
+                    error={!!fieldErrors.supervisorCode}
+                    helperText={fieldErrors.supervisorCode}
                     disabled
                   />
                 </div>
 
-                {/* reportingHead */}
+                {/* Supervisor Name */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Supervisor Name"
                     variant="outlined"
                     size="small"
                     fullWidth
-                    name="reportingHead"
-                    value={formData.reportingHead}
+                    name="supervisorName"
+                    value={formData.supervisorName}
                     onChange={handleInputChange}
-                    error={!!fieldErrors.reportingHead}
-                    helperText={fieldErrors.reportingHead}
+                    error={!!fieldErrors.supervisorName}
+                    helperText={fieldErrors.supervisorName}
                     disabled
                   />
                 </div>
 
-                {/* reportingHeadDesignation */}
+                {/* Reporting Head Designation */}
                 <div className="col-md-3 mb-3">
                   <TextField
                     label="Reporting Head Designation"
@@ -687,10 +830,6 @@ const First_LevelSupervisorInput = () => {
                 <Box sx={{ padding: 2 }}>
                   {value === 0 && (
                     <>
-                      <div className="mb-1">
-                        {/* <ActionButton title="Add Row" icon={AddIcon} onClick={handleAddRow} /> */}
-                        <ActionButton title="Fill Grid" icon={GridOnIcon} onClick={handleFullGrid} />
-                      </div>
                       <div className="row mt-2">
                         <div className="col-lg-12">
                           <div className="table-responsive">
@@ -713,10 +852,10 @@ const First_LevelSupervisorInput = () => {
                                     Self Input
                                   </th>
                                   <th className="px-2 py-2 text-white text-center">
-                                    Supervisor 1 Rating
+                                    Score (1-5)
                                   </th>
                                   <th className="px-2 py-2 text-white text-center">
-                                    Score (1-5)
+                                    Supervisor Rating
                                   </th>
                                 </tr>
                               </thead>
@@ -737,31 +876,6 @@ const First_LevelSupervisorInput = () => {
                                       <TextField
                                         fullWidth
                                         size="small"
-                                        value={row.area}
-                                        onChange={(e) =>
-                                          handleDetailChange(row.id, 'area', e.target.value)
-                                        }
-                                        error={!!appraiseeDetailsErrors[index]?.area}
-                                        helperText={appraiseeDetailsErrors[index]?.area}
-                                        required
-                                      />
-                                    </td>
-                                    <td>
-                                      <TextField
-                                        fullWidth
-                                        size="small"
-                                        value={row.keyPerformanceIndicator}
-                                        onChange={(e) =>
-                                          handleDetailChange(row.id, 'keyPerformanceIndicator', e.target.value)
-                                        }
-                                        error={!!appraiseeDetailsErrors[index]?.keyPerformanceIndicator}
-                                        helperText={appraiseeDetailsErrors[index]?.keyPerformanceIndicator}
-                                      />
-                                    </td>
-                                    <td>
-                                      <TextField
-                                        fullWidth
-                                        size="small"
                                         value={row.goals}
                                         onChange={(e) =>
                                           handleDetailChange(row.id, 'goals', e.target.value)
@@ -775,10 +889,38 @@ const First_LevelSupervisorInput = () => {
                                       <TextField
                                         fullWidth
                                         size="small"
-                                        value={row.reMarks}
+                                        value={row.selfInput}
                                         onChange={(e) =>
-                                          handleDetailChange(row.id, 'reMarks', e.target.value)
+                                          handleDetailChange(row.id, 'selfInput', e.target.value)
                                         }
+                                        error={!!appraiseeDetailsErrors[index]?.selfInput}
+                                        helperText={appraiseeDetailsErrors[index]?.selfInput}
+                                        required
+                                      />
+                                    </td>
+                                    <td>
+                                      <TextField
+                                        select
+                                        fullWidth
+                                        size="small"
+                                        value={row.score || ''}
+                                        onChange={(e) => handleScoreChange(row.id, e.target.value)}
+                                        SelectProps={{ native: true }}
+                                      >
+                                        <option value="">Select</option>
+                                        {gradeList.map((g) => (
+                                          <option key={g.id} value={g.score}>
+                                            {g.score}
+                                          </option>
+                                        ))}
+                                      </TextField>
+                                    </td>
+                                    <td>
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        value={row.supervisorRating || ''}
+                                        disabled
                                       />
                                     </td>
                                   </tr>
@@ -791,6 +933,21 @@ const First_LevelSupervisorInput = () => {
                     </>
                   )}
                 </Box>
+
+                {/* Add Row Button at bottom */}
+                <div className="row mt-2">
+                  <div className="col-md-12">
+                    <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      onClick={handleAddRow}
+                      sx={{ backgroundColor: '#3a6b6d', '&:hover': { backgroundColor: '#2a4b4d' } }}
+                    >
+                      Add Row
+                    </Button>
+                  </div>
+                </div>
+
                 <Dialog
                   open={modalOpen}
                   maxWidth={'md'}
@@ -823,7 +980,7 @@ const First_LevelSupervisorInput = () => {
                                 </th>
                                 <th className="table-header">Goals</th>
                                 <th className="table-header">Self Input</th>
-                                <th className="table-header">Supervisor 1 Rating</th>
+                                <th className="table-header">Supervisor Rating</th>
                                 <th className="table-header">Score (1-5)</th>
                               </tr>
                             </thead>
@@ -841,10 +998,10 @@ const First_LevelSupervisorInput = () => {
                                       }}
                                     />
                                   </td>
-                                  <td className="border px-2 py-2 disable">{row.area || ''}</td>
-                                  <td className="border px-2 py-2">{row.keyPerformanceIndicator || ''}</td>
-                                  <td className="border px-2 py-2">{row.goals || ''}</td>
-                                  <td className="border px-2 py-2">{row.reMarks || ''}</td>
+                                  <td className="border px-2 py-2 disable">{row.objectivedesc || ''}</td>
+                                  <td className="border px-2 py-2">{row.performanceself || ''}</td>
+                                  <td className="border px-2 py-2">{row.appraiserrating || ''}</td>
+                                  <td className="border px-2 py-2">{row.selfrating || ''}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -887,4 +1044,5 @@ const First_LevelSupervisorInput = () => {
     </>
   );
 };
+
 export default First_LevelSupervisorInput;

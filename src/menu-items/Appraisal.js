@@ -24,27 +24,6 @@ const hasScreenAccess = (screenId) => {
 
 // menu items with permission check
 const appraisalChildren = [
-  hasScreenAccess('SG') && {
-    id: 'SelfGoals',
-    title: 'My Goals',
-    type: 'item',
-    url: '/Appraisal/MyGoals',
-    icon: IconTarget
-  },
-  hasScreenAccess('APE') && {
-    id: 'Appraisee',
-    title: 'Appraisee',
-    type: 'item',
-    url: '/Appraisal/Appraisee',
-    icon: IconUser
-  },
-  hasScreenAccess('APR') && {
-    id: 'Appraiser',
-    title: 'Appraiser',
-    type: 'item',
-    url: '/Appraisal/Appraiser',
-    icon: IconUsers
-  },
   hasScreenAccess('PG') && {
     id: 'PreGoals',
     title: 'Set Goals',
@@ -52,13 +31,34 @@ const appraisalChildren = [
     url: '/Appraisal/SetGoals',
     icon: IconListCheck
   },
-  hasScreenAccess('AG') && {
-    id: 'AdditionalGoals',
-    title: 'Additional Goals',
+  hasScreenAccess('SG') && {
+    id: 'SelfGoals',
+    title: 'My Goals',
     type: 'item',
-    url: '/Appraisal/AdditionalGoals',
-    icon: IconPlus
+    url: '/Appraisal/MyGoals',
+    icon: IconTarget
   },
+  // hasScreenAccess('APE') && {
+  //   id: 'Appraisee',
+  //   title: 'Appraisee',
+  //   type: 'item',
+  //   url: '/Appraisal/Appraisee',
+  //   icon: IconUser
+  // },
+  // hasScreenAccess('APR') && {
+  //   id: 'Appraiser',
+  //   title: 'Appraiser',
+  //   type: 'item',
+  //   url: '/Appraisal/Appraiser',
+  //   icon: IconUsers
+  // },
+  // hasScreenAccess('AG') && {
+  //   id: 'AdditionalGoals',
+  //   title: 'Additional Goals',
+  //   type: 'item',
+  //   url: '/Appraisal/AdditionalGoals',
+  //   icon: IconPlus
+  // },
   hasScreenAccess('PGA') && {
     id: 'PreGoalsApproval',
     title: 'Set Goals Approval',
@@ -66,26 +66,19 @@ const appraisalChildren = [
     url: '/Appraisal/SetGoalsApproval',
     icon: IconThumbUp
   },
-  hasScreenAccess('S1I') && {
-    id: 'Supervisor1_Input',
-    title: 'First-Level Supervisor Input',
-    type: 'item',
-    url: '/Appraisal/First_LevelSupervisorInput',
-    icon: IconUserCheck
-  },
-  hasScreenAccess('HRR') && {
-    id: 'HR_Review',
-    title: 'HR Feedback',
-    type: 'item',
-    url: '/Appraisal/HRFeedback',
-    icon: IconUserShield
-  },
   hasScreenAccess('PGS') && {
     id: 'performanceGoals',
     title: 'Performance Goals',
     type: 'item',
     url: '/Appraisal/performanceGoals',
     icon: IconUserShield
+  },
+  hasScreenAccess('S1I') && {
+    id: 'Supervisor1_Input',
+    title: 'First-Level Supervisor Input',
+    type: 'item',
+    url: '/Appraisal/First_LevelSupervisorInput',
+    icon: IconUserCheck
   },
   hasScreenAccess('APRR') && {
     id: 'appraiserReview',
@@ -99,6 +92,13 @@ const appraisalChildren = [
     title: 'Appraisal Report',
     type: 'item',
     url: '/Appraisal/appraisalReport',
+    icon: IconUserShield
+  },
+  hasScreenAccess('HRR') && {
+    id: 'HR_Review',
+    title: 'HR Feedback',
+    type: 'item',
+    url: '/Appraisal/HRFeedback',
     icon: IconUserShield
   },
   hasScreenAccess('ADB') && {
@@ -121,18 +121,18 @@ const appraisalChildren = [
 const Appraisal =
   appraisalChildren.length > 0
     ? {
-        id: 'Appraisal',
-        type: 'group',
-        children: [
-          {
-            id: 'Appraisal',
-            title: 'Performance',
-            type: 'collapse',
-            icon: IconCash,
-            children: appraisalChildren
-          }
-        ]
-      }
+      id: 'Appraisal',
+      type: 'group',
+      children: [
+        {
+          id: 'Appraisal',
+          title: 'Performance',
+          type: 'collapse',
+          icon: IconCash,
+          children: appraisalChildren
+        }
+      ]
+    }
     : null;
 
 export default Appraisal;
