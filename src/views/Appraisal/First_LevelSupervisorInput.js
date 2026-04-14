@@ -83,11 +83,11 @@ const First_LevelSupervisorInput = () => {
   });
 
   const [appraiseeDetailsData, setAppraiseeDetailsData] = useState([
-    { id: Date.now(), goals: '', selfInput: '', score: '', supervisorRating: '' }
+    { id: Date.now(), goals: '', selfInput: '', selfRating: '', score: '', supervisorRating: '' }
   ]);
 
   const [appraiseeDetailsErrors, setAppraiseeDetailsErrors] = useState([
-    { goals: '', selfInput: '' }
+    { goals: '', selfInput: '', selfRating: '' }
   ]);
 
   const listViewColumns = [
@@ -146,6 +146,7 @@ const First_LevelSupervisorInput = () => {
             id: item.id || Date.now() + Math.random(),
             goals: item.objectivedesc || '',
             selfInput: item.performanceself || '',
+            selfRating: item.selfrating || '',
             score: '',
             supervisorRating: ''
           }));
@@ -315,20 +316,22 @@ const First_LevelSupervisorInput = () => {
               id: detail.id || Date.now() + index,
               goals: detail.goals || '',
               selfInput: detail.selfInput || '',
+              selfRating: detail.selfRating || '',
               score: detail.score?.toString() || '',
               supervisorRating: detail.supervisorRating || ''
             }))
           );
         } else {
           setAppraiseeDetailsData([
-            { id: Date.now(), goals: '', selfInput: '', score: '', supervisorRating: '' }
+            { id: Date.now(), goals: '', selfInput: '', selfRating: '', score: '', supervisorRating: '' }
           ]);
         }
 
         setAppraiseeDetailsErrors(
           (details.length > 0 ? details : [{}]).map(() => ({
             goals: '',
-            selfInput: ''
+            selfInput: '',
+            selfRating: ''
           }))
         );
       }
@@ -399,6 +402,7 @@ const First_LevelSupervisorInput = () => {
       ...(row.id && !isNaN(parseInt(row.id)) && row.id.toString().length > 10 ? { id: parseInt(row.id) } : {}),
       goals: row.goals,
       selfInput: row.selfInput,
+      selfRating: row.selfRating,
       score: row.score ? parseInt(row.score) : 0,
       supervisorRating: row.supervisorRating || ''
     }));
@@ -471,11 +475,11 @@ const First_LevelSupervisorInput = () => {
     });
 
     setAppraiseeDetailsData([
-      { id: Date.now(), goals: '', selfInput: '', score: '', supervisorRating: '' }
+      { id: Date.now(), goals: '', selfInput: '', selfRating: '', score: '', supervisorRating: '' }
     ]);
 
     setAppraiseeDetailsErrors([
-      { goals: '', selfInput: '' }
+      { goals: '', selfInput: '', selfRating: '' }
     ]);
 
     setEditId('');
@@ -485,11 +489,11 @@ const First_LevelSupervisorInput = () => {
     const newId = Date.now();
     setAppraiseeDetailsData(prev => [
       ...prev,
-      { id: newId, goals: '', selfInput: '', score: '', supervisorRating: '' }
+      { id: newId, goals: '', selfInput: '', selfRating: '', score: '', supervisorRating: '' }
     ]);
     setAppraiseeDetailsErrors(prev => [
       ...prev,
-      { goals: '', selfInput: '' }
+      { goals: '', selfInput: '', selfRating: '' }
     ]);
   };
 
@@ -497,10 +501,10 @@ const First_LevelSupervisorInput = () => {
     if (appraiseeDetailsData.length <= 1) {
       const newId = Date.now();
       setAppraiseeDetailsData([
-        { id: newId, goals: '', selfInput: '', score: '', supervisorRating: '' }
+        { id: newId, goals: '', selfInput: '', selfRating: '', score: '', supervisorRating: '' }
       ]);
       setAppraiseeDetailsErrors([
-        { goals: '', selfInput: '' }
+        { goals: '', selfInput: '', selfRating: '' }
       ]);
       return;
     }
@@ -569,19 +573,20 @@ const First_LevelSupervisorInput = () => {
     const selectedData = selectedRows.map((index) => fillGridData[index]);
 
     const existingCombinations = new Set(
-      appraiseeDetailsData.map(item => `${item.goals}|${item.selfInput}`)
+      appraiseeDetailsData.map(item => `${item.goals}|${item.selfInput}|${item.selfRating}`)
     );
 
     const newData = [];
 
     selectedData.forEach((data) => {
-      const combinationKey = `${data.objectivedesc || ''}|${data.performanceself || ''}`;
+      const combinationKey = `${data.objectivedesc || ''}|${data.performanceself || ''}|${data.selfrating || ''}`;
 
       if (!existingCombinations.has(combinationKey)) {
         newData.push({
           id: Date.now() + Math.random(),
           goals: data.objectivedesc || '',
           selfInput: data.performanceself || '',
+          selfRating: data.selfrating || '',
           score: '',
           supervisorRating: ''
         });
@@ -595,7 +600,7 @@ const First_LevelSupervisorInput = () => {
     }
 
     const filteredExistingData = appraiseeDetailsData.filter(row =>
-      !(row.goals === '' && row.selfInput === '')
+      !(row.goals === '' && row.selfInput === '' && row.selfRating === '')
     );
 
     setAppraiseeDetailsData([...filteredExistingData, ...newData]);
@@ -852,6 +857,9 @@ const First_LevelSupervisorInput = () => {
                                     Self Input
                                   </th>
                                   <th className="px-2 py-2 text-white text-center">
+                                    Self Rating
+                                  </th>
+                                  <th className="px-2 py-2 text-white text-center">
                                     Score (1-5)
                                   </th>
                                   <th className="px-2 py-2 text-white text-center">
@@ -898,6 +906,20 @@ const First_LevelSupervisorInput = () => {
                                         required
                                       />
                                     </td>
+                                    <td>
+                                      <TextField
+                                        fullWidth
+                                        size="small"
+                                        value={row.selfRating}
+                                        onChange={(e) =>
+                                          handleDetailChange(row.id, 'selfRating', e.target.value)
+                                        }
+                                        error={!!appraiseeDetailsErrors[index]?.selfRating}
+                                        helperText={appraiseeDetailsErrors[index]?.selfRating}
+                                        required
+                                      />
+                                    </td>
+
                                     <td>
                                       <TextField
                                         select

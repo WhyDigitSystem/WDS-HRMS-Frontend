@@ -638,26 +638,39 @@ const SettlementReport = () => {
 
           {reportData.map((item, idx) => (
             <React.Fragment key={idx}>
-              {/* First show Earnings */}
+
+              {/* Earnings */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #eee' }}>
-                <Typography variant="body2">{item.month} - Earnings</Typography>
-                <Typography variant="body2">{currencySymbol} {parseFloat(item.sumofearning || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
+                <Typography variant="body2">
+                  Salary for {parseInt(item.payableDays || 0)} days in {item.month}
+                </Typography>
+                <Typography variant="body2">
+                  {currencySymbol} {parseFloat(item.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </Typography>
               </Box>
-              {/* Then show Deductions */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #eee' }}>
-                <Typography variant="body2" sx={{ pl: 2 }}>{item.month} - Deductions</Typography>
-                <Typography variant="body2">{currencySymbol} {parseFloat(item.sumofdetection || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
-              </Box>
+
+              {/* Deductions (only if > 0) */}
+              {parseFloat(item.sumofdetection || 0) > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #eee' }}>
+                  <Typography variant="body2" sx={{ pl: 2 }}>
+                    Deductions for {item.month}
+                  </Typography>
+                  <Typography variant="body2">
+                    {currencySymbol} {parseFloat(item.sumofdetection || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </Typography>
+                </Box>
+              )}
+
             </React.Fragment>
           ))}
 
           {/* Totals Section */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #ddd', borderBottom: '1px solid #ddd', py: 1, mt: 1, backgroundColor: '#f9f9f9' }}>
+          {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #ddd', borderBottom: '1px solid #ddd', py: 1, mt: 1, backgroundColor: '#f9f9f9' }}>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Total Earnings</Typography>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{currencySymbol} {totalEarningsPreview.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
-          </Box>
+          </Box> */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1 }}>
-            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Total Deductions</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Deductions</Typography>
             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{currencySymbol} {totalDeductionsPreview.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #2a4b4d', py: 1, mt: 1 }}>

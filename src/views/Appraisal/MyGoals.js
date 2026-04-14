@@ -8,6 +8,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import ActionButton from 'utils/ActionButton';
 import ToastComponent, { showToast } from 'utils/toast-component';
 import apiCalls from 'apicall';
+import { Chip, Stack } from '@mui/material';
 
 const MyGoals = () => {
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
@@ -315,6 +316,7 @@ const MyGoals = () => {
                               <th className="px-2 py-2 text-white text-center">Area (KRA)</th>
                               <th className="px-2 py-2 text-white text-center">Key Performance Indicators (KPI)</th>
                               <th className="px-2 py-2 text-white text-center">Goals</th>
+                              <th className="px-2 py-2 text-white text-center">Status</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -363,6 +365,26 @@ const MyGoals = () => {
                                       helperText={goalsDetailsErrors[index]?.goals}
                                       placeholder="Enter goals description"
                                       variant="outlined"
+                                    />
+                                  </td>
+                                  <td className="border px-2 py-2 text-center">
+                                    <Chip
+                                      label={row.status || 'N/A'}
+                                      size="small"
+                                      sx={{
+                                        fontWeight: 600,
+                                        minWidth: '110px',
+                                        justifyContent: 'center',
+                                        color: '#fff',
+                                        backgroundColor:
+                                          row.status === 'APPROVED'
+                                            ? '#4caf50'   // green
+                                            : row.status === 'In Progress'
+                                              ? '#ff9800'   // orange
+                                              : row.status === 'REJECTED'
+                                                ? 'Red'   // grey
+                                                : '#607d8b',  // fallback
+                                      }}
                                     />
                                   </td>
                                 </tr>

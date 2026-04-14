@@ -382,7 +382,7 @@ const SetGoalsApproval = () => {
               isOptionEqualToValue={(option, value) => option.code === value?.code}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          {/* <Grid item xs={12} md={4}>
             <Autocomplete
               options={employeeOptions}
               loading={isLoadingEmployees}
@@ -401,7 +401,7 @@ const SetGoalsApproval = () => {
               )}
               isOptionEqualToValue={(option, value) => option.code === value?.code}
             />
-          </Grid>
+          </Grid> */}
           <Grid item xs={12} md={4}>
             <Autocomplete
               options={finYearOptions}
