@@ -196,11 +196,15 @@ const AppraiserReview = () => {
         setIsEditing(true);
 
         try {
-            const response = await apiCalls('get', `/performancegoals/getPerformanceGoalsById?id=${row.original.id}`);
+            const response = await apiCalls(
+                'get',
+                `/performancegoals/getPerformanceGoalsById?id=${row.original.id}`
+            );
 
             if (response.status) {
                 const appraisee = response?.paramObjectsMap?.performanceGoalsVO || {};
 
+                // ✅ Employee Details
                 setEmployeeDetailsData({
                     empCode: appraisee.empCode || '',
                     empName: appraisee.empName || '',
@@ -211,6 +215,7 @@ const AppraiserReview = () => {
                     designation: appraisee.designation || ''
                 });
 
+                // ✅ Form Data
                 setFormData({
                     finYear: appraisee.finYear || '',
                     month: appraisee.pmonth || '',
@@ -218,31 +223,27 @@ const AppraiserReview = () => {
                     active: appraisee.active === 'Active',
                 });
 
+                // ✅ Month
                 const monthObj = months.find(m => m.name === appraisee.pmonth);
                 setSelectedMonth(monthObj?.name || appraisee.pmonth || '');
 
-                // ✅ Fetch supervisor ratings
+                // ✅ Fetch Supervisor Ratings
                 const supervisorData = await getSupervisorRatings(
                     appraisee.appraisalYear,
                     appraisee.empCode
                 );
 
-                // ✅ Create a map for quick lookup by goals (perspective)
-                const supervisorRatingMap = new Map();
-                supervisorData.forEach(item => {
-                    supervisorRatingMap.set(item.goals, {
-                        score: item.score,
-                        supervisorRating: item.score,
-                        detailsId: item.detailsId
-                    });
-                });
+                console.log("Supervisor Data:", supervisorData);
 
                 const details = appraisee.performanceGoalsDtlVO || [];
+
+                console.log("Details Data:", details);
+
                 const mappedData = details.map((detail) => {
-                    const supervisorMatch = supervisorRatingMap.get(detail.perspective);
 
                     return {
                         id: detail.id,
+
                         perspective: detail.perspective || '',
                         objectiveDescription: detail.objectivedesc || '',
                         assigned: detail.perassigned || '',
@@ -252,24 +253,20 @@ const AppraiserReview = () => {
                         comments: detail.comments || '',
                         performanceSelf: detail.performanceself || '',
 
-                        // ✅ Self Rating
                         selfRating: detail.selfrating?.toString() || '',
 
-                        // ✅ First-Level Supervisor - From API (DISABLED)
-                        firstLevelSupervisor: supervisorMatch?.supervisorRating || '',
+                        firstLevelSupervisor: supervisorData[0]?.score || '',
 
-                        // ✅ Appraiser Rating - From saved data (EDITABLE)
                         appraiserRating: detail.appraiserrating || '',
-
-                        // ✅ Appraiser Justification - From saved data (EDITABLE)
                         appraiserJustification: detail.apprjustification || ''
                     };
                 });
 
                 setGoalsDetailsData(mappedData);
 
+                // ✅ Reset Errors
                 setGoalsDetailsErrors(
-                    details.map(() => ({
+                    mappedData.map(() => ({
                         perspective: '',
                         objectiveDescription: '',
                         assigned: '',
@@ -288,6 +285,7 @@ const AppraiserReview = () => {
             } else {
                 showToast('error', response.message || 'Failed to fetch appraisee details');
             }
+
         } catch (error) {
             console.error('Error fetching appraisee details:', error);
             showToast('error', 'Failed to fetch appraisee details');

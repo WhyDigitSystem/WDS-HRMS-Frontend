@@ -173,7 +173,7 @@ const ExperienceLetter = () => {
         if (!date) return 'N/A';
         return new Date(date).toLocaleDateString('en-GB', {
             day: '2-digit',
-            month: 'long',
+            month: 'short',
             year: 'numeric'
         });
     };
@@ -188,7 +188,7 @@ const ExperienceLetter = () => {
 
         // Apply PDF-specific styles before capture
         input.style.width = '900px';
-        input.style.padding = '40px';
+        input.style.padding = '80px';
         input.style.backgroundColor = '#ffffff';
 
         const canvas = await html2canvas(input, {
@@ -443,10 +443,11 @@ const ExperienceLetter = () => {
                         ref={letterRef}
                         elevation={0}
                         sx={{
-                            p: 5,
+                            p: 10,
                             width: '100%',
                             maxWidth: '900px',
                             margin: '0 auto',
+                            minHeight: '297mm',
                             backgroundColor: '#ffffff',
                             borderRight: '1px solid #e5e7eb',
                             borderTop: '1px solid #e5e7eb',
@@ -454,9 +455,12 @@ const ExperienceLetter = () => {
                             borderRadius: '0 16px 16px 0',
                             position: 'relative',
                             boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                            display: 'flex',
+                            flexDirection: 'column',
                             '@media print': {
                                 boxShadow: 'none',
                                 p: 5,
+                                minHeight: '297mm',
                             }
                         }}
                     >
@@ -534,52 +538,78 @@ const ExperienceLetter = () => {
                             </Box>
                         </Box>
 
-                        {/* Employee Details Card */}
+                        {/* Place and Date Section - Right Aligned */}
                         <Box sx={{
-                            backgroundColor: '#f8fafc',
-                            borderRadius: '12px',
-                            p: 3,
-                            mb: 4,
-                            border: '1px solid #e2e8f0'
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            mb: 6,
+                            mt: 2
                         }}>
-                            <Typography sx={{ fontWeight: 600, mb: 2, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                Employee Details
-                            </Typography>
-                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-                                <Box>
-                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Employee Name</Typography>
-                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.employeeName}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Designation</Typography>
-                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.position}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Department</Typography>
-                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.department || 'N/A'}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Employee Code</Typography>
-                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{experienceData?.employeeCode}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Date of Joining</Typography>
-                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{formatDate(experienceData?.joiningDate)}</Typography>
-                                </Box>
-                                <Box>
-                                    <Typography sx={{ color: '#6b7280', fontSize: '0.85rem' }}>Date of Relieving</Typography>
-                                    <Typography sx={{ fontWeight: 600, color: '#1f2937' }}>{formatDate(experienceData?.lastWorkingDate)}</Typography>
-                                </Box>
+                            <Box sx={{ textAlign: 'right' }}>
+                                <Typography sx={{ color: '#374151', fontSize: '1rem', mb: 0.5 }}>
+                                    Place: {companyDetails?.city || companyDetails?.address?.split(',')[0] || 'N/A'}
+                                </Typography>
+                                <Typography sx={{ color: '#374151', fontSize: '1rem' }}>
+                                    Date: {new Date().toLocaleDateString('en-GB', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    })}
+                                </Typography>
                             </Box>
                         </Box>
 
-                        {/* Letter Content */}
-                        <Box sx={{ mb: 5 }}>
-                            <Typography sx={{ mb: 3, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>
-                                This is to certify that <span style={{ fontWeight: 600 }}>{experienceData?.employeeName}</span>
-                                has worked with our organization as <span style={{ fontWeight: 600 }}>{experienceData?.position}</span>
-                                from <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.joiningDate)}</span>
-                                to <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.lastWorkingDate)}</span>
+                        {/* Experience Letter - Centered */}
+                        <Box sx={{
+                            textAlign: 'center',
+                            mb: 4,
+                            mt: 4
+                        }}>
+                            <Typography
+                                sx={{
+                                    fontWeight: 700,
+                                    color: '#0f172a',
+                                    fontSize: '1.4rem',
+                                    letterSpacing: '-0.02em',
+                                    lineHeight: 1.3,
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                Experience Letter
+                            </Typography>
+                        </Box>
+
+                        {/* To Whomsoever It May Concern - Centered */}
+                        <Box sx={{
+                            textAlign: 'center',
+                            mb: 5
+                        }}>
+                            <Typography
+                                sx={{
+                                    fontWeight: 600,
+                                    color: '#0f172a',
+                                    fontSize: '1rem',
+                                    letterSpacing: '-0.01em',
+                                    lineHeight: 1.4
+                                }}
+                            >
+                                To Whomsoever It May Concern
+                            </Typography>
+                        </Box>
+
+                        {/* Letter Content - Proper gaps between paragraphs */}
+                        <Box sx={{ flex: 1, mb: 5 }}>
+                            <Typography sx={{
+                                mb: 3,
+                                fontSize: '1rem',
+                                lineHeight: 1.8,
+                                color: '#374151',
+                                textAlign: 'justify'
+                            }}>
+                                This is to certify that <span style={{ fontWeight: 600 }}>{experienceData?.employeeName} </span>
+                                has worked with our organization as <span style={{ fontWeight: 600 }}>{experienceData?.position} </span>
+                                from <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.joiningDate)} </span>
+                                to <span style={{ fontWeight: 600 }}>{formatDate(experienceData?.lastWorkingDate)} </span>
                                 (<span style={{ fontWeight: 600 }}>
                                     {calculateExperience(
                                         experienceData?.joiningDate,
@@ -588,42 +618,64 @@ const ExperienceLetter = () => {
                                 </span>).
                             </Typography>
 
-                            <Typography sx={{ mb: 3, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>
+                            <Typography sx={{
+                                mb: 3,
+                                fontSize: '1rem',
+                                lineHeight: 1.8,
+                                color: '#374151',
+                                textAlign: 'justify'
+                            }}>
                                 His main job responsibilities to involve project development and also supports technically. During his tenure, we found him very cordial and professional in the approach.
                             </Typography>
 
-                            <Typography sx={{ mb: 4, fontSize: '1rem', lineHeight: 1.7, color: '#374151' }}>
+                            <Typography sx={{
+                                fontSize: '1rem',
+                                lineHeight: 1.8,
+                                color: '#374151',
+                                textAlign: 'justify'
+                            }}>
                                 Why Digit, wishes him a success in all his future endeavors.
                             </Typography>
                         </Box>
 
-                        {/* Signature */}
+                        {/* Signature - With Warm Regards */}
                         <Box sx={{
                             display: 'flex',
-                            justifyContent: 'space-between',
+                            justifyContent: 'flex-start',
                             alignItems: 'flex-end',
-                            mt: 6
+                            mt: 'auto',
+                            pt: 4
                         }}>
-                            <Box>
-                                <Typography sx={{ color: '#6b7280', fontSize: '0.9rem', mb: 1 }}>
-                                    Place: {companyDetails?.city || companyDetails?.address?.split(',')[0] || 'N/A'}
+                            <Box sx={{ textAlign: 'start' }}>
+                                <Typography sx={{
+                                    mb: 2,
+                                    fontSize: '1rem',
+                                    color: '#374151',
+                                    fontStyle: 'italic'
+                                }}>
+                                    With Warm Regards,
                                 </Typography>
-                                <Typography sx={{ color: '#6b7280', fontSize: '0.9rem' }}>
-                                    Date: {new Date().toLocaleDateString('en-GB', {
-                                        day: '2-digit',
-                                        month: 'long',
-                                        year: 'numeric'
-                                    })}
-                                </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'end' }}>
-                                <Typography sx={{ fontWeight: 600, fontSize: '1.1rem', color: '#1f2937' }}>
+
+                                <Typography sx={{
+                                    fontWeight: 600,
+                                    fontSize: '1.1rem',
+                                    color: '#1f2937',
+                                    mt: 3
+                                }}>
                                     {gmDetails?.employeeName || 'Authorized Signatory'}
                                 </Typography>
-                                <Typography sx={{ color: '#6b7280', fontSize: '0.9rem' }}>
+                                <Typography sx={{
+                                    color: '#6b7280',
+                                    fontSize: '0.9rem',
+                                    mt: 0.5
+                                }}>
                                     {gmDetails?.designation || 'General Manager'}
                                 </Typography>
-                                <Typography sx={{ color: '#64748b', fontSize: '0.75rem', mt: 0.5 }}>
+                                <Typography sx={{
+                                    color: '#64748b',
+                                    fontSize: '0.75rem',
+                                    mt: 0.5
+                                }}>
                                     {companyDetails?.companyName}
                                 </Typography>
                             </Box>

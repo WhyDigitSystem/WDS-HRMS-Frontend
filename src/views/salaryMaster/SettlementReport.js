@@ -563,10 +563,11 @@ const SettlementReport = () => {
 
     // Format dates safely
     const resignationDateFormatted = employeeDetails.resignationDate
-      ? dayjs(employeeDetails.resignationDate).format('DD/MM/YYYY')
+      ? dayjs(employeeDetails.resignationDate).format('DD-MMM-YYYY')
       : '';
+
     const lastWorkingDateFormatted = employeeDetails.lastWorkingDate
-      ? dayjs(employeeDetails.lastWorkingDate).format('DD/MM/YYYY')
+      ? dayjs(employeeDetails.lastWorkingDate).format('DD-MMM-YYYY')
       : '';
 
     return (
@@ -615,7 +616,7 @@ const SettlementReport = () => {
 
         {/* Date */}
         <Typography variant="body2" align="right" sx={{ mb: 2 }}>
-          Date: {dayjs().format('DD/MM/YYYY')}
+          Date: {dayjs().format('DD-MMM-YYYY')}
         </Typography>
 
         {/* Dear */}

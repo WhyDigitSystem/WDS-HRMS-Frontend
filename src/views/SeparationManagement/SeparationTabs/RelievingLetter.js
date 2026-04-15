@@ -186,7 +186,7 @@ const RelievingLetter = () => {
         if (!date) return 'N/A';
         return new Date(date).toLocaleDateString('en-GB', {
             day: '2-digit',
-            month: 'long',
+            month: 'short',
             year: 'numeric'
         });
     };
@@ -200,7 +200,7 @@ const RelievingLetter = () => {
 
         // Lock layout for PDF
         input.style.width = "794px";
-        input.style.padding = "40px";
+        input.style.padding = "60px";
 
         const canvas = await html2canvas(input, {
             scale: 2,
@@ -441,7 +441,7 @@ const RelievingLetter = () => {
                         ref={letterRef}
                         elevation={0}
                         sx={{
-                            p: 4,
+                            p: 8,
                             width: '100%',
                             maxWidth: '900px',
                             margin: '0 auto',
@@ -464,7 +464,7 @@ const RelievingLetter = () => {
                             {/* Header Section */}
                             <Box
                                 sx={{
-                                    mb: 4,
+                                    mb: 6,
                                     pb: 2,
                                     borderBottom: '1px solid #dbe2ea'
                                 }}
@@ -536,7 +536,7 @@ const RelievingLetter = () => {
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     alignItems: 'flex-start',
-                                    mb: 4,
+                                    mb: 6,
                                     pb: 2,
                                     borderBottom: '1px dashed #e2e8f0'
                                 }}
@@ -546,7 +546,7 @@ const RelievingLetter = () => {
                                     <Typography sx={{ fontSize: '0.9rem', color: '#334155', mb: 0.5 }}>
                                         <strong>Date :</strong> {new Date().toLocaleDateString('en-GB', {
                                             day: '2-digit',
-                                            month: 'long',
+                                            month: 'short',
                                             year: 'numeric'
                                         })}
                                     </Typography>
@@ -586,57 +586,13 @@ const RelievingLetter = () => {
                                 </Box>
                             </Box>
 
-                            {/* Employee Information Card */}
-                            <Box sx={{
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '10px',
-                                p: 2.5,
-                                mb: 4,
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-                            }}>
-                                <Typography sx={{
-                                    color: '#1e3a5f',
-                                    fontWeight: 600,
-                                    fontSize: '0.95rem',
-                                    mb: 2,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                    borderBottom: '1px solid #e2e8f0',
-                                    pb: 1
-                                }}>
-                                    <VerifiedIcon sx={{ fontSize: 18 }} />
-                                    EMPLOYEE DETAILS
-                                </Typography>
-
-                                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
-                                    <Box>
-                                        <Typography sx={{ color: '#64748b', fontSize: fontStyles.label }}>Employee Name</Typography>
-                                        <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{relievingData?.employeeName}</Typography>
-                                    </Box>
-                                    <Box>
-                                        <Typography sx={{ color: '#64748b', fontSize: fontStyles.label }}>Employee Code</Typography>
-                                        <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{relievingData?.employeeCode}</Typography>
-                                    </Box>
-                                    <Box>
-                                        <Typography sx={{ color: '#64748b', fontSize: fontStyles.label }}>Designation</Typography>
-                                        <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{relievingData?.position}</Typography>
-                                    </Box>
-                                    <Box>
-                                        <Typography sx={{ color: '#64748b', fontSize: fontStyles.label }}>Department</Typography>
-                                        <Typography sx={{ fontWeight: 600, color: '#0f172a' }}>{relievingData?.department}</Typography>
-                                    </Box>
-                                </Box>
-                            </Box>
-
                             {/* Letter Content */}
-                            <Box sx={{ mb: 4 }}>
+                            <Box sx={{ mb: 6 }}>
                                 <Typography sx={{ mb: 3, fontSize: fontStyles.body, color: '#1e3a5f', fontWeight: 500 }}>
                                     Dear {relievingData?.employeeName},
                                 </Typography>
 
-                                <Box sx={{ pl: 2 }}>
+                                <Box sx={{ pl: 2, mb: 3 }}>
                                     <Typography sx={fontStyles.body}>
                                         This has reference to your letter of resignation, dated <span style={{ fontWeight: 600, color: '#1e3a5f' }}>{formatDate(relievingData?.resignation)}</span>, wherein you have requested to be relieved from the services of <span style={{ fontWeight: 600 }}>{companyDetails?.companyName}</span> on <span style={{ fontWeight: 600, color: '#1e3a5f' }}>{formatDate(relievingData?.lastWorkingDate)}</span>.
                                     </Typography>
@@ -650,24 +606,26 @@ const RelievingLetter = () => {
                                     </Typography>
                                 </Box>
 
-                                <Typography sx={{ mt: 4, mb: 2, fontSize: fontStyles.body, color: '#1e3a5f', fontWeight: 500 }}>
-                                    With Warm Regards,
-                                </Typography>
+
                             </Box>
+
+                            <Typography sx={{ mt: 4, mb: 4, fontSize: fontStyles.body, color: '#1e3a5f', fontWeight: 500 }}>
+                                With Warm Regards,
+                            </Typography>
 
                             {/* Signature Section */}
                             <Box
                                 sx={{
                                     display: 'flex',
                                     mt: 4,
-                                    pt: 2
+                                    pt: 2,
+                                    justifyContent: 'flex-start'
                                 }}
                             >
                                 <Box
                                     sx={{
-                                        textAlign: 'right',
-                                        width: '300px',
-                                        ml: 'auto'
+                                        textAlign: 'left',
+                                        width: '300px'
                                     }}
                                 >
                                     <Typography
