@@ -63,18 +63,18 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
         </Typography>
       )
     },
-    {
-      key: 'employeeName',
-      label: 'Assigned To',
-      render: (value) => (
-        <Typography variant="body2" fontWeight="500">
-          {value}
-        </Typography>
-      )
-    },
+    // {
+    //   key: 'employeeName',
+    //   label: 'Assigned To',
+    //   render: (value) => (
+    //     <Typography variant="body2" fontWeight="500">
+    //       {value}
+    //     </Typography>
+    //   )
+    // },
     {
       key: 'location',
-      label: 'Location',
+      label: 'Assigned To',
       render: (value) => (
         <Typography variant="body2" fontWeight="500">
           {value || 'Not specified'}

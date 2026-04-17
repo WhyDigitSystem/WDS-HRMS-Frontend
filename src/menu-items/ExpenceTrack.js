@@ -2,9 +2,16 @@ import { IconPackages } from '@tabler/icons-react';
 
 // screen access utility
 const hasScreenAccess = (screenId) => {
-    const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
-    const access = screenAccess?.[screenId];
-    return access?.canRead || access?.canWrite || access?.canDelete;
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
+  const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
+  const access = screenAccess?.[screenId];
+
+  return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
 // Build calendar menu only if user has access

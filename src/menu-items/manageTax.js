@@ -19,8 +19,15 @@ const icons0 = {
 
 // ==============================|| PERMISSION CHECK FUNCTION ||============================== //
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
@@ -55,18 +62,18 @@ const manageTaxChildren = [
 const manageTax =
   manageTaxChildren.length > 0
     ? {
-        id: 'manageTax',
-        type: 'group',
-        children: [
-          {
-            id: 'manageTaxCollapse',
-            title: 'Manage Tax',
-            type: 'collapse',
-            icon: icons0.IconDatabaseStar,
-            children: manageTaxChildren
-          }
-        ]
-      }
+      id: 'manageTax',
+      type: 'group',
+      children: [
+        {
+          id: 'manageTaxCollapse',
+          title: 'Manage Tax',
+          type: 'collapse',
+          icon: icons0.IconDatabaseStar,
+          children: manageTaxChildren
+        }
+      ]
+    }
     : null;
 
 export default manageTax;

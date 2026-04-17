@@ -1,4 +1,4 @@
-import { Card, Result } from 'antd';
+import { Card, Result, Modal, Input, Form } from 'antd';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import React, { useEffect, useState } from 'react';
@@ -37,151 +37,45 @@ const ConfirmationPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [approveStatus, setApproveStatus] = useState('');
 
+  // State for reason modal (only for REJECTED)
+  const [isReasonModalOpen, setIsReasonModalOpen] = useState(false);
+  const [reasonText, setReasonText] = useState('');
+  const [modalAction, setModalAction] = useState(null); // 'APPROVED' or 'REJECTED'
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const isApprove = action === 'APPROVED';
 
-  // useEffect(() => {
-  //   getAllLeaveApprove();
-  //   getAllPermissionApprove();
-  // }, []);
-
   useEffect(() => {
-    getApprovalData(); // New combined logic
+    // Only show reason modal for REJECTED action
+    if (action === 'REJECTED') {
+      setIsReasonModalOpen(true);
+      setModalAction(action);
+      setIsLoading(false);
+    } else {
+      // For APPROVED, directly process without reason
+      getApprovalData(null);
+    }
   }, []);
 
-  //
+  const handleReasonConfirm = () => {
+    if (!reasonText.trim()) {
+      Modal.error({
+        title: 'Error',
+        content: 'Please provide a reason for rejection.'
+      });
+      return;
+    }
+    setIsReasonModalOpen(false);
+    getApprovalData(reasonText);
+  };
 
-  // const getApprovalData = async () => {
-  //   try {
-  //     // Call both APIs in parallel
-  //     const [leaveResult, permissionResult, compoOffResult] = await Promise.all([
-  //       apiCalls(
-  //         'get',
-  //         `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
-  //       ),
-  //       apiCalls(
-  //         'get',
-  //         `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
-  //       ),
-  //       apiCalls(
-  //         'get',
-  //         `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
-  //       )
-  //     ]);
+  const handleReasonCancel = () => {
+    setIsReasonModalOpen(false);
+    setErrorMessage('Rejection cancelled');
+    setIsLoading(false);
+  };
 
-  //     // Extract data safely
-  //     const leaveRequests = Array.isArray(leaveResult?.paramObjectsMap?.leaveRequestVO)
-  //       ? leaveResult.paramObjectsMap.leaveRequestVO
-  //       : [leaveResult?.paramObjectsMap?.leaveRequestVO].filter(Boolean);
-
-  //     const permissionRequests = Array.isArray(permissionResult?.paramObjectsMap?.permissionRequestVO)
-  //       ? permissionResult.paramObjectsMap.permissionRequestVO
-  //       : [permissionResult?.paramObjectsMap?.permissionRequestVO].filter(Boolean);
-
-  //     const compoOffRequests = Array.isArray(compoOffResult?.paramObjectsMap?.compensatoryOffVO)
-  //       ? compoOffResult.paramObjectsMap.compensatoryOffVO
-  //       : [compoOffResult?.paramObjectsMap?.compensatoryOffVO].filter(Boolean);
-
-  //     // Search leave and permission by ID
-  //     const leaveMatch = leaveRequests.find((req) => String(req.id) === String(actionId));
-  //     const permissionMatch = permissionRequests.find((req) => String(req.permissionRequestId) === String(actionId));
-  //     const compoOffMatch = compoOffRequests.find((req) => String(req.id) === String(actionId));
-
-  //     if (leaveMatch?.screenName === 'LEAVE REQUEST') {
-  //       await handleApprove(leaveMatch);
-  //     } else if (permissionMatch?.screenName === 'PERMISSION REQUEST') {
-  //       await handlePermissionApprove(permissionMatch);
-  //     } else {
-  //       // If not found in frontend, fallback to backend-only processing
-  //       const fallbackType = searchParams.get('screenName');
-  //       if (fallbackType === 'PERMISSION REQUEST') {
-  //         await handlePermissionApprove({ id: actionId });
-  //       } else {
-  //         await handleApprove({ id: actionId });
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching approval data:', error);
-  //     setErrorMessage(extractApiError(error));
-  //     setIsSuccess(false);
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // const getApprovalData = async () => {
-  //   try {
-  //     // Call all three APIs in parallel
-  //     const [leaveResult, permissionResult, compoOffResult, checkOutResult] = await Promise.all([
-  //       apiCalls(
-  //         'get',
-  //         `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
-  //       ),
-  //       apiCalls(
-  //         'get',
-  //         `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
-  //       ),
-  //       apiCalls(
-  //         'get',
-  //         `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${notifyCode}&branchCode=${branchCode}`
-  //       ),
-  //       apiCalls('get', `basicmaster/getRequestCheckOutByOrgId?orgId=${orgId}&reportingPersoncode=${notifyCode}&branch=${branch}`)
-  //     ]);
-
-  //     // Extract each type of data safely
-  //     const leaveRequests = Array.isArray(leaveResult?.paramObjectsMap?.leaveRequestVO)
-  //       ? leaveResult.paramObjectsMap.leaveRequestVO
-  //       : [leaveResult?.paramObjectsMap?.leaveRequestVO].filter(Boolean);
-
-  //     const permissionRequests = Array.isArray(permissionResult?.paramObjectsMap?.permissionRequestVO)
-  //       ? permissionResult.paramObjectsMap.permissionRequestVO
-  //       : [permissionResult?.paramObjectsMap?.permissionRequestVO].filter(Boolean);
-
-  //     const compoOffRequests = Array.isArray(compoOffResult?.paramObjectsMap?.compensatoryOffVO)
-  //       ? compoOffResult.paramObjectsMap.compensatoryOffVO
-  //       : [compoOffResult?.paramObjectsMap?.compensatoryOffVO].filter(Boolean);
-
-  //     const checkOutRequests = Array.isArray(checkOutResult?.paramObjectsMap?.checkInVO)
-  //       ? checkOutResult.paramObjectsMap.checkInVO
-  //       : [checkOutResult?.paramObjectsMap?.checkInVO].filter(Boolean);
-
-  //     // Match data from each list
-  //     const leaveMatch = leaveRequests.find((req) => String(req.id) === String(actionId));
-  //     const permissionMatch = permissionRequests.find((req) => String(req.permissionRequestId) === String(actionId));
-  //     const compoOffMatch = compoOffRequests.find((req) => String(req.id) === String(actionId));
-  //     const checkOutMatch = checkOutRequests.find((req) => String(req.id) === String(actionId));
-
-  //     // Decide which function to call based on screenName
-  //     if (leaveMatch?.screenName === 'LEAVE REQUEST') {
-  //       await handleApprove(leaveMatch);
-  //     } else if (permissionMatch?.screenName === 'PERMISSION REQUEST') {
-  //       await handlePermissionApprove(permissionMatch);
-  //     } else if (compoOffMatch?.screenName === 'COMPENSATORY OFF') {
-  //       await handleCompoOffApprove(compoOffMatch);
-  //     } else if (checkOutMatch?.screenName === 'CHECKINOUT') {
-  //       await handleCheckOutApprove(checkOutMatch);
-  //     } else {
-  //       // If no match on frontend, fallback using query param screenName
-  //       const fallbackType = searchParams.get('screenName');
-  //       if (fallbackType === 'PERMISSION REQUEST') {
-  //         await handlePermissionApprove({ id: actionId });
-  //       } else if (fallbackType === 'COMPENSATORY OFF') {
-  //         await handleCompoOffApprove({ id: actionId });
-  //       }
-  //       else if (fallbackType === 'CHECKINOUT') {
-  //         await handleCheckOutApprove({ id: actionId });
-  //       }
-  //       else {
-  //         await handleApprove({ id: actionId });
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching approval data:', error);
-  //     setErrorMessage(extractApiError(error));
-  //     setIsSuccess(false);
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  const getApprovalData = async () => {
+  const getApprovalData = async (reason = null) => {
     try {
       const screenName = searchParams.get('screenName');
 
@@ -222,7 +116,7 @@ const ConfirmationPage = () => {
           : [checkOutResult?.paramObjectsMap?.checkInVO].filter(Boolean)
       ).map((item) => ({
         ...item,
-        employeeEmail: item.email || item.employeeEmail || '' // normalize email field
+        employeeEmail: item.email || item.employeeEmail || ''
       }));
 
       const checkInOutRequests = (
@@ -231,7 +125,7 @@ const ConfirmationPage = () => {
           : [checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO].filter(Boolean)
       ).map((item) => ({
         ...item,
-        employeeEmail: item.email || item.employeeEmail || '' // normalize email field
+        employeeEmail: item.email || item.employeeEmail || ''
       }));
 
       const wfhRequests = (
@@ -240,39 +134,39 @@ const ConfirmationPage = () => {
           : [wfhResult?.paramObjectsMap?.workFromHomeVO].filter(Boolean)
       ).map((item) => ({
         ...item,
-        employeeEmail: item.email || item.employeeEmail || '' // normalize email field
+        employeeEmail: item.email || item.employeeEmail || ''
       }));
 
       // Prioritize screenName logic
       switch (screenName) {
         case 'LEAVE REQUEST': {
           const leaveMatch = leaveRequests.find((req) => String(req.id) === String(actionId));
-          await handleApprove(leaveMatch || { id: actionId });
+          await handleApprove(leaveMatch || { id: actionId }, reason);
           break;
         }
         case 'PERMISSION REQUEST': {
           const permissionMatch = permissionRequests.find((req) => String(req.permissionRequestId) === String(actionId));
-          await handlePermissionApprove(permissionMatch || { id: actionId });
+          await handlePermissionApprove(permissionMatch || { id: actionId }, reason);
           break;
         }
         case 'COMPENSATORY OFF': {
           const compoOffMatch = compoOffRequests.find((req) => String(req.id) === String(actionId));
-          await handleCompoOffApprove(compoOffMatch || { id: actionId });
+          await handleCompoOffApprove(compoOffMatch || { id: actionId }, reason);
           break;
         }
         case 'CHECKINOUT': {
           const checkOutMatch = checkOutRequests.find((req) => String(req.id) === String(actionId));
-          await handleCheckOutApprove(checkOutMatch || { id: actionId });
+          await handleCheckOutApprove(checkOutMatch || { id: actionId }, reason);
           break;
         }
         case 'CHECKINOUTADJUSTMENT': {
           const checkInOutMatch = checkInOutRequests.find((req) => String(req.id) === String(actionId));
-          await handleCheckInOutApprove(checkInOutMatch || { id: actionId });
+          await handleCheckInOutApprove(checkInOutMatch || { id: actionId }, reason);
           break;
         }
         case 'WORKFROMHOME': {
           const wfhMatch = wfhRequests.find((req) => String(req.id) === String(actionId));
-          await handleWFHApprove(wfhMatch || { id: actionId });
+          await handleWFHApprove(wfhMatch || { id: actionId }, reason);
           break;
         }
         default: {
@@ -289,11 +183,16 @@ const ConfirmationPage = () => {
     }
   };
 
-  const handleApprove = async (matchedRequest = {}) => {
+  const handleApprove = async (matchedRequest = {}, reason = null) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/api/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&email=${employeeEmail}`
-      );
+      // Build URL with reason (only for rejection)
+      let url = `${API_URL}/api/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&email=${employeeEmail}`;
+
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+
+      const response = await axios.put(url);
 
       const isSuccess = response.data.status === true;
       const backendData = response?.data?.paramObjectsMap?.leaveRequestVO;
@@ -316,7 +215,7 @@ const ConfirmationPage = () => {
         status: backendStatus,
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
-        remarks: matchedRequest?.remarks || backendData?.remarks || 'N/A',
+        remarks: reason || matchedRequest?.remarks || backendData?.remarks || 'N/A',
         email: backendData?.email || ''
       };
 
@@ -332,11 +231,15 @@ const ConfirmationPage = () => {
     }
   };
 
-  const handlePermissionApprove = async (matchedRequest = {}) => {
+  const handlePermissionApprove = async (matchedRequest = {}, reason = null) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/api/employeemaster/createApprovalPermissionRequest?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`
-      );
+      let url = `${API_URL}/api/employeemaster/createApprovalPermissionRequest?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`;
+
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+
+      const response = await axios.put(url);
 
       const isSuccess = response.data.status === true;
       const backendData = response?.data?.paramObjectsMap?.permissionRequestVO;
@@ -359,7 +262,7 @@ const ConfirmationPage = () => {
         status: backendStatus,
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
-        remarks: matchedRequest.remarks || backendData?.remarks || 'N/A',
+        remarks: reason || matchedRequest.remarks || backendData?.remarks || 'N/A',
         email: matchedRequest.employeeEmail || backendData?.employeeEmail || ''
       };
 
@@ -375,11 +278,15 @@ const ConfirmationPage = () => {
     }
   };
 
-  const handleCompoOffApprove = async (matchedRequest = {}) => {
+  const handleCompoOffApprove = async (matchedRequest = {}, reason = null) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/api/leaveprocess/createApprovalCompOff?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`
-      );
+      let url = `${API_URL}/api/leaveprocess/createApprovalCompOff?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`;
+
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+
+      const response = await axios.put(url);
 
       const isSuccess = response.data.status === true;
       const backendData = response?.data?.paramObjectsMap?.compensatoryOffVO;
@@ -399,7 +306,7 @@ const ConfirmationPage = () => {
         status: backendStatus,
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
-        remarks: matchedRequest.reason || backendData?.reason || 'N/A',
+        remarks: reason || matchedRequest.reason || backendData?.reason || 'N/A',
         email: matchedRequest.employeeEmail || backendData?.employeeEmail || ''
       };
 
@@ -415,11 +322,15 @@ const ConfirmationPage = () => {
     }
   };
 
-  const handleCheckOutApprove = async (matchedRequest = {}) => {
+  const handleCheckOutApprove = async (matchedRequest = {}, reason = null) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/api/basicmaster/createApprovalCheckOut?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&checkOutDate=${checkInDate}`
-      );
+      let url = `${API_URL}/api/basicmaster/createApprovalCheckOut?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&checkOutDate=${checkInDate}`;
+
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+
+      const response = await axios.put(url);
 
       const isSuccess = response.data.status === true;
       const backendData = response?.data?.paramObjectsMap?.checkInVO;
@@ -440,6 +351,7 @@ const ConfirmationPage = () => {
         status: backendStatus,
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
+        remarks: reason || '',
         email: matchedRequest.employeeEmail || backendData?.employeeEmail || backendData?.email || ''
       };
 
@@ -455,19 +367,21 @@ const ConfirmationPage = () => {
     }
   };
 
-  const handleCheckInOutApprove = async (matchedRequest = {}) => {
+  const handleCheckInOutApprove = async (matchedRequest = {}, reason = null) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/api/basicmaster/createApprovalCheckInOutAdjustment?action=${action}&actionBy=${notify}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&checkOutDate=${checkOutDate}`
-      );
+      let url = `${API_URL}/api/basicmaster/createApprovalCheckInOutAdjustment?action=${action}&actionBy=${notify}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}&checkOutDate=${checkOutDate}`;
+
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+
+      const response = await axios.put(url);
 
       const isSuccess = response.data.status === true;
 
-      // Extract backend entries (IN and OUT)
       const backendDataList = response?.data?.paramObjectsMap?.checkInOutAdjustmentVO || [];
-      const backendData = backendDataList[0] || {}; // fallback
+      const backendData = backendDataList[0] || {};
 
-      // Find IN and OUT entries
       const inEntry = backendDataList.find(item => item.status === 'IN');
       const outEntry = backendDataList.find(item => item.status === 'OUT');
 
@@ -475,7 +389,7 @@ const ConfirmationPage = () => {
       setApproveStatus(backendStatus);
 
       if (!isSuccess) {
-        setErrorMessage(response?.data?.paramObjectsMap?.errorMessage || 'Compo Off request could not be processed.');
+        setErrorMessage(response?.data?.paramObjectsMap?.errorMessage || 'Check In/Out request could not be processed.');
         return;
       }
 
@@ -483,25 +397,24 @@ const ConfirmationPage = () => {
         name: matchedRequest.empName || backendData?.empName || 'Employee',
         from_name: notify,
         checkInDate: dayjs(matchedRequest.checkInDate || backendData?.checkInDate).format('DD-MM-YYYY'),
-        entryTime: inEntry?.entryTime || '',   // IN time
-        exitTime: outEntry?.entryTime || '',   // OUT time
+        entryTime: inEntry?.entryTime || '',
+        exitTime: outEntry?.entryTime || '',
         status: backendStatus,
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
+        remarks: reason || '',
         email: matchedRequest.employeeEmail || backendData?.employeeEmail || backendData?.email || ''
       };
 
-      // Defensive check to ensure email is available
       if (!templateParams.email) {
         setErrorMessage("Recipient email not found. Email not sent.");
         return;
       }
 
-      // Send Email via EmailJS
       await emailjs.send('service_q42xewl', 'template_i87in0m', templateParams, 'yPqDOZm63k5U6JbRJ');
 
       setIsSuccess(true);
-      setErrorMessage(response?.data?.paramObjectsMap?.message || 'Compo Off action completed.');
+      setErrorMessage(response?.data?.paramObjectsMap?.message || 'Check In/Out action completed.');
     } catch (error) {
       console.error('Error approving request:', error);
       setErrorMessage(extractApiError(error));
@@ -510,17 +423,18 @@ const ConfirmationPage = () => {
     }
   };
 
-  const handleWFHApprove = async (matchedRequest = {}) => {
+  const handleWFHApprove = async (matchedRequest = {}, reason = null) => {
     try {
-      const response = await axios.put(
-        `${API_URL}/api/leaveprocess/createApprovalWorkFromHome?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`
-      );
+      let url = `${API_URL}/api/leaveprocess/createApprovalWorkFromHome?action=${action}&actionBy=${loginUserName}&employeeCode=${employeeCode}&id=${actionId}&orgId=${orgId}&notifyCode=${notifyCode}&notify=${notify}&screenName=${screenName}`;
+
+      if (reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+
+      const response = await axios.put(url);
 
       const isSuccess = response.data.status === true;
-
-      // ✅ Correct extraction (NO array, NO IN/OUT)
       const backendData = response?.data?.paramObjectsMap?.workFromHomeVO || {};
-
       const backendStatus = backendData?.approveStatus || '';
       setApproveStatus(backendStatus);
 
@@ -531,7 +445,6 @@ const ConfirmationPage = () => {
         return;
       }
 
-      // ✅ Correct template params (WFH specific)
       const templateParams = {
         name: matchedRequest.employeeName || backendData?.employeeName || 'Employee',
         from_name: notify,
@@ -541,16 +454,10 @@ const ConfirmationPage = () => {
         status: backendStatus,
         status_message: backendStatus === 'APPROVED' ? 'Approved' : 'Rejected',
         status_class: backendStatus === 'APPROVED' ? 'status-approved' : 'status-rejected',
+        remarks: reason || '',
         email: matchedRequest.employeeEmail || backendData?.employeeEmail || backendData?.email || ''
       };
 
-      // ❗ Email check
-      // if (!templateParams.email) {
-      //   setErrorMessage("Recipient email not found. Email not sent.");
-      //   return;
-      // }
-
-      // ✅ Send Email
       await emailjs.send(
         'service_ywei7br',
         'template_cb2ljdh',
@@ -606,64 +513,169 @@ const ConfirmationPage = () => {
     );
   }
 
+  // Custom styles for the reason modal (only for rejection)
+  const reasonModalStyles = {
+    content: {
+      borderRadius: '12px',
+      padding: '24px',
+    },
+    header: {
+      borderBottom: '1px solid #f0f0f0',
+      paddingBottom: '16px',
+      marginBottom: '20px',
+    },
+    title: {
+      fontSize: '20px',
+      fontWeight: '600',
+      color: '#ff4d4f',
+    }
+  };
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '95vh',
-        background: '#ffffff'
-      }}
-    >
-      <Card
+    <>
+      <div
         style={{
-          maxWidth: 420,
-          textAlign: 'center',
-          borderRadius: '15px',
-          boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
-          maxHeight: 550
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '95vh',
+          background: '#ffffff'
         }}
       >
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} />
+        <Card
+          style={{
+            maxWidth: 420,
+            textAlign: 'center',
+            borderRadius: '15px',
+            boxShadow: '0 8px 20px rgba(0, 0, 0, 0.1)',
+            maxHeight: 550
+          }}
+        >
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} />
 
-        {isSuccess ? (
-          <Result
-            status={approveStatus === 'REJECTED' ? 'error' : 'success'}
-            title={
-              <motion.h4
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                style={{ color: approveStatus === 'REJECTED' ? 'red' : 'green' }}
-              >
-                {errorMessage ||
-                  (approveStatus === 'REJECTED' ? 'Leave request has been rejected.' : 'Leave request approved successfully.')}
-              </motion.h4>
+          {isSuccess ? (
+            <Result
+              status={approveStatus === 'REJECTED' ? 'error' : 'success'}
+              title={
+                <motion.h4
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  style={{ color: approveStatus === 'REJECTED' ? 'red' : 'green' }}
+                >
+                  {errorMessage ||
+                    (approveStatus === 'REJECTED' ? 'Request has been rejected.' : 'Request approved successfully.')}
+                </motion.h4>
+              }
+              subTitle={
+                <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.5 }}>
+                  {approveStatus === 'REJECTED' ? 'You have rejected the request.' : 'You have approved the request.'}
+                </motion.p>
+              }
+            />
+          ) : (
+            <Result
+              status="error"
+              title={
+                <motion.h4
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  style={{ color: 'red' }}
+                >
+                  {errorMessage}
+                </motion.h4>
+              }
+            />
+          )}
+        </Card>
+      </div>
+
+      {/* Styled Reason Modal - Only for Rejection */}
+      <Modal
+        title={
+          <div style={{ textAlign: 'center', padding: '8px 0' }}>
+            <div style={{
+              fontSize: '24px',
+              marginBottom: '8px',
+              color: '#ff4d4f'
+            }}>
+              ✗
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: '600' }}>
+              Reject Request
+            </div>
+          </div>
+        }
+        open={isReasonModalOpen}
+        onOk={handleReasonConfirm}
+        onCancel={handleReasonCancel}
+        okText="Confirm Rejection"
+        cancelText="Cancel"
+        confirmLoading={isSubmitting}
+        width={480}
+        style={{ top: 20 }}
+        bodyStyle={{ padding: '24px' }}
+        okButtonProps={{
+          style: {
+            backgroundColor: '#ff4d4f',
+            borderColor: '#ff4d4f',
+          }
+        }}
+      >
+        <Form layout="vertical">
+          <Form.Item
+            label={
+              <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                Rejection Reason
+              </span>
             }
-            subTitle={
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.5 }}>
-                {approveStatus === 'REJECTED' ? 'You have rejected the request.' : 'You have approved the request.'}
-              </motion.p>
-            }
-          />
-        ) : (
-          <Result
-            status="error"
-            title={
-              <motion.h4
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                style={{ color: 'red' }}
-              >
-                {errorMessage}
-              </motion.h4>
-            }
-          />
-        )}
-      </Card>
-    </div>
+            name="reason"
+            rules={[{ required: true, message: 'Please provide a reason for rejection' }]}
+          >
+            <Input.TextArea
+              rows={5}
+              placeholder="Please enter the reason for rejecting this request..."
+              value={reasonText}
+              onChange={(e) => setReasonText(e.target.value)}
+              style={{
+                borderRadius: '8px',
+                fontSize: '14px',
+                resize: 'vertical',
+                border: '1px solid #d9d9d9',
+                transition: 'all 0.3s',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#ff4d4f';
+                e.target.style.boxShadow = '0 0 0 2px rgba(255, 77, 79, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#d9d9d9';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </Form.Item>
+
+          {/* Info message */}
+          <div style={{
+            marginTop: '16px',
+            padding: '12px',
+            backgroundColor: '#fff2f0',
+            borderRadius: '8px',
+            borderLeft: '4px solid #ff4d4f',
+            fontSize: '12px',
+            color: '#666'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '16px' }}>ℹ️</span>
+              <span>
+                Please specify the reason for rejection. This will be shared with the employee.
+              </span>
+            </div>
+          </div>
+        </Form>
+      </Modal>
+    </>
   );
 };
 

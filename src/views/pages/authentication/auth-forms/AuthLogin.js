@@ -161,7 +161,12 @@ const FirebaseLogin = ({ ...others }) => {
         dispatch(setUserRole(userRole));
 
         resetForm();
-        navigate('/dashboard/default');
+        {
+          userType === 'SADMIN' ?
+            navigate('/companysetup/createcompany') :
+            navigate('/dashboard/default');
+        }
+        // navigate('/dashboard/default');
         // navigate('/dashboardpg');
 
         setTimeout(() => {
