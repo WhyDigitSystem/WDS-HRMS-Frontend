@@ -1043,8 +1043,8 @@ const PendingApproval = ({ isLoading }) => {
     <Box sx={{ position: 'relative', height: '100%' }}>
       <BackgroundImage />
       <GradientOverlay />
-      <StyledCard sx={{ p: 3, height: '100%' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <StyledCard sx={{ p: 0, height: '100%' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography variant="h5" fontWeight="700" color="primary">
             Pending Approvals
           </Typography>
@@ -1095,8 +1095,8 @@ const PendingApproval = ({ isLoading }) => {
                       <Avatar
                         sx={{
                           bgcolor: theme.palette.primary.main,
-                          width: 44,
-                          height: 44,
+                          width: 36,
+                          height: 36,
                           mr: 2,
                           fontSize: '1.1rem',
                           fontWeight: 600,

@@ -31,10 +31,8 @@ const modalStyle = {
   p: 4,
   borderRadius: 2,
   boxShadow: 24,
-  width: 300
+  width: 350
 };
-
-
 
 const CheckInOut = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,8 +48,8 @@ const CheckInOut = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [checkInTime, setCheckInTime] = useState('');
   const [checkOutTime, setCheckOutTime] = useState('');
+  const [reason, setReason] = useState('');
   const [checkInModalOpen, setCheckInModalOpen] = useState(false);
-  const [checkOutModalOpen, setCheckOutModalOpen] = useState(false);
   const [liveTime, setLiveTime] = useState(dayjs().format("HH:mm:ss"));
   const [searchText, setSearchText] = useState('');
   const [reportingPersonMail, setReportingPersonMail] = useState('');
@@ -88,7 +86,7 @@ const CheckInOut = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setLiveTime(dayjs().format("HH:mm:ss"));
-    }, 1000); // updates every 30 seconds
+    }, 1000); // updates every 1 second
 
     return () => clearInterval(timer); // cleanup
   }, []);
@@ -139,6 +137,7 @@ const CheckInOut = () => {
       setLoading(false);
     }
   };
+
   const getTodayStatus = async () => {
     try {
       const res = await apiCalls('get', `basicmaster/chkStatus/${empCode}`);
@@ -152,6 +151,7 @@ const CheckInOut = () => {
   useEffect(() => {
     getTodayStatus();
   }, []);
+
   const getReportingPerson = async () => {
     setLoading(true);
     try {
@@ -203,123 +203,29 @@ const CheckInOut = () => {
     setPage(0);
   };
 
-  const handleCheckInClick = (row) => {
+  const handleCellClick = (row, type) => {
     const now = new Date().toTimeString().slice(0, 5);
     setSelectedRow(row);
-    setCheckInTime(row.checkInTime !== '00:00' ? row.checkInTime : now);
-    setCheckOutTime(row.checkOutTime || '00:00');
-    setCheckInModalOpen(true);
-  };
+    setReason(''); // Reset reason field
 
-  const handleCheckOutClick = (row) => {
-    const now = new Date().toTimeString().slice(0, 5);
-    setSelectedRow(row);
-    setCheckOutTime(row.checkOutTime !== '00:00' ? row.checkOutTime : now);
-    setCheckOutModalOpen(true);
+    if (type === 'checkIn') {
+      setCheckInTime(row.checkInTime !== '00:00' ? row.checkInTime : now);
+      setCheckOutTime(row.checkOutTime !== '00:00' ? row.checkOutTime : '00:00');
+    } else if (type === 'checkOut') {
+      setCheckInTime(row.checkInTime !== '00:00' ? row.checkInTime : '00:00');
+      setCheckOutTime(row.checkOutTime !== '00:00' ? row.checkOutTime : now);
+    }
+
+    setCheckInModalOpen(true);
   };
 
   const handleSave = async () => {
     if (!selectedRow) return;
 
-    let formattedDate = '';
-    if (selectedRow.date.includes('/')) {
-      const [day, month, year] = selectedRow.date.split('/');
-      formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    } else {
-      formattedDate = selectedRow.date;
+    if (!reason.trim()) {
+      showToast('error', 'Please provide a reason for this adjustment');
+      return;
     }
-
-    const payload = {
-      screenName: 'CHECKINOUT',
-      branch: branch,
-      branchCode: branchCode,
-      date: formattedDate,
-      empCode: empCode,
-      empName: empName,
-      entryTime: checkOutTime,
-      notify: reportingPerson,
-      notifyCode: reportingPersonCode,
-      notifyEmail: reportingPersonMail,
-      orgId: orgId
-    };
-
-    setIsLoading(true);
-
-    try {
-      const response = await apiCalls('put', '/basicmaster/createRequestCheckOut', payload);
-
-      if (response.status === true) {
-        const checkInVO = response.paramObjectsMap.checkInVO || {};
-        showToast('success', 'Check-out time submitted successfully');
-
-        await sendEmailNotification({
-          ...payload,
-          ...checkInVO
-        });
-
-        const updatedData = listViewData.map((row) => (row.date === selectedRow.date ? { ...row, checkOutTime } : row));
-        setListViewData(updatedData);
-        setFilteredData(
-          updatedData.filter(
-            (row) =>
-              row.date.toLowerCase().includes(searchText) ||
-              row.day.toLowerCase().includes(searchText) ||
-              row.checkInTime.toLowerCase().includes(searchText)
-          )
-        );
-
-        setCheckOutModalOpen(false);
-        getAllSwipeInandOut();
-      } else {
-        showToast('error', response.paramObjectsMap?.errorMessage || 'Check-out submission failed');
-      }
-    } catch (error) {
-      console.error('Error submitting check-out:', error);
-      showToast('error', 'Check-out submission failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const sendEmailNotification = async (row) => {
-    try {
-      const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage';
-      const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.empCode}&actionBy=${empName}&orgId=${orgId}&notifyCode=${reportingPersonCode}&notify=${reportingPerson}&screenName=${row.screenName}&checkInDate=${row.checkInDate}`;
-      const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.empCode}&actionBy=${empName}&orgId=${orgId}&notifyCode=${reportingPersonCode}&notify=${reportingPerson}&screenName=${row.screenName}&checkInDate=${row.checkInDate}`;
-
-      const emailParams = {
-        date: row.checkInDate,
-        checkInDate: row.checkInDate,
-        name: row.notify,
-        from_name: empName,
-        entryTime: row.entryTime,
-        email: reportingPersonMail,
-        checkOut_id: row.id,
-        approve_link: approveLink,
-        reject_link: rejectLink,
-        notifyCode: reportingPersonCode,
-        notify: reportingPerson,
-        screenName: row.screenName
-      };
-
-      console.log('Email Params:', emailParams);
-
-      if (!emailParams.email) {
-        console.error('Error: Recipient email is missing!');
-        showToast('error', 'Recipient email is missing!');
-        return;
-      }
-
-      await emailjs.send('service_d3c7xso', 'template_0pef9wb', emailParams, 'uMcVJdror6W86lK6z');
-      console.log('Email Sent Successfully for', emailParams.email);
-    } catch (error) {
-      console.error('Email Sending Failed:', error);
-      showToast('error', 'Failed to send email notification. Please try again.');
-    }
-  };
-
-  const handleCheckInSave = async () => {
-    if (!selectedRow) return;
 
     let formattedDate = '';
     if (selectedRow.date.includes('/')) {
@@ -340,7 +246,8 @@ const CheckInOut = () => {
       email: employeeEmail,
       entryOut: checkOutTime,
       orgId: orgId,
-      reportingPersonMail: reportingPersonMail
+      reportingPersonMail: reportingPersonMail,
+      requestReason: reason // Add reason to payload
     };
 
     setIsLoading(true);
@@ -353,7 +260,7 @@ const CheckInOut = () => {
           ? response.paramObjectsMap.checkInOutAdjustmentVO[0]
           : response.paramObjectsMap.checkInOutAdjustmentVO || {};
 
-        showToast('success', 'Check In & out time submitted successfully');
+        showToast('success', 'Check In & Out time submitted successfully');
 
         await sendEmailNotificationForCheckIn({
           ...payload,
@@ -373,6 +280,7 @@ const CheckInOut = () => {
         );
 
         setCheckInModalOpen(false);
+        setReason(''); // Reset reason after save
         getAllSwipeInandOut();
       } else {
         showToast('error', response.paramObjectsMap?.errorMessage || 'Check-In/Out submission failed');
@@ -403,7 +311,8 @@ const CheckInOut = () => {
         reject_link: rejectLink,
         notifyCode: reportingPersonCode,
         notify: reportingPerson,
-        screenName: row.screenName
+        screenName: row.screenName,
+        reason: row.reason || reason // Add reason to email parameters
       };
 
       console.log('Email Params:', emailParams);
@@ -595,11 +504,7 @@ const CheckInOut = () => {
                     {/* Check-In Cell */}
                     <TableCell
                       onClick={() => {
-                        if (row.checkInTime === '00:00') {
-                          handleCheckInClick(row);
-                        } else {
-                          handleCheckInClick(row);
-                        }
+                        handleCellClick(row, 'checkIn');
                       }}
                       style={{
                         color:
@@ -610,8 +515,8 @@ const CheckInOut = () => {
                               : row.approvalstatus === 'Pending'
                                 ? '#FFAC1C'
                                 : 'black',
-                        cursor: row.checkInTime === '00:00' ? 'pointer' : 'default',
-                        textDecoration: row.checkInTime === '00:00' ? 'underline' : 'none',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
                         fontWeight:
                           row.checkInTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
                             ? 'bold'
@@ -624,11 +529,7 @@ const CheckInOut = () => {
                     {/* Check-Out Cell */}
                     <TableCell
                       onClick={() => {
-                        if (row.checkOutTime === '00:00') {
-                          handleCheckOutClick(row);
-                        } else {
-                          handleCheckInClick(row);
-                        }
+                        handleCellClick(row, 'checkOut');
                       }}
                       style={{
                         color:
@@ -639,23 +540,18 @@ const CheckInOut = () => {
                               : row.approvalstatus === 'Pending'
                                 ? '#FFAC1C'
                                 : 'black',
-                        cursor: row.checkOutTime === '00:00' ? 'pointer' : 'default',
-                        textDecoration: row.checkOutTime === '00:00' ? 'underline' : 'none',
+                        cursor: 'pointer',
+                        textDecoration: 'underline',
                         fontWeight:
                           row.checkOutTime === '00:00' || row.approvalstatus === 'Approved' || row.approvalstatus === 'Pending'
                             ? 'bold'
                             : 'normal'
                       }}
                     >
-                      {/* {row.checkOutTime === '00:00' ? 'Missing' : row.checkOutTime} */}
-                      {/* {row.checkOutTime === '00:00' ? (rowDate === today ? dayjs().format('HH:mm') : 'Missing') : row.checkOutTime} */}
                       {displayCheckOut}
                     </TableCell>
 
-                    {/* <TableCell>{row.totalWorkingHours}</TableCell>
-                    <TableCell>{row.effectiveFrom}</TableCell> */}
                     <TableCell>{displayWorkingHours}</TableCell>
-                    {/* EFFECTIVE HOURS */}
                     <TableCell>{displayEffectiveHours}</TableCell>
                   </TableRow>
                 );
@@ -678,6 +574,7 @@ const CheckInOut = () => {
         />
       </TableContainer>
 
+      {/* Single Modal for both Check-In and Check-Out adjustments */}
       <Modal open={checkInModalOpen} onClose={() => setCheckInModalOpen(false)}>
         <Box sx={{ ...modalStyle }}>
           <Typography variant="h6" gutterBottom>
@@ -704,29 +601,27 @@ const CheckInOut = () => {
             inputProps={{ step: 60 }}
           />
 
-          <Button variant="contained" color="primary" fullWidth sx={{ mt: 3 }} onClick={handleCheckInSave}>
-            Save
-          </Button>
-        </Box>
-      </Modal>
-      <Modal open={checkOutModalOpen} onClose={() => setCheckOutModalOpen(false)}>
-        <Box sx={{ ...modalStyle }}>
-          <Typography variant="h6" gutterBottom>
-            Set Check-Out Time
-          </Typography>
-
           <TextField
-            type="time"
-            label="Check-Out Time"
+            label="Reason for Adjustment"
             fullWidth
-            value={checkOutTime}
-            onChange={(e) => setCheckOutTime(e.target.value)}
+            multiline
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Please provide a reason for this time adjustment..."
             sx={{ mt: 2 }}
-            inputProps={{ step: 60 }}
+            required
           />
 
-          <Button variant="contained" color="primary" fullWidth sx={{ mt: 3 }} onClick={handleSave}>
-            Save
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 3 }}
+            onClick={handleSave}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Saving...' : 'Save'}
           </Button>
         </Box>
       </Modal>

@@ -21,6 +21,7 @@ export const LeaveAssigned = () => {
   const [formData, setFormData] = useState({
     active: true,
     designation: '',
+    designationCode: '',
     leaveType: '',
     totalLeave: '',
   });
@@ -29,6 +30,7 @@ export const LeaveAssigned = () => {
   const [fieldErrors, setFieldErrors] = useState({
     active: true,
     designation: '',
+    designationCode: '',
     leaveType: '',
     totalLeave: '',
   });
@@ -108,7 +110,9 @@ export const LeaveAssigned = () => {
         const particularScreen = response.paramObjectsMap.designationLeaveVO;
         setFormData({
           designation: particularScreen.designation,
+          designationCode: particularScreen.designationCode,   // ✅ ADD THIS
           leaveType: particularScreen.leaveType,
+          leaveCode: particularScreen.leaveCode,               // ✅ ADD THIS
           totalLeave: particularScreen.totalLeave,
           active: particularScreen.active === 'Active' ? true : false
         });
@@ -126,16 +130,6 @@ export const LeaveAssigned = () => {
     let updatedValue = type === 'checkbox' ? checked : value;
 
     let additionalData = {};
-
-    if (name === 'designation') {
-      const selectedDesignation = designationList.find((row) => row.designationName === value);
-      additionalData.designationCode = selectedDesignation ? selectedDesignation.designationCode : '';
-    }
-
-    if (name === 'leaveType') {
-      const selectedLeaveType = allLeaveType.find((row) => row.leaveType === value);
-      additionalData.leaveCode = selectedLeaveType ? selectedLeaveType.leaveCode : '';
-    }
 
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -254,7 +248,7 @@ export const LeaveAssigned = () => {
             <CommonListViewTable
               data={listViewData}
               columns={listViewColumns}
-              blockEdit={true} 
+              blockEdit={true}
               toEdit={getAllDesignationById}
               enableEditing={true}
             />
@@ -291,9 +285,18 @@ export const LeaveAssigned = () => {
                   sx={{ width: "100%" }}
                   size="small"
                   value={designationList.find((c) => c.designationName === formData.designation) || null}
-                  onChange={(event, newValue) =>
-                    handleInputChange({ target: { name: "designation", value: newValue ? newValue.designationName : "" } })
-                  }
+                  onChange={(event, newValue) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      designation: newValue ? newValue.designationName : "",
+                      designationCode: newValue ? newValue.designationCode : ""
+                    }));
+
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      designation: ""
+                    }));
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -342,9 +345,18 @@ export const LeaveAssigned = () => {
                   sx={{ width: "100%" }}
                   size="small"
                   value={allLeaveType.find((c) => c.leaveType === formData.leaveType) || null}
-                  onChange={(event, newValue) =>
-                    handleInputChange({ target: { name: "leaveType", value: newValue ? newValue.leaveType : "" } })
-                  }
+                  onChange={(event, newValue) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      leaveType: newValue ? newValue.leaveType : "",
+                      leaveCode: newValue ? newValue.leaveCode : ""
+                    }));
+
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      leaveType: ""
+                    }));
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
