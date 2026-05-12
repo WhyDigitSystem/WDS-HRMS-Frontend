@@ -103,6 +103,9 @@ const OverAllReport = Loadable(lazy(() => import('views/team/OverAllReport')));
 
 // manageTax
 const ManageTax = Loadable(lazy(() => import('views/ManageTax/manageTax')));
+// manageTaxNew
+const ManageTaxNew = Loadable(lazy(() => import('views/manageTaxNew/ManageTaxNew')));
+
 const DeclarationDate = Loadable(lazy(() => import('views/ManageTax/DeclarationDate')));
 const DeclarationInput = Loadable(lazy(() => import('views/ManageTax/DeclarationInput')));
 
@@ -445,7 +448,7 @@ const HrmsRoute = {
     {
       path: '/ManageTax/manageTax',
       element: <ManageTax />
-    },
+    }, 
     {
       path: '/ManageTax/DeclarationDate',
       element: <DeclarationDate />
@@ -454,6 +457,12 @@ const HrmsRoute = {
       path: '/ManageTax/DeclarationInput',
       element: <DeclarationInput />
     },
+     // manageTaxNew
+     {
+      path: '/ManageTaxNew/ManageTaxNew',
+      element: <ManageTaxNew />
+    },
+    //
     // PreGoals
     {
       path: '/Appraisal/Appraisee',
