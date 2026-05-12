@@ -43,6 +43,7 @@ const NavCollapse = ({ menu, level }) => {
       menu?.id !== 'financeCollapse' &&
       menu?.id !== 'teamCollapse' &&
       menu?.id !== 'manageTax' &&
+      menu?.id !== 'manageTaxNew' &&
       menu?.id !== 'Appraisal' &&
       menu?.id !== 'AssetManagement' &&
       menu?.id !== 'ExpenceManagement' &&

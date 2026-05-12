@@ -17,6 +17,7 @@ import ExpenceTrack from './ExpenceTrack';
 import RecruitmentManagement from './recruitmentManagement';
 import SeparationManagement from './separationManagement';
 import manageTax from './manageTax';
+import mamageTaxNew from './manageTaxNew';
 // Import other dynamically filtered modules as needed
 
 const filterValid = (items) => items.filter(Boolean);
@@ -37,6 +38,7 @@ const getMenuItems = () => {
       SeparationManagement,
       ExpenceTrack,
       manageTax,
+      mamageTaxNew,
       basicMaster,
       salaryMaster,
       companySetup,
