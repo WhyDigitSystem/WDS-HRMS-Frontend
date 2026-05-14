@@ -1,33 +1,21 @@
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import SendIcon from '@mui/icons-material/Send';
-
 import {
-  Avatar,
   Box,
-  IconButton,
-  Menu,
-  MenuItem,
+  Typography,
   Paper,
   Stack,
   TextField,
-  Typography
-} from '@mui/material';
+  IconButton,
+  Menu,
+  MenuItem,
+  Avatar
+} from "@mui/material";
 
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import SendIcon from "@mui/icons-material/Send";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react';
-
-dayjs.extend(relativeTime);
-dayjs.extend(customParseFormat);
+import { useState, useMemo, useRef, useEffect } from "react";
 
 const CommentSection = ({
   commentsVO = [],
@@ -36,160 +24,136 @@ const CommentSection = ({
   onEditComment,
   onDeleteComment
 }) => {
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [editing, setEditing] = useState(null);
-
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedComment, setSelectedComment] =
-    useState(null);
+  const [selected, setSelected] = useState(null);
 
   const scrollRef = useRef(null);
 
-  /* ---------------- AUTO SCROLL ---------------- */
+  /* ---------- AUTO SCROLL ---------- */
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({
-      behavior: 'smooth'
-    });
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [commentsVO]);
 
-  /* ---------------- NORMALIZE COMMENTS ---------------- */
+  /* ---------- TIME AGO ---------- */
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return "";
+
+    const parsed = new Date(
+      dateStr.replace(/(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3")
+    );
+
+    const diff = Date.now() - parsed.getTime();
+    const min = Math.floor(diff / 60000);
+    const hr = Math.floor(min / 60);
+    const day = Math.floor(hr / 24);
+
+    if (min < 1) return "just now";
+    if (min < 60) return `${min} min ago`;
+    if (hr < 24) return `${hr} hr ago`;
+    return `${day} day${day > 1 ? "s" : ""} ago`;
+  };
+
+  /* ---------- NORMALIZE ---------- */
   const comments = useMemo(() => {
     return commentsVO
       .map((c) => ({
         id: c.id,
-
         text: c.comments,
-
         createdAt: c.commonDate?.createdon,
-
-        time: dayjs(
-          c.commonDate?.createdon,
-          'DD-MM-YYYY hh:mm:ss A'
-        ).fromNow(),
-
-        user: (
-          c.userName ||
-          c.createdBy ||
-          ''
-        )
-          .toLowerCase()
-          .trim(),
-
+        time: timeAgo(c.commonDate?.createdon),
+        user: (c.userName || c.createdBy || "").toLowerCase(),
         display:
-          c.displayName ||
-          c.userName?.split('@')[0] ||
-          c.createdBy ||
-          'User'
+  c.displayName ||   // 🔥 use value from parent (already cleaned)
+  c.userName?.split("@")[0] ||
+  c.createdBy ||
+  "User"
       }))
       .sort((a, b) => {
-        const first = dayjs(
-          a.createdAt,
-          'DD-MM-YYYY hh:mm:ss A'
-        ).valueOf();
-
-        const second = dayjs(
-          b.createdAt,
-          'DD-MM-YYYY hh:mm:ss A'
-        ).valueOf();
-
-        return first - second;
+        const parse = (d) =>
+          new Date(
+            d?.replace(/(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3")
+          ).getTime();
+        return parse(a.createdAt) - parse(b.createdAt);
       });
   }, [commentsVO]);
 
-  /* ---------------- CHECK OWNER ---------------- */
-  const isMine = (comment) =>
-    currentUser?.toLowerCase()?.trim() ===
-    comment.user;
+  const isMine = (c) =>
+    currentUser?.toLowerCase()?.trim() === c.user;
 
-  /* ---------------- MENU ---------------- */
-  const handleMenuOpen = (
-    event,
-    comment
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedComment(comment);
-  };
+  /* ---------- ACTIONS ---------- */
+ const handleSend = async () => {
+  if (!text.trim()) return;
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedComment(null);
-  };
+  const latestText = text;
 
-  /* ---------------- SEND COMMENT ---------------- */
-  const handleSend = async () => {
-    if (!text.trim()) return;
+  setText("");
 
+  try {
     if (editing) {
-      await onEditComment(
-        text,
-        editing.id
-      );
-
+      await onEditComment(latestText, editing.id);
       setEditing(null);
     } else {
-      await onSubmitComment(text);
+      await onSubmitComment(latestText);
     }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-    setText('');
+  const handleMenuOpen = (e, c) => {
+    setAnchorEl(e.currentTarget);
+    setSelected(c);
   };
 
-  /* ---------------- EDIT ---------------- */
+  const handleClose = () => {
+    setAnchorEl(null);
+    setSelected(null);
+  };
+
   const handleEdit = () => {
-    setEditing(selectedComment);
-
-    setText(selectedComment.text);
-
-    handleMenuClose();
+    setEditing(selected);
+    setText(selected.text);
+    handleClose();
   };
 
-  /* ---------------- DELETE ---------------- */
   const handleDelete = async () => {
-    await onDeleteComment(
-      selectedComment.id
-    );
-
-    handleMenuClose();
+    await onDeleteComment(selected.id);
+    handleClose();
   };
 
   return (
     <Box
       sx={{
-        borderRadius: 4,
-        border: '1px solid #e2e8f0',
-        display: 'flex',
-        flexDirection: 'column',
-        height: 430,
-        overflow: 'hidden',
-        backgroundColor: '#f4f7fb'
+        borderRadius: 3,
+        border: "1px solid #e0e0e0",
+        display: "flex",
+        flexDirection: "column",
+        height: 400,
+        backgroundColor: "#fafafa"
       }}
     >
-      {/* ---------------- HEADER ---------------- */}
+      {/* HEADER */}
       <Box
         sx={{
           px: 2,
-          py: 1.6,
-          borderBottom:
-            '1px solid #e2e8f0',
-
-          background:
-            'linear-gradient(135deg, #4f46e5, #6366f1)',
-
-          color: '#ffffff'
+          py: 1.5,
+          borderBottom: "1px solid #e0e0e0",
+          background: "linear-gradient(135deg, #1976d2, #42a5f5)",
+          color: "white",
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12
         }}
       >
-        <Typography
-          fontWeight={700}
-          fontSize={16}
-        >
-          💬 Comments
-        </Typography>
+        <Typography fontWeight={600}>💬 Comments</Typography>
       </Box>
 
-      {/* ---------------- COMMENTS ---------------- */}
+      {/* CHAT AREA */}
       <Box
         sx={{
           flex: 1,
-          overflowY: 'auto',
+          overflowY: "auto",
           px: 2,
           py: 2
         }}
@@ -201,119 +165,67 @@ const CommentSection = ({
             return (
               <Box
                 key={c.id}
-                display="flex"
-                justifyContent={
-                  mine
-                    ? 'flex-end'
-                    : 'flex-start'
-                }
+                display="flex "
+                justifyContent={mine ? "flex-end" : "flex-start"}
               >
                 <Stack
                   direction="row"
                   spacing={1}
                   alignItems="flex-end"
-                  flexDirection={
-                    mine
-                      ? 'row-reverse'
-                      : 'row'
-                  }
+                  flexDirection={mine ? "row-reverse" : "row"}
                 >
-                  {/* ---------------- AVATAR ---------------- */}
+                  {/* AVATAR */}
                   <Avatar
                     sx={{
-                      width: 34,
-                      height: 34,
-
-                      bgcolor: mine
-                        ? '#4f46e5'
-                        : '#94a3b8',
-
-                      fontSize: 14,
-                      fontWeight: 600
+                      width: 32,
+                      height: 32,
+                      bgcolor: mine ? "#1976d2" : "#9e9e9e",
+                      fontSize: 14
                     }}
                   >
-                    {c.display
-                      ?.charAt(0)
-                      ?.toUpperCase()}
+                    {c.display?.charAt(0)?.toUpperCase()}
                   </Avatar>
 
-                  {/* ---------------- MESSAGE ---------------- */}
+                  {/* MESSAGE */}
                   <Paper
-                    elevation={0}
+                    elevation={2}
                     sx={{
                       px: 2,
-                      py: 1.3,
-                      maxWidth: 320,
-                      borderRadius: 4,
-
-                      bgcolor: mine
-                        ? '#4f46e5'
-                        : '#ffffff',
-
-                      color: mine
-                        ? '#ffffff'
-                        : '#1e293b',
-
-                      position: 'relative',
-
-                      boxShadow:
-                        '0 2px 8px rgba(0,0,0,0.08)'
+                      gap:3,
+                      py: 1.2,
+                      maxWidth: 280,
+                      borderRadius: 3,
+                      bgcolor: mine ? "#1976d2" : "#ffffff",
+                      color: mine ? "white" : "black",
+                      position: "relative"
                     }}
                   >
-                    {/* ---------------- TOP BAR ---------------- */}
+                    {/* HEADER */}
                     <Box
                       display="flex"
                       alignItems="center"
                       justifyContent="space-between"
-                      gap={2}
-                      mb={0.7}
+                      mb={0.5}
+                      width={150}
                     >
                       <Typography
                         fontSize={11}
-                        fontWeight={700}
-                        sx={{
-                          opacity: 0.9
-                        }}
+                        fontWeight={600}
+                        sx={{ opacity: 0.8 }}
                       >
                         {c.display}
                       </Typography>
 
-                      <Stack
-                        direction="row"
-                        spacing={0.5}
-                        alignItems="center"
-                      >
-                        <Typography
-                          fontSize={10}
-                          sx={{
-                            opacity: 0.75,
-
-                            color: mine
-                              ? '#e0e7ff'
-                              : '#64748b',
-
-                            whiteSpace:
-                              'nowrap'
-                          }}
-                        >
+                      <Stack direction="row" spacing={0.5} alignItems="center">
+                        <Typography fontSize={10} sx={{ opacity: 0.7 }}>
                           {c.time}
                         </Typography>
 
                         {mine && (
                           <IconButton
                             size="small"
-                            onClick={(e) =>
-                              handleMenuOpen(
-                                e,
-                                c
-                              )
-                            }
-                            sx={{
-                              color:
-                                '#e0e7ff',
-
-                              p: 0.3
-                            }}
+                            onClick={(e) => handleMenuOpen(e, c)}
+                            sx={{ color: "inherit", p: 0.5 }}
                           >
                             <MoreVertIcon fontSize="inherit" />
                           </IconButton>
@@ -321,15 +233,8 @@ const CommentSection = ({
                       </Stack>
                     </Box>
 
-                    {/* ---------------- TEXT ---------------- */}
-                    <Typography
-                      fontSize={13}
-                      lineHeight={1.5}
-                      sx={{
-                        wordBreak:
-                          'break-word'
-                      }}
-                    >
+                    {/* TEXT */}
+                    <Typography fontSize={13} lineHeight={1.4}>
                       {c.text}
                     </Typography>
                   </Paper>
@@ -342,57 +247,34 @@ const CommentSection = ({
         </Stack>
       </Box>
 
-      {/* ---------------- INPUT AREA ---------------- */}
+      {/* INPUT */}
       <Box
         sx={{
           p: 1.5,
-          borderTop:
-            '1px solid #e2e8f0',
-          backgroundColor: '#ffffff'
+          borderTop: "1px solid #e0e0e0",
+          backgroundColor: "#fff"
         }}
       >
-        <Stack
-          direction="row"
-          spacing={1}
-          alignItems="center"
-        >
+        <Stack direction="row" spacing={1} alignItems="center">
           <TextField
             fullWidth
             size="small"
-            placeholder={
-              editing
-                ? 'Edit comment...'
-                : 'Write a comment...'
-            }
+            placeholder={editing ? "Edit comment..." : "Write a comment..."}
             value={text}
-            onChange={(e) =>
-              setText(e.target.value)
-            }
+            onChange={(e) => setText(e.target.value)}
             sx={{
-              '& .MuiOutlinedInput-root':
-              {
-                borderRadius: 3,
-                backgroundColor:
-                  '#f8fafc'
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3
               }
             }}
           />
 
           <IconButton
             onClick={handleSend}
-            disabled={!text.trim()}
             sx={{
-              bgcolor: '#4f46e5',
-              color: '#ffffff',
-
-              '&:hover': {
-                bgcolor: '#4338ca'
-              },
-
-              '&.Mui-disabled': {
-                bgcolor: '#c7d2fe',
-                color: '#ffffff'
-              }
+              bgcolor: "#1976d2",
+              color: "white",
+              "&:hover": { bgcolor: "#1565c0" }
             }}
           >
             <SendIcon fontSize="small" />
@@ -400,25 +282,14 @@ const CommentSection = ({
         </Stack>
       </Box>
 
-      {/* ---------------- MENU ---------------- */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
+      {/* MENU */}
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         <MenuItem onClick={handleEdit}>
-          <EditIcon
-            fontSize="small"
-            sx={{ mr: 1 }}
-          />
+          <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit
         </MenuItem>
-
         <MenuItem onClick={handleDelete}>
-          <DeleteIcon
-            fontSize="small"
-            sx={{ mr: 1 }}
-          />
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           Delete
         </MenuItem>
       </Menu>
