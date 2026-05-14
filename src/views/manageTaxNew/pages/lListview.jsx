@@ -108,10 +108,12 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
 
       {/* Table */}
 
-      <TableContainer sx={{
-    maxHeight: '300px',
-    overflowY: 'auto',
-  }}>
+      <TableContainer
+        sx={{
+          maxHeight: '300px',
+          overflowY: 'auto'
+        }}
+      >
         <Table stickyHeader>
           <TableHead>
             <TableRow
@@ -161,14 +163,19 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
                     padding: '8px'
                   }}
                 >
-                  {/* <TextField */}
-                  {/* size="small" */}
-                  {/* value={row.declared} */}
-                  {row.declared}
-                  {/* sx={{
+                  <TextField
+                    type="number"
+                    size="small"
+                    value={row.declared}
+                    //  {row.declared}
+                    sx={{
                       width: '100px',
-                    }} */}
-                  {/* /> */}
+                      '& .MuiInputBase-input': {
+                        padding: '2px 4px', 
+                        fontSize: '13px' 
+                      }
+                    }}
+                  />
                 </TableCell>
 
                 <TableCell
