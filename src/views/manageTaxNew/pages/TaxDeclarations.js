@@ -1,32 +1,40 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import { Card, CardContent, Grid, Stack, Typography } from '@mui/material';
 import Listview from '../pages/lListview';
+import apiCalls from 'apicall';
 const TaxDeclarations = () => {
+  const branch = localStorage.getItem('branch');
+  const userName = localStorage.getItem('userName');
+  const orgId = localStorage.getItem('orgId');
+  const [data, setData] = useState([]);
+const formatNumber = (value) =>{
+  return Number(value).toLocaleString('en-IN');
+}
   const cards = [
     {
       title: 'Gross Income',
-      amount: '₹12,40,000',
+      amount: `₹${formatNumber(data?.grossIncome || 0)}`,
       subtitle: 'Per annum',
       textColor: 'rgb(30 41 59)',
       border: '#e2e8f0'
     },
     {
       title: 'Total Deductions',
-      amount: '₹1,25,000',
+      amount: `₹${formatNumber(data?.totalDedcutions || 0)}`,
       subtitle: '80C + 80D + HRA',
       textColor: 'rgb(5 150 105)',
       border: '#e2e8f0'
     },
     {
       title: 'Taxable Income',
-      amount: '₹2,10,000',
+      amount: `₹${formatNumber(data?.taxableIncome || 0)}`,
       subtitle: 'After exemptions',
       textColor: 'rgb(30 41 59)',
       border: '#e2e8f0'
     },
     {
       title: 'Monthly TDS',
-      amount: '₹10,15,000',
+      amount: `₹${formatNumber(data?.yearlyTds || 0)}`,
       subtitle: 'Deducted from salary',
       textColor: 'rgb(217 119 6)',
       border: '#e2e8f0'
@@ -83,6 +91,22 @@ const rows = [
     status: 'Pending',
   },
 ];
+
+const CardsData = async () => {
+  try{
+  const res = await apiCalls('get',`investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`);
+  if(res.status === true){
+     setData(res.paramObjectsMap.dashBoardDetails);
+  }
+  }catch(error){
+    console.log(error)
+  }
+}
+
+useEffect(()=>{
+  CardsData();
+},[]);
+
 
   return (
     <>
