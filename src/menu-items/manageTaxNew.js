@@ -17,7 +17,7 @@ const hasScreenAccess = (screenId) => {
 
 // Build calendar menu only if user has access
 const manageTaxNewChildren = [
-  hasScreenAccess('ASM') && {
+  hasScreenAccess('MTN') && {
     id: 'manageTaxNew',
     title: 'Manage Tax New',
     type: 'item',

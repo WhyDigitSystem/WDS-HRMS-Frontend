@@ -706,7 +706,7 @@ const LeaveRequest = () => {
 
       const result = await apiCalls(
         'get',
-        `leaveprocess/calculateLeavedays?fromDate=${formattedFromDate}&orgId=${orgId}&selectLeave=${leaveType || ''}&toDate=${formattedToDate}`
+        `leaveprocess/calculateLeavedays?fromDate=${formattedFromDate}&orgId=${orgId}&selectLeave=${leaveType || ''}&toDate=${formattedToDate}&employeeCode=${employeeCode}`
       );
 
       const workingDays = result.workingDays || 0;

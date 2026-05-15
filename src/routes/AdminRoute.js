@@ -5,7 +5,8 @@ import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 
 // login option 3 routing
-const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
+// const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
+const Dashboard = Loadable(lazy(() => import('views/DashboardNew/Dashboard')));
 const UserCreation = Loadable(lazy(() => import('views/admin/user-creation/UserCreation')));
 
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
@@ -16,8 +17,12 @@ const AdminRoute = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: <Dashboard />
     },
+    // {
+    //   path: '/',
+    //   element: <DashboardDefault />
+    // },
     {
       path: '/admin/user-creation/UserCreation',
       element: <UserCreation />
