@@ -63,6 +63,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { useSnackbar } from 'notistack';
 
+
 // Styled component for the profile popover
 const ProfilePopper = styled(Paper)(({ theme }) => ({
   overflow: 'hidden',

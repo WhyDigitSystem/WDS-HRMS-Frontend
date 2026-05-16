@@ -459,6 +459,19 @@ const Calendar = () => {
       return;
     }
 
+
+    if (newEvent.startTime && newEvent.endTime) {
+      const start = dayjs(newEvent.startTime, 'HH:mm');
+      const end = dayjs(newEvent.endTime, 'HH:mm');
+
+      if (end.isBefore(start) || end.isSame(start)) {
+        showToast('error', 'End time must be later than start time');
+        return;
+      }
+    }
+
+
+
     const saveData = {
       ...(newEvent.id && { id: newEvent.id }),
       branchCode: branchCode,
@@ -828,8 +841,22 @@ const Calendar = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
+  const isInvalidEndTime =
+    newEvent.startTime &&
+    newEvent.endTime &&
+    (
+      dayjs(newEvent.endTime, 'HH:mm').isBefore(
+        dayjs(newEvent.startTime, 'HH:mm')
+      ) ||
+      dayjs(newEvent.endTime, 'HH:mm').isSame(
+        dayjs(newEvent.startTime, 'HH:mm')
+      )
+    );
+
+
   const handleEventChange = (e) => {
     const { name, value } = e.target;
+
     setNewEvent((prev) => ({
       ...prev,
       [name]: value
@@ -1183,7 +1210,16 @@ const Calendar = () => {
                       value={newEvent.endTime}
                       onChange={handleEventChange}
                       disabled={newEvent.isHoliday || newEvent.isBirthday}
-                      style={inputStyleSmall}
+                      min={newEvent.startTime || undefined}
+                      style={{
+                        ...inputStyleSmall,
+                        border: isInvalidEndTime
+                          ? '1px solid #ef4444'
+                          : '1px solid #ccc',
+                        backgroundColor: isInvalidEndTime
+                          ? '#fef2f2'
+                          : '#fff'
+                      }}
                     />
                   </div>
                 </div>

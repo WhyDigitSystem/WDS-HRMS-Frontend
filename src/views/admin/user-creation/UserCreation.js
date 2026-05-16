@@ -957,7 +957,7 @@ const UserCreation = () => {
                                               });
                                             }}
                                             min={row.startDate || new Date().toISOString().split('T')[0]} // Ensure the minDate is properly set
-                                            disabled={!row.startDate}
+                                            disabled
                                           />
                                           {roleTableDataErrors[index]?.endDate && (
                                             <div className="mt-2" style={{ color: 'red', fontSize: '12px' }}>

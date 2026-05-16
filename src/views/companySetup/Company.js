@@ -267,60 +267,131 @@ const Company = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, checked, type } = e.target;
+  const { name, value, checked, type } = e.target;
 
-    // Regular expressions for validation
-    const nameRegex = /^[A-Za-z ]*$/;
-    const numericRegex = /^[0-9]*$/;
+  const nameRegex = /^[A-Za-z ]*$/;
+  const numericRegex = /^[0-9]*$/;
 
-    let error = '';
+  let error = '';
 
-    // CEO validation
-    if (name === 'ceo') {
-      if (!nameRegex.test(value)) {
-        error = 'Only alphabetic characters are allowed';
-      }
+  // Convert GSTIN to uppercase early (important)
+  let updatedValue = value;
+
+  // =========================
+  // CEO validation
+  // =========================
+  if (name === 'ceo') {
+    if (!nameRegex.test(value)) {
+      error = 'Only alphabetic characters are allowed';
     }
+  }
 
-    // Pincode validation
-    if (name === 'pincode') {
-      if (!numericRegex.test(value)) {
-        error = 'Only numeric characters are allowed';
-      } else if (value.length > 6) {
-        error = 'Only 6 digits are allowed';
-      }
+  // =========================
+  // Pincode validation
+  // =========================
+  if (name === 'pincode') {
+    if (!numericRegex.test(value)) {
+      error = 'Only numeric characters are allowed';
+    } else if (value.length > 6) {
+      error = 'Only 6 digits are allowed';
     }
+  }
 
-    // Mobile validation
-    if (name === 'mobileNo') {
-      if (!numericRegex.test(value)) {
-        error = 'Only numeric characters are allowed';
-      } else if (value.length > 10) {
-        error = 'Only 10 digits are allowed';
-      }
+  // =========================
+  // Mobile validation
+  // =========================
+  if (name === 'mobileNo') {
+    if (!numericRegex.test(value)) {
+      error = 'Only numeric characters are allowed';
+    } else if (value.length > 10) {
+      error = 'Only 10 digits are allowed';
     }
+  }
 
-    // Update error state
-    setFieldErrors((prev) => ({
-      ...prev,
-      [name]: error
-    }));
+  // =========================
+  // GSTIN validation (NEW)
+  // =========================
+  if (name === 'gstIn') {
+    const gstinRegex =
+      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
-    // Checkbox handling
-    if (type === 'checkbox') {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: checked
-      }));
-      return;
+    updatedValue = value.toUpperCase();
+
+    if (updatedValue.length > 15) {
+      error = 'GSTIN must be 15 characters';
+    } else if (updatedValue && !gstinRegex.test(updatedValue)) {
+      error = 'Invalid GSTIN format';
     }
+  }
 
-    // Normal input handling
+  // =========================
+  // Update errors
+  // =========================
+  setFieldErrors((prev) => ({
+    ...prev,
+    [name]: error
+  }));
+
+
+
+  if (name === 'country') {
+  const selectedCountry = value;
+
+  const matchedCurrency = currencyList.find(
+    (item) => item.country === selectedCountry
+  );
+
+  setFormData((prev) => ({
+    ...prev,
+    country: selectedCountry,
+    currency: matchedCurrency ? matchedCurrency.currency : ''
+  }));
+
+  return; // stop further execution
+}
+
+
+
+  // =========================
+  // Checkbox handling
+  // =========================
+  if (type === 'checkbox') {
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: checked
     }));
-  };
+    return;
+  }
+
+
+
+
+  // =========================
+// Country → Auto Currency Mapping (case-safe)
+// =========================
+if (name === 'country') {
+  const selectedCountry = value.toUpperCase();
+
+  const matchedCurrency = currencyList.find(
+    (item) => item.country?.toUpperCase() === selectedCountry
+  );
+
+  setFormData((prev) => ({
+    ...prev,
+    country: selectedCountry,
+    currency: matchedCurrency?.currency || ''
+  }));
+
+  return;
+}
+  // =========================
+  // Normal input handling
+  // =========================
+  setFormData((prev) => ({
+    ...prev,
+    [name]: updatedValue
+  }));
+};
 
   const getCompanyById = async (row) => {
     console.log('THE SELECTED BRANCH ID IS:', row.original.id);
@@ -803,7 +874,7 @@ const Company = () => {
                   <InputLabel id="country">Country</InputLabel>
                   <Select labelId="country" label="Country" name="country" value={formData.country} onChange={handleInputChange}>
                     {countryList?.map((row) => (
-                      <MenuItem key={row.id} value={row.countryName}>
+                      <MenuItem key={row.id} value={row.countryName.toUpperCase()}>
                         {row.countryName}
                       </MenuItem>
                     ))}
@@ -876,8 +947,9 @@ const Company = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.mobileNo}
                   helperText={fieldErrors.mobileNo}
-                />
-              </div>
+                /> 
+
+              </div >
               <div className="col-md-3 mb-3">
                 <TextField
                   label="GST In"

@@ -731,66 +731,100 @@ const Task = () => {
       </div>
 
       {modalOpen && (
-        <div className="modal show fade d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-sm-down">
-            <div className="modal-content shadow-xl">
-              <div className="modal-header">
-                <h5 className="modal-title">Work Summary {dayjs(selectedDate).format("MMM DD")}</h5>
-                <button type="button" className="btn-close" onClick={() => setModalOpen(false)}></button>
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.55)' }}
+        >
+          <div className="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-sm-down">
+
+            <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+
+              {/* HEADER */}
+              <div
+                className="modal-header border-0 px-4 py-3 text-white"
+                style={{
+                  background:
+                    'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)'
+                }}
+              >
+                <h5 className="modal-title fw-semibold">
+                  Work Summary · {dayjs(selectedDate).format("MMM DD")}
+                </h5>
+
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setModalOpen(false)}
+                />
               </div>
 
-              <div className="modal-body">
+              {/* BODY */}
+              <div className="modal-body px-4 pt-3 pb-3">
+
                 <div className="table-responsive">
-                  <table className="table table-bordered align-middle">
-                    <thead className="table-light">
+                  <table className="table align-middle mb-0">
+
+                    {/* HEADER ROW */}
+                    <thead className="text-muted small">
                       <tr>
-                        <th style={{ width: '6%' }}>Action</th>
-                        <th style={{ width: '12%' }}>Project</th>
-                        <th style={{ width: '12%' }}>Screen/Table</th>
-                        <th style={{ width: '22%' }}>Description</th>
-                        <th style={{ width: '8%' }}>WIP%</th>
-                        <th style={{ width: '12%' }}>Status</th>
-                        <th style={{ width: '8%' }}>From</th>
-                        <th style={{ width: '8%' }}>To</th>
-                        <th style={{ width: '22%' }}>Remarks</th>
+                        <th style={{ width: "6%" }}>Action</th>
+                        <th style={{ width: "10%" }}>Project</th>
+                        <th style={{ width: "10%" }}>Task</th>
+                        <th style={{ width: "30%" }}>Description</th>
+                        <th style={{ width: "6%" }}>WIP%</th>
+                        <th style={{ width: "10%" }}>Status</th>
+                        <th style={{ width: "7%" }}>From</th>
+                        <th style={{ width: "7%" }}>To</th>
+                        <th style={{ width: "14%" }}>Remarks</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {formRows.map((row, index) => (
-                        <tr key={index}>
+                        <tr key={index} style={{ borderTop: '1px solid #f1f1f1' }}>
+
+                          {/* DELETE */}
                           <td>
-                            <button className="btn btn-danger btn-sm w-100" onClick={() => handleDeleteRow(index)}>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDeleteRow(index)}
+                            >
                               Delete
                             </button>
                           </td>
 
+                          {/* PROJECT */}
                           <td>
                             <select
-                              name="projectName"
                               value={row.projectName}
-                              onChange={(e) => handleRowChange(index, 'projectName', e.target.value)}
+                              onChange={(e) =>
+                                handleRowChange(index, 'projectName', e.target.value)
+                              }
                               className="form-select form-select-sm"
                             >
-                              <option value="">Select Project</option>
-                              {alProject.map((project) => (
-                                <option key={project.id} value={project.projectCode}>
-                                  {project.projectCode} - {project.projectName}
+                              <option value="">Project</option>
+                              {alProject.map((p) => (
+                                <option key={p.id} value={p.projectCode}>
+                                  {p.projectCode}
                                 </option>
                               ))}
                             </select>
                           </td>
 
+                          {/* TASK */}
                           <td>
                             <input
-                              type="text"
                               value={row.screenTask}
-                              onChange={(e) => handleRowChange(index, 'screenTask', e.target.value)}
+                              onChange={(e) =>
+                                handleRowChange(index, 'screenTask', e.target.value)
+                              }
                               className="form-control form-control-sm"
-                              placeholder="Enter Screen/Task"
+                              placeholder="Task"
                             />
                           </td>
 
-                          {/* Description */}
+                          {/* DESCRIPTION */}
                           <td>
                             <textarea
                               value={row.description}
@@ -804,72 +838,73 @@ const Task = () => {
                               style={{
                                 resize: 'none',
                                 overflow: 'hidden',
-                                minHeight: '40px'
-                              }}
-                              ref={(el) => {
-                                if (el) {
-                                  el.style.height = 'auto';
-                                  el.style.height = `${el.scrollHeight}px`;
-                                }
+                                minHeight: '42px',
+                                lineHeight: '1.4'
                               }}
                             />
                           </td>
 
+                          {/* WIP */}
                           <td>
                             <input
                               type="number"
                               value={row.wip}
                               onChange={(e) => {
-                                let val = e.target.value;
-                                if (val === '') {
-                                  handleRowChange(index, 'wip', '');
-                                } else {
-                                  const num = Math.min(Math.max(Number(val), 0), 100);
-                                  handleRowChange(index, 'wip', num);
-                                }
+                                const val = e.target.value;
+                                handleRowChange(
+                                  index,
+                                  'wip',
+                                  val === '' ? '' : Math.min(Math.max(Number(val), 0), 100)
+                                );
                               }}
                               className="form-control form-control-sm text-center"
                               placeholder="%"
-                              min={0}
-                              max={100}
                             />
                           </td>
 
+                          {/* STATUS */}
                           <td>
                             <select
                               value={row.status}
-                              onChange={(e) => handleRowChange(index, 'status', e.target.value)}
+                              onChange={(e) =>
+                                handleRowChange(index, 'status', e.target.value)
+                              }
                               className="form-select form-select-sm"
                             >
-                              <option value="">Select status</option>
+                              <option value="">Status</option>
                               <option value="Yet Start">Yet Start</option>
                               <option value="Pending">Pending</option>
                               <option value="In Progress">In Progress</option>
                               <option value="Testing">Testing</option>
                               <option value="Done">Done</option>
-                              {/* <option value="PCB">PCB</option> */}
                             </select>
                           </td>
 
+                          {/* FROM */}
                           <td>
                             <input
                               type="time"
                               value={row.fromTime}
-                              onChange={(e) => handleRowChange(index, 'fromTime', e.target.value)}
+                              onChange={(e) =>
+                                handleRowChange(index, 'fromTime', e.target.value)
+                              }
                               className="form-control form-control-sm"
                             />
                           </td>
 
+                          {/* TO */}
                           <td>
                             <input
                               type="time"
                               value={row.toTime}
-                              onChange={(e) => handleRowChange(index, 'toTime', e.target.value)}
+                              onChange={(e) =>
+                                handleRowChange(index, 'toTime', e.target.value)
+                              }
                               className="form-control form-control-sm"
                             />
                           </td>
 
-                          {/* Remarks */}
+                          {/* REMARKS */}
                           <td>
                             <textarea
                               value={row.remarks}
@@ -879,48 +914,67 @@ const Task = () => {
                                 e.target.style.height = `${e.target.scrollHeight}px`;
                               }}
                               className="form-control form-control-sm"
-                              placeholder="Enter remarks"
+                              placeholder="Remarks"
                               style={{
                                 resize: 'none',
                                 overflow: 'hidden',
-                                minHeight: '40px'
-                              }}
-                              ref={(el) => {
-                                if (el) {
-                                  el.style.height = 'auto';
-                                  el.style.height = `${el.scrollHeight}px`;
-                                }
+                                minHeight: '42px',
+                                lineHeight: '1.4'
                               }}
                             />
                           </td>
+
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                <div className="text-end mt-2">
-                  <button className="btn btn-sm btn-success" onClick={handleAddRow}>
+                {/* ADD ROW */}
+                <div className="text-end mt-3">
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={handleAddRow}
+                  >
                     + Add Row
                   </button>
                 </div>
               </div>
 
-              <div className="modal-footer d-flex flex-wrap justify-content-between gap-2">
-                <button className="btn btn-secondary" onClick={() => setModalOpen(false)}>
+              {/* FOOTER (FIXED STYLING) */}
+              <div className="modal-footer border-0 px-4 py-3 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+
+                <button
+                  className="btn btn-outline-secondary px-3"
+                  onClick={() => setModalOpen(false)}
+                >
                   Cancel
                 </button>
-                <button className="btn btn-warning" onClick={handleModalClear}>
+
+                <button
+                  className="btn btn-outline-warning px-3"
+                  onClick={handleModalClear}
+                >
                   Clear
                 </button>
-                <button className="btn btn-primary" onClick={handleSubmit}>
+
+                <button
+                  className="btn btn-primary px-3"
+                  onClick={handleSubmit}
+                >
                   Save Entry
                 </button>
-                <Button onClick={handleShareWhatsApp}>
-                  <FaWhatsapp style={{ marginRight: '5px' }} />
-                  Share on WhatsApp
-                </Button>
+
+                <button
+                  className="btn btn-success px-3 d-flex align-items-center"
+                  onClick={handleShareWhatsApp}
+                >
+                  <FaWhatsapp style={{ marginRight: 6 }} />
+                  Share
+                </button>
+
               </div>
+
             </div>
           </div>
         </div>
