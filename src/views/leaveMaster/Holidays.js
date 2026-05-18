@@ -509,9 +509,35 @@ const Holidays = () => {
                   </Button>
 
                   {formData.logo && (
-                    <IconButton onClick={handleOpen} sx={{ color: 'rgb(103 58 183)' }}>
-                      <ControlCameraIcon />
-                    </IconButton>
+                    <>
+                      {/* SMALL IMAGE PREVIEW */}
+                      <Box
+                        sx={{
+                          width: 55,
+                          height: 55,
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          border: '2px solid rgb(103 58 183)',
+                          cursor: 'pointer'
+                        }}
+                        onClick={handleOpen}
+                      >
+                        <img
+                          src={URL.createObjectURL(formData.logo)}
+                          alt="Holiday"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </Box>
+
+                      {/* OPEN PREVIEW */}
+                      <IconButton onClick={handleOpen} sx={{ color: 'rgb(103 58 183)' }}>
+                        <ControlCameraIcon />
+                      </IconButton>
+                    </>
                   )}
                 </Box>
                 <Dialog open={open} onClose={handleClose}>

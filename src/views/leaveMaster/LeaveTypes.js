@@ -134,7 +134,13 @@ const LeaveTypes = () => {
 
   const handleInputChange = (e) => {
     const { name, value, checked, selectionStart, selectionEnd, type } = e.target;
+
     let updatedValue = type === 'checkbox' ? checked : value;
+
+    // Leave Type → only characters and spaces
+    if (name === 'leaveType') {
+      updatedValue = value.replace(/[^A-Za-z\s]/g, '');
+    }
 
     // Update form data
     setFormData((prevFormData) => ({
@@ -142,9 +148,14 @@ const LeaveTypes = () => {
       [name]: updatedValue
     }));
 
-    // Validation logic for 'leaveType'
+    // Validation logic for leaveType
     if (name === 'leaveType') {
-      if (updatedValue.length < 3) {
+      if (!updatedValue) {
+        setFieldErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: 'Leave Type is required'
+        }));
+      } else if (updatedValue.length < 3) {
         setFieldErrors((prevErrors) => ({
           ...prevErrors,
           [name]: 'Minimum 3 characters required'

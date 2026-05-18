@@ -50,11 +50,30 @@ export const OT = () => {
     { slab: '', minHours: '', maxHours: '', otRate: '', effectiveFrom: '', effectiveTo: '', applicable: true }
   ]);
 
-  const handleSlabChange = (index, field, value) => {
-    const updated = [...slabRows];
-    updated[index][field] = value;
-    setSlabRows(updated);
-  };
+const handleSlabChange = (index, field, value) => {
+  const updated = [...slabRows];
+
+  // Only numbers for slab and otRate
+  if (field === 'slab' || field === 'otRate') {
+    value = value.replace(/[^0-9]/g, '');
+  }
+
+  // Only HH:MM format for minHours and maxHours
+  if (field === 'minHours' || field === 'maxHours') {
+    value = value.replace(/[^0-9:]/g, '');
+
+    // Auto format HH:MM
+    if (value.length === 2 && !value.includes(':')) {
+      value = value + ':';
+    }
+
+    // Limit length to 5
+    value = value.slice(0, 5);
+  }
+
+  updated[index][field] = value;
+  setSlabRows(updated);
+};
 
   const handleAddSlab = () => {
     setSlabRows([...slabRows, { slab: '', minHours: '', maxHours: '', otRate: '', effectiveFrom: '', effectiveTo: '', applicable: true }]);

@@ -2,7 +2,12 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FormatListBulletedTwoToneIcon from '@mui/icons-material/FormatListBulletedTwoTone';
 import SaveIcon from '@mui/icons-material/Save';
 import SearchIcon from '@mui/icons-material/Search';
-import { Checkbox, FormControl, FormControlLabel, FormGroup, TextField, Autocomplete, Button } from '@mui/material';
+import {
+  Checkbox, FormControl, FormControlLabel, FormGroup, TextField, Autocomplete, Button, Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
 import apiCalls from 'apicall';
 import { useEffect, useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
@@ -77,6 +82,7 @@ const EmployeeProfile = () => {
   const [isViewMode, setIsViewMode] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [formData, setFormData] = useState({
     employeeType: '',
     contractor: '',
@@ -1095,139 +1101,7 @@ const EmployeeProfile = () => {
     // 
     doc.save(`Employee_Details.pdf`);
   };
-  // const handleDownloadExcel = async ({ logo }) => {
-  //   if (!listViewData || listViewData.length === 0) {
-  //     showToast('error', 'No data to download');
-  //     return;
-  //   }
 
-  //   const workbook = new ExcelJS.Workbook();
-  //   const sheet = workbook.addWorksheet('Employee Details');
-
-  //   //
-
-  //   sheet.mergeCells('A1:B4');
-  //   if (logo) {
-  //     try {
-  //       const base64Data = logo.split(',')[1] || logo;
-  //       if (base64Data.length >= 100) {
-  //         const extension = logo.includes('jpeg') ? 'jpeg' : 'png';
-  //         const imageId = workbook.addImage({
-  //           base64: base64Data,
-  //           extension
-  //         });
-  //         sheet.addImage(imageId, {
-  //           tl: { col: 0, row: 0 }, // A1
-  //           ext: { width: 140, height: 100 }
-  //         });
-  //       }
-  //     } catch (err) {
-  //       console.error('Error adding logo:', err);
-  //     }
-  //   }
-  //   //
-
-  //   // Define columns
-  //   const headers = [
-  //     'S.No',
-  //     'Type',
-  //     'Code',
-  //     'Name',
-  //     'Branch',
-  //     'Gender',
-  //     'Email',
-  //     'Date of Join',
-  //     'Grade',
-  //     'Department',
-  //     'Designation',
-  //     'Reporting Person',
-  //     'Date of Birth',
-  //     'Blood Group',
-  //     'Mobile',
-  //     'Alt Mobile',
-  //     'Aadhar',
-  //     'Pan',
-  //     'UAN',
-  //     'Account No',
-  //     'Bank Name',
-  //     'IFSC Code',
-  //     'Status'
-  //   ];
-
-  //   const columnWidths = headers.map(() => ({ width: 20 }));
-  //   sheet.columns = headers.map((header, i) => ({
-  //     header,
-  //     key: header,
-  //     ...columnWidths[i]
-  //   }));
-
-  //   const headerRow = sheet.getRow(5);
-  //   headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-  //   headerRow.fill = {
-  //     type: 'pattern',
-  //     pattern: 'solid',
-  //     fgColor: { argb: '3F51B5' } // Indigo
-  //   };
-
-  //   // Fill header values manually to retain order and style
-  //   headers.forEach((header, index) => {
-  //     const cell = headerRow.getCell(index + 1);
-  //     cell.value = header;
-  //   });
-
-  //   // Add data rows
-  //   listViewData.forEach((employee, index) => {
-  //     const rowData = {
-  //       'S.No': index + 1,
-  //       Type: employee.type,
-  //       Contractor: employee.contractor,
-  //       Code: employee.employeeCode,
-  //       'Bio Id': employee.bioId,
-  //       Name: employee.employee,
-  //       Branch: employee.branch,
-  //       Gender: employee.gender,
-  //       Email: employee.email,
-  //       'Date of Join': formatDate(employee.doj || employee.joiningDate),
-  //       Grade: employee.grade,
-  //       Department: employee.department,
-  //       Designation: employee.designation,
-  //       'Reporting Person': employee.reportingPerson,
-  //       'Date of Birth': formatDate(employee.dateOfBirth),
-  //       'Blood Group': employee.bloodGroup,
-  //       Mobile: employee.mobileNo,
-  //       'Alt Mobile': employee.alternativeMobileNo,
-  //       Aadhar: employee.aadharNo,
-  //       Pan: employee.panNo,
-  //       UAN: employee.uanNo,
-  //       'Account No': employee.accountNo,
-  //       'Bank Name': employee.bankName,
-  //       'IFSC Code': employee.ifscCode,
-  //       Status: employee.active ? 'Active' : 'Inactive'
-  //     };
-
-  //     const dataRow = sheet.addRow(rowData);
-
-  //     // Apply light gray background like your xlsx example
-  //     dataRow.eachCell((cell) => {
-  //       cell.fill = {
-  //         type: 'pattern',
-  //         pattern: 'solid',
-  //         fgColor: { argb: 'F3F3F3' } // Light gray content background
-  //       };
-  //     });
-  //   });
-
-  //   // Freeze top header row
-  //   sheet.views = [{ state: 'frozen', ySplit: 5 }];
-
-  //   // Export the Excel file
-  //   const buffer = await workbook.xlsx.writeBuffer();
-  //   const blob = new Blob([buffer], {
-  //     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  //   });
-
-  //   saveAs(blob, `Employee_Details_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  // };
   const handleDownloadExcel = async ({ logo }) => {
     if (!listViewData || listViewData.length === 0) {
       showToast('error', 'No data to download');
@@ -1555,10 +1429,33 @@ const EmployeeProfile = () => {
                   fullWidth
                   name="employeeName"
                   value={formData.employeeName}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // Allow only alphabets and spaces
+                    const isValid = /^[A-Za-z\s]*$/.test(value);
+
+                    if (isValid) {
+                      handleInputChange({
+                        target: {
+                          name: 'employeeName',
+                          value
+                        }
+                      });
+
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        employeeName: ''
+                      }));
+                    } else {
+                      setFieldErrors((prev) => ({
+                        ...prev,
+                        employeeName: 'Numbers and special characters are not allowed'
+                      }));
+                    }
+                  }}
                   error={!!fieldErrors.employeeName}
                   helperText={fieldErrors.employeeName}
-                // disabled={isViewMode}
                 />
               </div>
 
@@ -1964,9 +1861,7 @@ const EmployeeProfile = () => {
                         cursor: 'pointer',
                         '&:hover': { backgroundColor: 'action.selected' }
                       }}
-                      onClick={() => {
-                        /* Add preview modal trigger here */
-                      }}
+                      onClick={() => setPreviewOpen(true)}
                     >
                       <ImageIcon color="primary" fontSize="small" />
                       <Typography
@@ -1999,6 +1894,61 @@ const EmployeeProfile = () => {
                       }}
                     />
                   )}
+                  <Dialog
+                    open={previewOpen}
+                    onClose={() => setPreviewOpen(false)}
+                    maxWidth="sm"
+                    fullWidth
+                  >
+                    <DialogTitle
+                      sx={{
+                        background:
+                          'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                        color: '#fff',
+                        fontWeight: 600
+                      }}
+                    >
+                      Image Preview
+                    </DialogTitle>
+
+                    <DialogContent
+                      sx={{
+                        p: 3,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        minHeight: 350
+                      }}
+                    >
+                      <img
+                        src={
+                          selectedImage
+                            ? URL.createObjectURL(selectedImage)
+                            : typeof logo === 'string'
+                              ? logo.startsWith('data:image')
+                                ? logo
+                                : `data:image/png;base64,${logo}`
+                              : ''
+                        }
+                        alt="Preview"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '400px',
+                          objectFit: 'contain',
+                          borderRadius: '10px'
+                        }}
+                      />
+                    </DialogContent>
+
+                    <DialogActions sx={{ p: 2 }}>
+                      <Button
+                        onClick={() => setPreviewOpen(false)}
+                        variant="contained"
+                      >
+                        Close
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
                 </Box>
               </div>
 
