@@ -876,7 +876,7 @@ const TravelRequest = () => {
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">To</Typography>
                                 <Typography variant="body1" gutterBottom>{selectedRequest.to}</Typography>
-                            </Grid>
+                            </Grid> 
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">Departure Date</Typography>
                                 <Typography variant="body1" gutterBottom>{formatDate(selectedRequest.departureDate)}</Typography>

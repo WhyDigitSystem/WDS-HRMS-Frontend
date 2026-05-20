@@ -267,131 +267,131 @@ const Company = () => {
   };
 
   const handleInputChange = (e) => {
-  const { name, value, checked, type } = e.target;
+    const { name, value, checked, type } = e.target;
 
-  const nameRegex = /^[A-Za-z ]*$/;
-  const numericRegex = /^[0-9]*$/;
+    const nameRegex = /^[A-Za-z ]*$/;
+    const numericRegex = /^[0-9]*$/;
 
-  let error = '';
+    let error = '';
 
-  // Convert GSTIN to uppercase early (important)
-  let updatedValue = value;
+    // Convert GSTIN to uppercase early (important)
+    let updatedValue = value;
 
-  // =========================
-  // CEO validation
-  // =========================
-  if (name === 'ceo') {
-    if (!nameRegex.test(value)) {
-      error = 'Only alphabetic characters are allowed';
+    // =========================
+    // CEO validation
+    // =========================
+    if (name === 'ceo') {
+      if (!nameRegex.test(value)) {
+        error = 'Only alphabetic characters are allowed';
+      }
     }
-  }
 
-  // =========================
-  // Pincode validation
-  // =========================
-  if (name === 'pincode') {
-    if (!numericRegex.test(value)) {
-      error = 'Only numeric characters are allowed';
-    } else if (value.length > 6) {
-      error = 'Only 6 digits are allowed';
+    // =========================
+    // Pincode validation
+    // =========================
+    if (name === 'pincode') {
+      if (!numericRegex.test(value)) {
+        error = 'Only numeric characters are allowed';
+      } else if (value.length > 6) {
+        error = 'Only 6 digits are allowed';
+      }
     }
-  }
 
-  // =========================
-  // Mobile validation
-  // =========================
-  if (name === 'mobileNo') {
-    if (!numericRegex.test(value)) {
-      error = 'Only numeric characters are allowed';
-    } else if (value.length > 10) {
-      error = 'Only 10 digits are allowed';
+    // =========================
+    // Mobile validation
+    // =========================
+    if (name === 'mobileNo') {
+      if (!numericRegex.test(value)) {
+        error = 'Only numeric characters are allowed';
+      } else if (value.length > 10) {
+        error = 'Only 10 digits are allowed';
+      }
     }
-  }
 
-  // =========================
-  // GSTIN validation (NEW)
-  // =========================
-  if (name === 'gstIn') {
-    const gstinRegex =
-      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    // =========================
+    // GSTIN validation (NEW)
+    // =========================
+    if (name === 'gstIn') {
+      const gstinRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
-    updatedValue = value.toUpperCase();
+      updatedValue = value.toUpperCase();
 
-    if (updatedValue.length > 15) {
-      error = 'GSTIN must be 15 characters';
-    } else if (updatedValue && !gstinRegex.test(updatedValue)) {
-      error = 'Invalid GSTIN format';
+      if (updatedValue.length > 15) {
+        error = 'GSTIN must be 15 characters';
+      } else if (updatedValue && !gstinRegex.test(updatedValue)) {
+        error = 'Invalid GSTIN format';
+      }
     }
-  }
 
-  // =========================
-  // Update errors
-  // =========================
-  setFieldErrors((prev) => ({
-    ...prev,
-    [name]: error
-  }));
-
-
-
-  if (name === 'country') {
-  const selectedCountry = value;
-
-  const matchedCurrency = currencyList.find(
-    (item) => item.country === selectedCountry
-  );
-
-  setFormData((prev) => ({
-    ...prev,
-    country: selectedCountry,
-    currency: matchedCurrency ? matchedCurrency.currency : ''
-  }));
-
-  return; // stop further execution
-}
+    // =========================
+    // Update errors
+    // =========================
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: error
+    }));
 
 
 
-  // =========================
-  // Checkbox handling
-  // =========================
-  if (type === 'checkbox') {
+    if (name === 'country') {
+      const selectedCountry = value;
+
+      const matchedCurrency = currencyList.find(
+        (item) => item.country === selectedCountry
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        country: selectedCountry,
+        currency: matchedCurrency ? matchedCurrency.currency : ''
+      }));
+
+      return; // stop further execution
+    }
+
+
+
+    // =========================
+    // Checkbox handling
+    // =========================
+    if (type === 'checkbox') {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: checked
+      }));
+      return;
+    }
+
+
+
+
+    // =========================
+    // Country → Auto Currency Mapping (case-safe)
+    // =========================
+    if (name === 'country') {
+      const selectedCountry = value.toUpperCase();
+
+      const matchedCurrency = currencyList.find(
+        (item) => item.country?.toUpperCase() === selectedCountry
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        country: selectedCountry,
+        currency: matchedCurrency?.currency || ''
+      }));
+
+      return;
+    }
+    // =========================
+    // Normal input handling
+    // =========================
     setFormData((prev) => ({
       ...prev,
-      [name]: checked
+      [name]: updatedValue
     }));
-    return;
-  }
-
-
-
-
-  // =========================
-// Country → Auto Currency Mapping (case-safe)
-// =========================
-if (name === 'country') {
-  const selectedCountry = value.toUpperCase();
-
-  const matchedCurrency = currencyList.find(
-    (item) => item.country?.toUpperCase() === selectedCountry
-  );
-
-  setFormData((prev) => ({
-    ...prev,
-    country: selectedCountry,
-    currency: matchedCurrency?.currency || ''
-  }));
-
-  return;
-}
-  // =========================
-  // Normal input handling
-  // =========================
-  setFormData((prev) => ({
-    ...prev,
-    [name]: updatedValue
-  }));
-};
+  };
 
   const getCompanyById = async (row) => {
     console.log('THE SELECTED BRANCH ID IS:', row.original.id);
@@ -404,6 +404,21 @@ if (name === 'country') {
       if (response.status === true) {
         setListView(false);
         const particularCompany = response.paramObjectsMap.companyVO[0];
+
+        const createdDate =
+          particularCompany?.commonDate?.createdon
+            ? dayjs(particularCompany.commonDate.createdon, 'DD-MM-YYYY hh:mm:ss A')
+            : null;
+
+        if (createdDate) {
+          localStorage.setItem(
+            'companyCreatedDate',
+            createdDate.format('YYYY-MM-DD')
+          );
+        }
+
+        console.log('PARTICULAR COMPANY IS:', particularCompany);
+
         console.log('PARTICULAR COMPANY IS:', particularCompany);
         setLogo(response.paramObjectsMap.companyVO[0].companyLogo);
         // Extract weekOffDays as an array
@@ -947,7 +962,7 @@ if (name === 'country') {
                   onChange={handleInputChange}
                   error={!!fieldErrors.mobileNo}
                   helperText={fieldErrors.mobileNo}
-                /> 
+                />
 
               </div >
               <div className="col-md-3 mb-3">
@@ -1222,8 +1237,8 @@ if (name === 'country') {
                     startIcon={<CloudUploadIcon />}
                     sx={{ color: 'rgb(103 58 183)', borderRadius: '12px' }}
                   >
-                    {/* {logo ? logo.name === '' ? "Logo👉" : logo.name : 'Upload Logo'} */}
-                    {logo ? (typeof logo === 'object' && logo.name ? logo.name : 'Logo👉') : 'Upload Logo'}
+                    {/* {logo ? logo.name === '' ? "Logo" : logo.name : 'Upload Logo'} */}
+                    {logo ? (typeof logo === 'object' && logo.name ? logo.name : 'Logo') : 'Upload Logo'}
 
                     <input type="file" hidden accept="image/png, image/jpeg" onChange={handleLogoChange} />
                   </Button>

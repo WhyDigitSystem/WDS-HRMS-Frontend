@@ -639,7 +639,7 @@ allImages.forEach((img) => {
             disabled={isLoading || isFetching}
             sx={{
               backgroundColor: config.primaryColor || '#2563eb',
-              background: `linear-gradient(135deg, ${config.primaryColor || '#2563eb'} 0%, ${config.successColor || '#059669'} 100%)`,
+              background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
               borderRadius: 2,
               px: 1,
               py: 0.8,
@@ -675,7 +675,7 @@ allImages.forEach((img) => {
                 {isEditing && selectedAsset && (
                   <Chip label={`Editing: ${selectedAsset.asset_code}`} color="primary" variant="outlined" size="small" />
                 )}
-              </Box>
+              </Box> 
               <form onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={3}>
@@ -898,10 +898,10 @@ allImages.forEach((img) => {
                           fontSize: '0.85rem',
                           px: 1.8,
                           py: 0.8,
-                          background: `linear-gradient(135deg, ${config.primary_action_color || '#3b82f6'} 0%, #2563eb 100%)`,
+                        background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
                           boxShadow: '0 2px 6px rgba(59, 130, 246, 0.25)',
                           '&:hover': {
-                            background: `linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`,
+                           background: 'linear-gradient(193deg, #2f5b5d 30%, #203d3f 90%)',
                             boxShadow: '0 3px 8px rgba(59, 130, 246, 0.35)'
                           },
                           '&:disabled': {
@@ -1079,7 +1079,7 @@ allImages.forEach((img) => {
                         startIcon={<Save />}
                         disabled={isLoading}
                         sx={{
-                          background: `linear-gradient(135deg, ${config.primaryColor || '#2563eb'} 0%, ${config.successColor || '#059669'} 100%)`,
+                         background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
                           borderRadius: 2,
                           px: 4,
                           textTransform: 'none',

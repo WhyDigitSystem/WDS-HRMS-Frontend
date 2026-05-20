@@ -57,11 +57,29 @@ const NavCollapse = ({ menu, level }) => {
           pl: `${level * 20}px`,
           py: 1,
           color: '#fff',
-
           backgroundColor: isActive ? '#10413d' : 'transparent',
 
           '&.Mui-selected': {
             backgroundColor: '#10413d'
+          },
+
+          // ✅ FIX: no purple icon anywhere
+          '& .MuiListItemIcon-root': {
+            color: '#fff'
+          },
+
+          '&.Mui-selected .MuiListItemIcon-root': {
+            color: '#fff'
+          },
+
+          '&:hover': {
+            backgroundColor: isActive
+              ? '#10413d'
+              : 'rgba(255,255,255,0.08)',
+
+            '& .MuiListItemIcon-root': {
+              color: '#fff'
+            }
           },
 
           '&.Mui-selected:hover': {
@@ -71,12 +89,6 @@ const NavCollapse = ({ menu, level }) => {
           '&.Mui-focusVisible': {
             backgroundColor: 'transparent',
             outline: 'none'
-          },
-
-          '&:hover': {
-            backgroundColor: isActive
-              ? '#10413d'
-              : 'rgba(255,255,255,0.08)'
           }
         }}
       >

@@ -992,7 +992,24 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
         boxShadow: theme.shadows[1],
         '&:hover': {
           background: theme.palette.action.hover,
-          boxShadow: theme.shadows[2]
+          boxShadow: theme.shadows[2],
+
+          // Keep text color unchanged on hover
+          '& .MuiTypography-root': {
+            color: 'inherit'
+          },
+
+          '& .MuiTypography-caption': {
+            color: theme.palette.text.secondary
+          },
+
+          '& .MuiTypography-body2': {
+            color: theme.palette.text.primary
+          },
+
+          '& .MuiTypography-subtitle2': {
+            color: theme.palette.text.primary
+          }
         },
         ...sx
       }}
