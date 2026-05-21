@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect,useState} from 'react';
 import {
   Box,
   Button,
@@ -12,15 +12,37 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Typography
+  Typography,
+  Autocomplete
 } from '@mui/material';
 
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
-const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import ToastComponent, { showToast } from 'utils/toast-component';
+import apiCalls from 'apicall';
+import ControlCameraOutlinedIcon from '@mui/icons-material/ControlCameraOutlined';
+
+const Listview = ({ data = [],columns = [], totalDeclared = '₹0', id,branch,branchCode,employeeCode,userName,orgId,createdBy, }) => {
+  const statusData= [
+    {
+      id: 1,
+      name: '✅ Verified'
+    },
+    {
+      id: 2,
+      name: '⏳ Under Review</'
+    },
+    {
+      id: 3,
+      name: '🕒 Pending'
+    },
+    {
+      id: 4,
+      name: '⚠️ Review Needed<'
+    }
+  ];
+   const designation = localStorage.getItem('designation');
   const getStatusChip = (status) => {
     switch (status) {
       case 'Approved':
@@ -64,7 +86,188 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
     }
   };
 
+const [tableData, setTableData] = useState([]);
+
+  useEffect(() => {
+    setTableData(data);
+  }, [data]);
+
+const handleChange = (e, rowIndex, accessor) => {
+  const value = e.target.value;
+
+  const updatedData = [...tableData];
+
+  if (Number(value) > Number(updatedData[rowIndex].limitAmount)) {
+    // alert('Declared amount should not exceed limit amount');
+     showToast('error', 'Declared amount should not exceed limit amount');
+    return;
+  }
+  updatedData[rowIndex][accessor] = value;
+  setTableData(updatedData);
+};
+
+const upDateDataList = async (updatedTableData = tableData) => {
+  try {
+    
+
+    const investmentDeclarationVO = {
+      id: id,
+      orgId: orgId,
+      branch: branch,
+      branchCode: branchCode,
+      employeeCode: employeeCode,
+      createdBy: createdBy,
+      employeeName: userName,
+
+      investmentDeclarationDetailsDTO: updatedTableData.map((item) => ({
+        id: item.id,
+        section: item.section,
+        investmentType: item.investmentType,
+        declared: Number(item.declared || 0),
+        limitAmount: Number(item.limitAmount || 0),
+        proof: item.proof || null,
+        status: item.status,
+        // fileName: item.fileName || item.uploadFile?.name || null,
+         fileName:
+          item.fileName ||
+          item.uploadFile?.name ||
+          null,
+          filePath: item.filePath || null,
+      }))
+    };
+
+    console.log("Payload :", investmentDeclarationVO);
+
+    const res = await apiCalls(
+      'put',
+      '/investmentDeclaration/updateCreateInvestmentDeclaration',
+      investmentDeclarationVO
+    );
+
+    if (res.status === true) {
+      showToast(
+        'success',
+        res?.paramObjectsMap?.message ||
+          'Investment Declaration Updated Successfully'
+      );
+       const latestData =
+          res?.paramObjectsMap?.investmentDeclarationVO
+            ?.investmentDeclarationDetailsVO || [];
+            setTableData(latestData);
+             return res;
+    }
+
+  } catch (error) {
+    console.log(error);
+
+    showToast(
+      'error',
+      error?.response?.data?.message || 'Update Failed'
+    );
+  }
+};
+
+const handleFileUpload = async (e, rowIndex) => {
+ 
+    try {
+      const files = e.target.files[0];
+      if (!files) return;
+      const allowedTypes = [
+        'image/png',
+        'image/jpeg',
+        'image/jpg',
+        'application/pdf',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+
+      if (!allowedTypes.includes(files.type)) {
+
+        showToast(
+          'error',
+          'Only Image, PDF, and Excel files are allowed'
+        );
+
+        return;
+      }
+
+   
+
+      const updatedData = [...tableData];
+      updatedData[rowIndex].uploadFile = files;
+      updatedData[rowIndex].fileName = files.name;
+      setTableData(updatedData);
+
+
+      const updateRes = await upDateDataList(updatedData);
+
+   
+
+      const updatedRows =
+        updateRes?.paramObjectsMap?.investmentDeclarationVO
+          ?.investmentDeclarationDetailsVO || [];
+
+     
+
+      const matchedRow = updatedRows.find(
+        (item) =>
+          item.section === updatedData[rowIndex].section &&
+          item.investmentType ===
+          updatedData[rowIndex].investmentType
+      );
+
+      if (!matchedRow) {
+
+        showToast('error', 'Row not found after update');
+
+        return;
+      }
+
+     
+
+      const formData = new FormData();
+
+      formData.append('files', files);
+      formData.append('fileName', files.name);
+
+      const uploadRes = await apiCalls(
+        'post',
+        `/investmentDeclaration/uploadImageInvestmentDeclarationDetails?investmentDeclarationId=${id}&investmentDeclarationDetailsId=${matchedRow.id}`,
+        formData
+      );
+
+      if (uploadRes?.status === true) {
+
+        showToast(
+          'success',
+          'File uploaded successfully'
+        );
+
+        // ========= REFRESH TABLE =========
+
+        const latestRows =
+          uploadRes?.paramObjectsMap?.response
+            ?.investmentDeclarationVO
+            ?.investmentDeclarationDetailsVO || [];
+
+        setTableData(latestRows);
+      }
+
+    } catch (error) {
+
+      console.log(error);
+
+      showToast(
+        'error',
+        error?.response?.data?.message ||
+        'File Upload Failed'
+      );
+    }
+};
+
   return (
+    <>
+     <ToastComponent />
     <Paper
       elevation={0}
       sx={{
@@ -78,7 +281,7 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
 
       <Box
         sx={{
-          px: 1,
+          px: 2,
           py: 1,
           borderBottom: '1px solid #e2e8f0'
         }}
@@ -95,7 +298,7 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
           </Typography>
 
           <Chip
-            label={`${rows.length} items`}
+            label={`${data.length} items`}
             size="small"
             sx={{
               backgroundColor: '#eef2ff',
@@ -111,7 +314,8 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
       <TableContainer
         sx={{
           maxHeight: '300px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          px:2,
         }}
       >
         <Table stickyHeader>
@@ -121,131 +325,173 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
                 backgroundColor: '#f8fafc'
               }}
             >
-              {['SECTION', 'INVESTMENT TYPE', 'DECLARED (₹)', 'LIMIT (₹)', 'PROOF', 'STATUS', 'UPLOAD'].map((head) => (
+              {columns.map((head,index) => (
                 <TableCell
-                  key={head}
+                  key={index}
                   sx={{
+  
+                    alignItems: 'center',
                     fontWeight: 700,
                     fontSize: '0.75rem',
                     color: '#64748b',
-                    padding: '8px 4px'
+                    backgroundColor: '#EEEEEE',
+                    padding: '4px'
                   }}
                 >
-                  {head}
+                  {head.Label}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
 
-          <TableBody>
-            {rows.map((row, index) => (
-              <TableRow key={index} sx={{ padding: '8px' }} hover>
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    color: '#0f172a',
-                    padding: '8px'
-                  }}
-                >
-                  {row.section}
-                </TableCell>
+  <TableBody>
+  {tableData.map((row, rowIndex) => (
+    <TableRow key={rowIndex} sx={{ padding: '0px' }} hover>
+      {columns.map((col, colIndex) => (
+        <TableCell key={colIndex} sx={{ padding: '3px' }}>
+          {col.accessor === 'declared' ? (
+            <TextField
+              type="number"
+              size="small"
+              value={row?.[col.accessor] || ''}
+               inputProps={{ min: 0 }}
+              onChange={(e) => handleChange(e, rowIndex, col.accessor)}
+              sx={{
+                width: '100px',
+                '& .MuiInputBase-input': {
+                  // padding: '1px',
+                  fontSize: '0.75rem',
+                }
+              }}
+            />
+          ) : 
+          col.accessor === 'status' && designation === 'HR MANAGER' ? (
+            <Autocomplete
+               disablePortal
+               size="small"
+               options={statusData}
+               defaultValue={statusData.find((item) => item.id === 1)}
+               getOptionLabel={(option) => option.name}
+               sx={{
+                 width: 150,
+                 '& .MuiOutlinedInput-root': {
+                   borderRadius: '10px',
+                   backgroundColor: '#fff'
+                 }
+               }}
+               renderInput={(params) => (
+                 <TextField
+                   {...params}
+                   placeholder="Select Employee"
+                   size="small"
+                 />
+               )}
+             />
+          ) :
+          col.accessor === 'status' && designation !== 'HR MANAGER' ? (
+        getStatusChip(row?.status)
+        ) : 
+        
+//         col.accessor === 'fileName' ? (
+//  <>
+//   <Button
+//     component="label"
+//     variant="outlined"
+//     size="small"
+//     sx={{
+//       // display: 'flex',
+//       // alignItems: 'center',
+//       gap: '2px',
+//       borderRadius: '12px',
+//     }}
+//     disabled={Number(row?.declared) <= -1}
+//   >
+//     <CloudUploadOutlinedIcon />
+//     {row?.fileName ?"Done" : 'Upload'}
 
-                <TableCell
-                  sx={{
-                    padding: '8px'
-                  }}
-                >
-                  {row.type}
-                </TableCell>
+//     <input
+//       hidden
+//       type="file"
+//       accept=".png,.jpg,.jpeg,.pdf,.xls,.xlsx"
+//       onChange={(e) => handleFileUpload(e, rowIndex)}
+//     />
+//   </Button>
+// </>
+// )  :
+col.accessor === 'fileName' ? (
+  <>
+    <Stack direction="row" spacing={1}>
+      {/* Upload Button */}
+      <Button
+        component="label"
+        variant="outlined"
+        size="small"
+        sx={{
+          gap: '2px',
+          borderRadius: '12px',
+        }}
+        disabled={Number(row?.declared) <= -1}
+      >
+        <CloudUploadOutlinedIcon />
 
-                <TableCell
-                  sx={{
-                    padding: '8px'
-                  }}
-                >
-                  <TextField
-                    type="number"
-                    size="small"
-                    value={row.declared}
-                    //  {row.declared}
-                    sx={{
-                      width: '100px',
-                      '& .MuiInputBase-input': {
-                        padding: '2px 4px', 
-                        fontSize: '13px' 
-                      }
-                    }}
-                  />
-                </TableCell>
+        {row?.fileName ? 'Done' : 'Upload'}
 
-                <TableCell
-                  sx={{
-                    color: '#94a3b8',
-                    fontWeight: 500,
-                    padding: '8px'
-                  }}
-                >
-                  {row.limit}
-                </TableCell>
+        <input
+          hidden
+          type="file"
+          accept=".png,.jpg,.jpeg,.pdf,.xls,.xlsx"
+          onChange={(e) => handleFileUpload(e, rowIndex)}
+        />
+      </Button>
 
-                <TableCell>
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    {row.proof === 'Uploaded' ? (
-                      <CheckCircleOutlineIcon
-                        sx={{
-                          color: '#10b981',
-                          fontSize: 18,
-                          padding: '8px'
-                        }}
-                      />
-                    ) : (
-                      <AccessTimeOutlinedIcon
-                        sx={{
-                          color: '#f59e0b',
-                          fontSize: 18,
-                          padding: '8px'
-                        }}
-                      />
-                    )}
+      {/* Preview Button */}
 
-                    <Typography
-                      sx={{
-                        fontSize: '0.85rem'
-                      }}
-                    >
-                      {row.proof}
-                    </Typography>
-                  </Stack>
-                </TableCell>
+      {row?.fileName && (
+        // <Button
+        //   variant="contained"
+        //   size="small"
+        //   onClick={() =>
+        //     window.open(
+        //       `${row.fileName}`,
+        //       '_blank'
+        //     )
+        //   }
+        // >
+         <ControlCameraOutlinedIcon onClick={() =>
+            window.open(
+              `${row.filePath}`,
+              '_blank'
+            )
+          } />
+        // </Button>
+      )}
+    </Stack>
 
-                <TableCell
-                  sx={{
-                    padding: '8px'
-                  }}
-                >
-                  {getStatusChip(row.status)}
-                </TableCell>
+    {/* File Name */}
 
-                <TableCell
-                  sx={{
-                    padding: '8px'
-                  }}
-                >
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<CloudUploadOutlinedIcon />}
-                    sx={{
-                      borderRadius: '10px',
-                      textTransform: 'none'
-                    }}
-                  >
-                    Upload
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+    {/* {row?.fileName && (
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'block',
+          mt: 0.5,
+          fontSize: '0.65rem'
+        }}
+      >
+        {row.fileName}
+      </Typography>
+    )} */}
+  </>
+) :
+          (
+            row?.[col.accessor] || '-'
+          )}
+        </TableCell>
+      ))}
+    </TableRow>
+  ))}
+</TableBody>
+
         </Table>
       </TableContainer>
 
@@ -290,6 +536,7 @@ const Listview = ({ rows = [], totalDeclared = '₹0' }) => {
         </Typography>
       </Stack>
     </Paper>
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 import {
   Alert,
   Box,
@@ -10,9 +10,60 @@ import {
 
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 
-const Form = () => {
+import apiCalls from 'apicall';
+import ToastComponent, { showToast } from 'utils/toast-component';
+
+
+const Form = ({employeeCode,employeeName,selectedYear}) => {
+  const branch = localStorage.getItem('branch');
+  const branchCode = localStorage.getItem('branchCode');
+  const createdBy = localStorage.getItem('employeeName');
+  const orgId = localStorage.getItem('orgId');
+ const [file, setFile] = useState(null);
+ const fileUpload = async (e) => {
+    try {
+        const selectedFile = e.target.files[0];
+
+        if (!selectedFile) {
+        showToast('error', 'Please select a file');
+        return;
+      }
+         setFile(selectedFile);
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const res = await apiCalls(
+        'post',
+        `investmentDeclaration/uploadImageForm16?branch=${branch}&branchCode=${branchCode}&createdBy=${createdBy}&employeeCode=${employeeCode}&employeeName=${employeeName}&finYear=${selectedYear}&orgId=${orgId}`,
+        formData
+      );
+
+      if (res.status === true) {
+        showToast(
+          'success',
+          res?.paramObjectsMap?.message || 'File uploaded successfully'
+        );
+      } else {
+        showToast(
+          'error',
+          res?.paramObjectsMap?.message || 'File upload failed'
+        );
+      }
+    } catch (error) {
+      console.log(error);
+
+      showToast(
+        'error',
+        error?.paramObjectsMap?.message || 'File upload failed'
+      );
+    }
+  };
   return (
+    <>
+    <ToastComponent />
     <Paper
       elevation={0}
       sx={{
@@ -79,7 +130,7 @@ const Form = () => {
 
       {/* Download Button */}
 
-      <Button
+      {/* <Button
         variant="outlined"
         startIcon={<DownloadOutlinedIcon />}
         sx={{
@@ -98,8 +149,28 @@ const Form = () => {
         }}
       >
         Download FY 2023–24
-      </Button>
+      </Button> */}
+       <Button
+            component="label"
+            variant="contained"
+            startIcon={<UploadFileOutlinedIcon />}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '10px',
+              px: 2.5,
+              py: 1,
+            }}
+          >
+           {file ? file.name : 'Upload Form 16'} 
+
+            <input
+              type="file"
+              hidden
+              onChange={fileUpload}
+            />
+          </Button>
     </Paper>
+    </>
   );
 };
 

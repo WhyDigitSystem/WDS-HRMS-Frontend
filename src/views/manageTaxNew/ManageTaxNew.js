@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
-import { Tabs, Tab, Box, Paper, Divider, useMediaQuery, useTheme } from '@mui/material';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import HistoryIcon from '@mui/icons-material/History';
-import DescriptionIcon from '@mui/icons-material/Description';
-import GavelIcon from '@mui/icons-material/Gavel';
-import SavingsIcon from '@mui/icons-material/Savings';
+import React, { useState,useEffect } from 'react';
+import { Tabs, Tab, Box, Paper, Divider, useMediaQuery, useTheme,Autocomplete, TextField  } from '@mui/material';
 import TaxDeclarations from '../manageTaxNew/pages/TaxDeclarations';
 import TDSSummary from '../manageTaxNew/pages/TDSSummary';
 import TaxRegime from '../manageTaxNew/pages/TaxRegime';
 import Form from '../manageTaxNew/pages/Form';
 import ProofSubmission from '../manageTaxNew/pages/ProofSubmission';
-
-
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
+import apiCalls from 'apicall';
 
 
 const TabPanel = ({ children, value, index }) => {
@@ -23,9 +18,46 @@ const TabPanel = ({ children, value, index }) => {
 };
 
 const ManageTaxNew = () => {
+  const designation = localStorage.getItem('designation');
+  const orgId = localStorage.getItem('orgId');
+  const branchCode = localStorage.getItem('branchCode');
   const [activeTab, setActiveTab] = useState(0);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [employeeData,setEmployeeData] = useState([]);
+  const [employeeCode,setEmployeeCode] = useState('');
+  const [employeeName,setEmployeeName] = useState('');
+  
+  const currentYear = new Date().getFullYear();
+  const yearOptions = [];
+  for (let i = currentYear - 0; i <= currentYear + 1; i++) {
+  yearOptions.push(i);
+}
+const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  const getEmployeeData = async () =>{
+    try{
+      const res = await apiCalls('get',`master/getReportingNameForEmployee?orgId=${orgId}&branchCode=${branchCode}&employeeCode=undefined`)
+      if(res.status === true){
+        setEmployeeData(res?.paramObjectsMap?.employeeVO || []);
+      }
+    }catch(err){
+      console.log(err?.paramObjectsMap?.message);
+    }
+  }
+
+  useEffect(()=>{
+    if(designation === 'HR MANAGER'){
+    getEmployeeData();
+    }
+  },[]);
+
+
+  const handleEmployeeData = (value) =>{
+    if (!value) return;
+    setEmployeeCode(value?.employeeCode || '');
+   setEmployeeName(value?.employeeName || '');
+  }
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -43,6 +75,92 @@ const ManageTaxNew = () => {
     >
       <Paper elevation={0} sx={{ px: { xs: 1, sm: 1 } }}>
         <Divider sx={{ mb: 0 }} />
+{designation === 'HR MANAGER' && (
+   <Box
+  sx={{
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 2,
+    mb: 1,
+    mt: 1,
+    flexWrap: 'wrap'
+  }}
+>
+  <Autocomplete
+    disablePortal
+    size="small"
+    options={employeeData}
+    onChange={(event, newValue) => handleEmployeeData(newValue)}
+    // defaultValue={employeeData.find((item) => item.employeeCode === employeeCode)}
+    getOptionLabel={(option) =>
+    `${option.employeeCode} - ${option.employeeName}`
+  }
+    sx={{
+      width: 250,
+      '& .MuiOutlinedInput-root': {
+        borderRadius: '10px',
+        backgroundColor: '#fff'
+      }
+    }}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        placeholder="Select Employee"
+        size="small"
+      />
+    )}
+  />
+   <Autocomplete
+      disablePortal
+      size="small"
+      options={yearOptions}
+      value={selectedYear}
+      onChange={(event, newValue) =>
+        setSelectedYear(newValue)
+      }
+      sx={{
+        width: 180,
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '10px',
+          backgroundColor: '#fff'
+        }
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          label="Select Year"
+          size="small"
+        />
+      )}
+    />
+
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0.7,
+      px: 1.5,
+      py: 0.7,
+      border: '1px solid #e2e8f0',
+      borderRadius: '10px',
+      cursor: 'pointer',
+      backgroundColor: '#fff',
+      transition: '0.2s',
+      fontSize: '13px',
+      fontWeight: 500,
+      color: '#334155',
+      '&:hover': {
+        backgroundColor: '#f8fafc',
+        borderColor: '#cbd5e1'
+      }
+    }}
+  >
+    <DownloadOutlinedIcon sx={{ fontSize: 18 }} />
+    Export Summary
+  </Box>
+  </Box>
+  )}
 
         <Tabs
           value={activeTab}
@@ -66,7 +184,7 @@ const ManageTaxNew = () => {
           <Tab label="Tax Declarations" />
           <Tab label="TDS Summary" />
           <Tab label="Tax Regime" />
-          <Tab label="Form 16" />
+          <Tab label="Form 16"   />
           <Tab label="Proof Submission" />
         </Tabs>
 
@@ -81,7 +199,7 @@ const ManageTaxNew = () => {
           <TaxRegime />
         </TabPanel>
         <TabPanel value={activeTab} index={3}>
-          <Form />
+          <Form employeeCode={employeeCode} employeeName={employeeName} selectedYear={selectedYear}/>
         </TabPanel>
          <TabPanel value={activeTab} index={4}>
           <ProofSubmission />

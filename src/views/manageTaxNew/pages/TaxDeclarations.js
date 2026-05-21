@@ -1,15 +1,27 @@
-import React,{useState,useEffect} from 'react';
-import { Card, CardContent, Grid, Stack, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, Grid, Stack, Typography, } from '@mui/material';
 import Listview from '../pages/lListview';
 import apiCalls from 'apicall';
+
 const TaxDeclarations = () => {
   const branch = localStorage.getItem('branch');
   const userName = localStorage.getItem('userName');
+  const employeeCode = localStorage.getItem('employeeCode');
   const orgId = localStorage.getItem('orgId');
-  const [data, setData] = useState([]);
-const formatNumber = (value) =>{
-  return Number(value).toLocaleString('en-IN');
-}
+  const branchCode = localStorage.getItem('branchCode');
+  const createdBy = userName;
+  const [data, setData] = useState({});
+  const [getAllData, setGetAllData] = useState([]);
+  const [id, setId] = useState('');
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  
+
+  const formatNumber = (value) => {
+    return Number(value).toLocaleString('en-IN', {
+      maximumFractionDigits: 0
+    });
+  };
   const cards = [
     {
       title: 'Gross Income',
@@ -41,85 +53,63 @@ const formatNumber = (value) =>{
     }
   ];
 
-const rows = [
-  {
-    section: '80C',
-    type: 'PPF (Public Provident Fund)',
-    declared: '148800',
-    limit: '1,50,000',
-    proof: 'Uploaded',
-    status: 'Approved',
-  },
-  {
-    section: '80C',
-    type: 'ELSS Mutual Fund',
-    declared: '50000',
-    limit: '1,50,000',
-    proof: 'Pending',
-    status: 'Pending',
-  },
-  {
-    section: '80D',
-    type: 'Health Insurance (Self & Family)',
-    declared: '25000',
-    limit: '25,000',
-    proof: 'Uploaded',
-    status: 'Approved',
-  },
-  {
-    section: '80D',
-    type: 'Health Insurance (Parents)',
-    declared: '50000',
-    limit: '50,000',
-    proof: 'Not Uploaded',
-    status: 'Draft',
-  },
-  {
-    section: 'HRA',
-    type: 'House Rent Allowance (Metro)',
-    declared: '180000',
-    limit: '—',
-    proof: 'Uploaded',
-    status: 'Approved',
-  },
-  {
-    section: '80E',
-    type: 'Education Loan Interest',
-    declared: '42000',
-    limit: 'No Limit',
-    proof: 'Pending',
-    status: 'Pending',
-  },
-];
+  const columns = [
+    { id: 1, Label: 'Section', accessor: 'section' },
+    { id: 2, Label: 'INVESTMENT TYPE', accessor: 'investmentType' },
+    { id: 3, Label: 'DECLARED (₹)', accessor: 'declared' },
+    { id: 4, Label: 'LIMIT (₹)', accessor: 'limitAmount' },
+    { id: 5, Label: 'PROOF', accessor: 'proof' },
+    { id: 6, Label: 'STATUS', accessor: 'status' },
+    { id: 7, Label: 'UPLOAD', accessor: 'fileName' }
+  ];
 
-const CardsData = async () => {
-  try{
-  const res = await apiCalls('get',`investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`);
-  if(res.status === true){
-     setData(res.paramObjectsMap.dashBoardDetails);
-  }
-  }catch(error){
-    console.log(error)
-  }
-}
+  const CardsData = async () => {
+    try {
+      const res = await apiCalls(
+        'get',
+        `investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`
+      );
+      if (res.status === true) {
+        setData(res?.paramObjectsMap?.dashBoardDetails[0]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-useEffect(()=>{
-  CardsData();
-},[]);
+  const getAll = async () => {
+    try {
+      const res = await apiCalls(
+        'get',
+        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`
+      );
+      if (res.status === true) {
+        setId(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.id);
+        setTotalAmount(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.totalAmount);
+        setGetAllData(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.investmentDeclarationDetailsVO || []);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
+  useEffect(() => {
+    CardsData();
+    getAll();
+  }, []);
 
   return (
     <>
       {/* card */}
       <div className="container-fluid">
-        <Grid container spacing={3}>
+        <Grid container spacing={1}>
           {cards.map((card, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
+            <Grid item xs={12} sm={6} md={3} key={index} sx={{ p: 0 }}>
               <Card
                 sx={{
                   borderRadius: '18px',
                   // backgroundColor: card.bg,
-                  
+
                   border: `1px solid ${card.border}`,
                   boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
                   transition: '0.3s',
@@ -132,10 +122,10 @@ useEffect(()=>{
               >
                 <CardContent
                   sx={{
-                    padding: '17px',
+                    padding: '17px'
                   }}
                 >
-                  <Stack spacing={0.2} >
+                  <Stack spacing={0.2}>
                     <Typography
                       sx={{
                         fontSize: '0.75rem',
@@ -177,9 +167,17 @@ useEffect(()=>{
       {/* list view */}
       <div>
         <Listview
-  rows={rows}
-  totalDeclared="₹4,95,800"
-/>
+          columns={columns}
+          data={getAllData}
+          id={id}
+          branch={branch}
+          branchCode={branchCode}
+          employeeCode={employeeCode}
+          userName={userName}
+          orgId={orgId}
+          createdBy={createdBy}
+          totalDeclared={`₹${formatNumber(totalAmount || 0)}`}
+        />
       </div>
     </>
   );
