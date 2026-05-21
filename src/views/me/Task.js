@@ -326,17 +326,31 @@ const Task = () => {
       return (
         <div
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+
             marginTop: '4px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-            color: '#b91c1c',
-            backgroundColor: '#fee2e2',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            textAlign: 'center'
+            padding: '4px 10px',
+
+            fontSize: '11.5px',
+            fontWeight: 600,
+            letterSpacing: '0.2px',
+
+            color: '#b42318',
+            backgroundColor: '#fff1f2',
+
+            border: '1px solid #fecdd3',
+            borderRadius: '999px',
+
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
           }}
         >
-          On Leave 🏖️
+          <span style={{ fontSize: '12px' }}>🏖️</span>
+          On Leave
         </div>
       );
     } else if (data.status === 'WFH') {
@@ -1162,7 +1176,7 @@ const Task = () => {
                               className="form-control custom-input custom-scroll-textarea"
                               placeholder="Enter description"
                               rows={2}
-                              style={{ minWidth: '240px', maxHeight: '90px' }}
+                              style={{ minWidth: '350px', maxHeight: '90px' }}
                             />
                           </td>
 
@@ -1183,6 +1197,7 @@ const Task = () => {
                               }}
                               className="form-control custom-input text-center"
                               placeholder="%"
+                              style={{ minWidth: '60px'}}
                             />
                           </td>
 
@@ -1194,6 +1209,7 @@ const Task = () => {
                                 handleRowChange(index, 'status', e.target.value)
                               }
                               className="form-select custom-input"
+                              style={{ minWidth: '80px'}}
                             >
                               <option value="">Status</option>
                               <option value="Yet Start">Yet Start</option>

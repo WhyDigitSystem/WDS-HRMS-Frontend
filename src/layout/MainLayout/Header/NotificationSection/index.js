@@ -990,27 +990,37 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         boxShadow: theme.shadows[1],
+
+        // IMPORTANT: prevent any inherited opacity effects
+        opacity: 1,
+
         '&:hover': {
           background: theme.palette.action.hover,
           boxShadow: theme.shadows[2],
+          opacity: 1,
 
-          // Keep text color unchanged on hover
+          // Force ALL text to stay fully opaque
           '& .MuiTypography-root': {
-            color: 'inherit'
+            opacity: 1,
+            color: theme.palette.text.primary
           },
 
           '& .MuiTypography-caption': {
+            opacity: 1,
             color: theme.palette.text.secondary
           },
 
           '& .MuiTypography-body2': {
+            opacity: 1,
             color: theme.palette.text.primary
           },
 
           '& .MuiTypography-subtitle2': {
+            opacity: 1,
             color: theme.palette.text.primary
           }
         },
+
         ...sx
       }}
     >
@@ -1018,18 +1028,27 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
         <Box sx={{ pt: 0.5 }}>
           {icon}
         </Box>
+
         <Box sx={{ flex: 1 }}>
           {typeof title === 'string' ? (
-            <Typography variant="subtitle2" fontWeight={600}>
+            <Typography
+              variant="subtitle2"
+              fontWeight={600}
+              sx={{ opacity: 1, color: theme.palette.text.primary }}
+            >
               {title}
             </Typography>
           ) : (
             title
           )}
+
           {description && (
             <Box sx={{ mt: 0.5 }}>
               {typeof description === 'string' ? (
-                <Typography variant="body2">
+                <Typography
+                  variant="body2"
+                  sx={{ opacity: 1, color: theme.palette.text.primary }}
+                >
                   {description}
                 </Typography>
               ) : (
@@ -1037,10 +1056,14 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
               )}
             </Box>
           )}
+
           {meta && (
             <Box sx={{ mt: 0.5 }}>
               {typeof meta === 'string' ? (
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                <Typography
+                  variant="caption"
+                  sx={{ opacity: 1, color: theme.palette.text.secondary }}
+                >
                   {meta}
                 </Typography>
               ) : (
@@ -1050,6 +1073,7 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
           )}
         </Box>
       </Stack>
+
       <Tooltip title="Clear">
         <IconButton
           size="small"
@@ -1058,7 +1082,8 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
             color: theme.palette.text.secondary,
             '&:hover': {
               color: theme.palette.error.main,
-              backgroundColor: theme.palette.error.lighter
+              backgroundColor: theme.palette.error.lighter,
+              opacity: 1
             }
           }}
         >

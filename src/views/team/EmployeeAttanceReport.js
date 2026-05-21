@@ -9,9 +9,9 @@ import dayjs from 'dayjs';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
 import { useEffect } from 'react';
-import { 
-  Autocomplete, 
-  FormControl, 
+import {
+  Autocomplete,
+  FormControl,
   TextField,
   Box,
   Card,
@@ -81,9 +81,9 @@ const EmployeeAttanceReport = () => {
   // Filter data based on search query
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) return attendanceReport;
-    
+
     return attendanceReport.filter((row) =>
-      Object.values(row).some((value) => 
+      Object.values(row).some((value) =>
         String(value).toLowerCase().includes(searchQuery.toLowerCase())
       )
     );
@@ -92,22 +92,22 @@ const EmployeeAttanceReport = () => {
   // Enhanced function to parse time strings - handles both "HH:MM:SS", "HH:MM", and plain number "8"
   const parseTimeToHours = (timeStr) => {
     if (!timeStr || timeStr === '-' || timeStr === '00:00' || timeStr === '00:00:00') return 0;
-    
+
     try {
       // If it's just a number (like "8"), convert to hours
       if (!timeStr.includes(':')) {
         const hours = parseFloat(timeStr);
         return isNaN(hours) ? 0 : hours;
       }
-      
+
       // Handle "HH:MM:SS" or "HH:MM" format
       const parts = timeStr.split(':');
       let hours = 0;
-      
+
       if (parts.length >= 1) hours += parseInt(parts[0]) || 0;
       if (parts.length >= 2) hours += (parseInt(parts[1]) || 0) / 60;
       if (parts.length >= 3) hours += (parseInt(parts[2]) || 0) / 3600;
-      
+
       return hours;
     } catch {
       return 0;
@@ -125,12 +125,12 @@ const EmployeeAttanceReport = () => {
   // Format hours for export (different from display)
   const formatHoursForExport = (val) => {
     if (!val || val === '-' || val === '00:00' || val === '00:00:00') return '-';
-    
+
     // If it's already in HH:MM format, return as is
     if (typeof val === 'string' && val.includes(':')) {
       return val.length > 5 ? val.substring(0, 5) : val;
     }
-    
+
     // If it's a number string like "8", format it
     const hours = parseFloat(val);
     if (!isNaN(hours)) {
@@ -138,236 +138,236 @@ const EmployeeAttanceReport = () => {
       const minutes = Math.round((hours - wholeHours) * 60);
       return `${wholeHours}:${minutes.toString().padStart(2, '0')}`;
     }
-    
+
     return val;
   };
 
   // Calculate efficiency metrics
   const efficiencyMetrics = useMemo(() => {
-  if (!attendanceReport.length) return {};
+    if (!attendanceReport.length) return {};
 
-  const metrics = {};
-  const monthlyData = {};
+    const metrics = {};
+    const monthlyData = {};
 
-  // First, calculate total working days per month
-  const monthlyWorkingDays = {};
-  
-  // Get unique months from the data
-  attendanceReport.forEach(record => {
-    if (record.entryDate) {
-      const month = dayjs(record.entryDate, 'DD-MM-YYYY').format('YYYY-MM');
-      if (!monthlyWorkingDays[month]) {
-        monthlyWorkingDays[month] = new Set();
-      }
-      monthlyWorkingDays[month].add(record.entryDate);
-    }
-  });
+    // First, calculate total working days per month
+    const monthlyWorkingDays = {};
 
-  // Convert sets to counts
-  const monthlyDaysCount = {};
-  Object.keys(monthlyWorkingDays).forEach(month => {
-    monthlyDaysCount[month] = monthlyWorkingDays[month].size;
-  });
-
-  // Process attendance data
-  attendanceReport.forEach(record => {
-    const employeeId = record.employeeCode;
-    const month = record.entryDate ? 
-      dayjs(record.entryDate, 'DD-MM-YYYY').format('YYYY-MM') : 
-      'unknown';
-    
-    if (!metrics[employeeId]) {
-      metrics[employeeId] = {
-        name: record.employeeName,
-        code: record.employeeCode,
-        totalDays: 0,
-        totalGrossHours: 0,
-        totalEffectiveHours: 0,
-        totalOTHours: 0,
-        totalWorkingDays: 0,
-        monthlyData: {}
-      };
-    }
-
-    // Parse time values
-    const grossHours = parseTimeToHours(record.grossHours);
-    const effectiveHours = parseTimeToHours(record.effectiveHours);
-    const otHours = parseTimeToHours(record.otHours);
-
-    // Update totals
-    metrics[employeeId].totalDays++;
-    metrics[employeeId].totalGrossHours += grossHours;
-    metrics[employeeId].totalEffectiveHours += effectiveHours;
-    metrics[employeeId].totalOTHours += otHours;
-
-    // Monthly data
-    if (!metrics[employeeId].monthlyData[month]) {
-      metrics[employeeId].monthlyData[month] = {
-        month,
-        totalGrossHours: 0,
-        totalEffectiveHours: 0,
-        totalOTHours: 0,
-        totalDays: 0,
-        expectedHours: 0,
-        workingDaysInMonth: monthlyDaysCount[month] || 0
-      };
-    }
-    metrics[employeeId].monthlyData[month].totalGrossHours += grossHours;
-    metrics[employeeId].monthlyData[month].totalEffectiveHours += effectiveHours;
-    metrics[employeeId].monthlyData[month].totalOTHours += otHours;
-    metrics[employeeId].monthlyData[month].totalDays++;
-    
-    // Calculate expected hours for this month (based on company policy)
-    // Assuming 8 hours per working day as standard
-    const standardHoursPerDay = 9;
-    if (metrics[employeeId].monthlyData[month].workingDaysInMonth > 0) {
-      metrics[employeeId].monthlyData[month].expectedHours = 
-        metrics[employeeId].monthlyData[month].workingDaysInMonth * standardHoursPerDay;
-    }
-  });
-
-  // Calculate efficiency percentages and trends
-  Object.keys(metrics).forEach(empId => {
-    const emp = metrics[empId];
-    
-    // Calculate total expected hours based on attended days
-    // This accounts for partial month attendance
-    emp.totalExpectedHours = 0;
-    
-    // First calculate monthly efficiencies
-    Object.keys(emp.monthlyData).forEach(month => {
-      const monthly = emp.monthlyData[month];
-      
-      // Calculate attendance ratio (days attended / working days in month)
-      monthly.attendanceRatio = monthly.workingDaysInMonth > 0 
-        ? (monthly.totalDays / monthly.workingDaysInMonth) * 100 
-        : 0;
-      
-      // Calculate monthly efficiency
-      if (monthly.totalGrossHours > 0) {
-        // Basic efficiency
-        monthly.basicEfficiency = (monthly.totalEffectiveHours / monthly.totalGrossHours) * 100;
-        
-        // Efficiency against expected hours (considers working days)
-        if (monthly.expectedHours > 0) {
-          monthly.expectedEfficiency = (monthly.totalEffectiveHours / monthly.expectedHours) * 100;
-        } else {
-          monthly.expectedEfficiency = 0;
+    // Get unique months from the data
+    attendanceReport.forEach(record => {
+      if (record.entryDate) {
+        const month = dayjs(record.entryDate, 'DD-MM-YYYY').format('YYYY-MM');
+        if (!monthlyWorkingDays[month]) {
+          monthlyWorkingDays[month] = new Set();
         }
-        
-        // Weighted efficiency (combines both metrics)
-        monthly.efficiency = (monthly.basicEfficiency * 0.7) + (monthly.expectedEfficiency * 0.3);
-      } else {
-        monthly.basicEfficiency = 0;
-        monthly.expectedEfficiency = 0;
-        monthly.efficiency = 0;
+        monthlyWorkingDays[month].add(record.entryDate);
       }
-      
-      monthly.avgEffectiveHours = monthly.totalDays > 0 ? monthly.totalEffectiveHours / monthly.totalDays : 0;
-      monthly.avgGrossHours = monthly.totalDays > 0 ? monthly.totalGrossHours / monthly.totalDays : 0;
-      monthly.avgOTHours = monthly.totalDays > 0 ? monthly.totalOTHours / monthly.totalDays : 0;
-      
-      // Add to total expected hours
-      emp.totalExpectedHours += monthly.expectedHours;
     });
 
-    // Overall efficiency calculations
-    // Option 1: Weighted average of monthly efficiencies
-    const totalMonthlyEfficiency = Object.values(emp.monthlyData).reduce((sum, monthly) => sum + monthly.efficiency, 0);
-    const monthsCount = Object.keys(emp.monthlyData).length;
-    emp.weightedEfficiency = monthsCount > 0 ? totalMonthlyEfficiency / monthsCount : 0;
-    
-    // Option 2: Overall efficiency considering expected hours
-    if (emp.totalExpectedHours > 0) {
-      emp.expectedOverallEfficiency = (emp.totalEffectiveHours / emp.totalExpectedHours) * 100;
-    } else {
-      emp.expectedOverallEfficiency = 0;
-    }
-    
-    // Option 3: Basic overall efficiency
-    emp.basicOverallEfficiency = emp.totalGrossHours > 0 
-      ? (emp.totalEffectiveHours / emp.totalGrossHours) * 100 
-      : 0;
-    
-    // Final efficiency score (weighted combination)
-    // 40% basic efficiency + 60% expected efficiency (to emphasize working days)
-    emp.overallEfficiency = (emp.basicOverallEfficiency * 0.4) + (emp.expectedOverallEfficiency * 0.6);
-    
-    // Calculate attendance percentage
-    emp.totalWorkingDays = Object.values(emp.monthlyData).reduce((sum, monthly) => sum + monthly.workingDaysInMonth, 0);
-    emp.attendancePercentage = emp.totalWorkingDays > 0 
-      ? (emp.totalDays / emp.totalWorkingDays) * 100 
-      : 0;
+    // Convert sets to counts
+    const monthlyDaysCount = {};
+    Object.keys(monthlyWorkingDays).forEach(month => {
+      monthlyDaysCount[month] = monthlyWorkingDays[month].size;
+    });
 
-    // Calculate trend (current month vs previous if available)
-    const months = Object.keys(emp.monthlyData).sort();
-    if (months.length >= 2) {
-      const currentMonth = emp.monthlyData[months[months.length - 1]].efficiency;
-      const prevMonth = emp.monthlyData[months[months.length - 2]].efficiency;
-      emp.trend = currentMonth - prevMonth;
-      emp.trendDirection = emp.trend > 0 ? 'up' : emp.trend < 0 ? 'down' : 'stable';
-    } else {
-      emp.trend = 0;
-      emp.trendDirection = 'stable';
-    }
+    // Process attendance data
+    attendanceReport.forEach(record => {
+      const employeeId = record.employeeCode;
+      const month = record.entryDate ?
+        dayjs(record.entryDate, 'DD-MM-YYYY').format('YYYY-MM') :
+        'unknown';
 
-    // Efficiency rating - now includes attendance factor
-    let adjustedEfficiency = emp.overallEfficiency;
-    
-    // Penalize low attendance (below 80%)
-    if (emp.attendancePercentage < 80) {
-      adjustedEfficiency = adjustedEfficiency * (emp.attendancePercentage / 100);
-    }
-    
-    // Reward high attendance (above 95%)
-    if (emp.attendancePercentage > 95) {
-      adjustedEfficiency = adjustedEfficiency * 1.05; // 5% bonus
-    }
-    
-    // Apply rating based on adjusted efficiency
-    if (adjustedEfficiency >= 100) emp.rating = 'Excellent';
-    else if (adjustedEfficiency >= 90) emp.rating = 'Very Good';
-    else if (adjustedEfficiency >= 80) emp.rating = 'Good';
-    else if (adjustedEfficiency >= 70) emp.rating = 'Average';
-    else if (adjustedEfficiency >= 60) emp.rating = 'Below Average';
-    else emp.rating = 'Needs Improvement';
-    
-    // Store additional metrics for display
-    emp.adjustedEfficiency = adjustedEfficiency;
-    emp.standardHoursPerDay = 9; // For reference
-  });
+      if (!metrics[employeeId]) {
+        metrics[employeeId] = {
+          name: record.employeeName,
+          code: record.employeeCode,
+          totalDays: 0,
+          totalGrossHours: 0,
+          totalEffectiveHours: 0,
+          totalOTHours: 0,
+          totalWorkingDays: 0,
+          monthlyData: {}
+        };
+      }
 
-  // Convert to array and sort by adjusted efficiency
-  const efficiencyArray = Object.values(metrics)
-    .sort((a, b) => b.adjustedEfficiency - a.adjustedEfficiency)
-    .map((emp, index) => ({
-      ...emp,
-      rank: index + 1
-    }));
+      // Parse time values
+      const grossHours = parseTimeToHours(record.grossHours);
+      const effectiveHours = parseTimeToHours(record.effectiveHours);
+      const otHours = parseTimeToHours(record.otHours);
 
-  setEfficiencyData(efficiencyArray);
-  
-  // Calculate company-wide metrics
-  const totalWorkingDays = Object.values(monthlyDaysCount).reduce((sum, days) => sum + days, 0);
-  const totalExpectedHours = totalWorkingDays * 9; // Assuming 8 hours per day
-  
-  return {
-    totalEmployees: efficiencyArray.length,
-    avgEfficiency: efficiencyArray.reduce((sum, emp) => sum + emp.adjustedEfficiency, 0) / (efficiencyArray.length || 1),
-    avgAttendance: efficiencyArray.reduce((sum, emp) => sum + emp.attendancePercentage, 0) / (efficiencyArray.length || 1),
-    totalWorkingDays,
-    totalExpectedHours,
-    topPerformer: efficiencyArray[0],
-    lowPerformer: efficiencyArray[efficiencyArray.length - 1],
-    monthlyStats: monthlyDaysCount
-  };
-}, [attendanceReport]);
+      // Update totals
+      metrics[employeeId].totalDays++;
+      metrics[employeeId].totalGrossHours += grossHours;
+      metrics[employeeId].totalEffectiveHours += effectiveHours;
+      metrics[employeeId].totalOTHours += otHours;
+
+      // Monthly data
+      if (!metrics[employeeId].monthlyData[month]) {
+        metrics[employeeId].monthlyData[month] = {
+          month,
+          totalGrossHours: 0,
+          totalEffectiveHours: 0,
+          totalOTHours: 0,
+          totalDays: 0,
+          expectedHours: 0,
+          workingDaysInMonth: monthlyDaysCount[month] || 0
+        };
+      }
+      metrics[employeeId].monthlyData[month].totalGrossHours += grossHours;
+      metrics[employeeId].monthlyData[month].totalEffectiveHours += effectiveHours;
+      metrics[employeeId].monthlyData[month].totalOTHours += otHours;
+      metrics[employeeId].monthlyData[month].totalDays++;
+
+      // Calculate expected hours for this month (based on company policy)
+      // Assuming 8 hours per working day as standard
+      const standardHoursPerDay = 9;
+      if (metrics[employeeId].monthlyData[month].workingDaysInMonth > 0) {
+        metrics[employeeId].monthlyData[month].expectedHours =
+          metrics[employeeId].monthlyData[month].workingDaysInMonth * standardHoursPerDay;
+      }
+    });
+
+    // Calculate efficiency percentages and trends
+    Object.keys(metrics).forEach(empId => {
+      const emp = metrics[empId];
+
+      // Calculate total expected hours based on attended days
+      // This accounts for partial month attendance
+      emp.totalExpectedHours = 0;
+
+      // First calculate monthly efficiencies
+      Object.keys(emp.monthlyData).forEach(month => {
+        const monthly = emp.monthlyData[month];
+
+        // Calculate attendance ratio (days attended / working days in month)
+        monthly.attendanceRatio = monthly.workingDaysInMonth > 0
+          ? (monthly.totalDays / monthly.workingDaysInMonth) * 100
+          : 0;
+
+        // Calculate monthly efficiency
+        if (monthly.totalGrossHours > 0) {
+          // Basic efficiency
+          monthly.basicEfficiency = (monthly.totalEffectiveHours / monthly.totalGrossHours) * 100;
+
+          // Efficiency against expected hours (considers working days)
+          if (monthly.expectedHours > 0) {
+            monthly.expectedEfficiency = (monthly.totalEffectiveHours / monthly.expectedHours) * 100;
+          } else {
+            monthly.expectedEfficiency = 0;
+          }
+
+          // Weighted efficiency (combines both metrics)
+          monthly.efficiency = (monthly.basicEfficiency * 0.7) + (monthly.expectedEfficiency * 0.3);
+        } else {
+          monthly.basicEfficiency = 0;
+          monthly.expectedEfficiency = 0;
+          monthly.efficiency = 0;
+        }
+
+        monthly.avgEffectiveHours = monthly.totalDays > 0 ? monthly.totalEffectiveHours / monthly.totalDays : 0;
+        monthly.avgGrossHours = monthly.totalDays > 0 ? monthly.totalGrossHours / monthly.totalDays : 0;
+        monthly.avgOTHours = monthly.totalDays > 0 ? monthly.totalOTHours / monthly.totalDays : 0;
+
+        // Add to total expected hours
+        emp.totalExpectedHours += monthly.expectedHours;
+      });
+
+      // Overall efficiency calculations
+      // Option 1: Weighted average of monthly efficiencies
+      const totalMonthlyEfficiency = Object.values(emp.monthlyData).reduce((sum, monthly) => sum + monthly.efficiency, 0);
+      const monthsCount = Object.keys(emp.monthlyData).length;
+      emp.weightedEfficiency = monthsCount > 0 ? totalMonthlyEfficiency / monthsCount : 0;
+
+      // Option 2: Overall efficiency considering expected hours
+      if (emp.totalExpectedHours > 0) {
+        emp.expectedOverallEfficiency = (emp.totalEffectiveHours / emp.totalExpectedHours) * 100;
+      } else {
+        emp.expectedOverallEfficiency = 0;
+      }
+
+      // Option 3: Basic overall efficiency
+      emp.basicOverallEfficiency = emp.totalGrossHours > 0
+        ? (emp.totalEffectiveHours / emp.totalGrossHours) * 100
+        : 0;
+
+      // Final efficiency score (weighted combination)
+      // 40% basic efficiency + 60% expected efficiency (to emphasize working days)
+      emp.overallEfficiency = (emp.basicOverallEfficiency * 0.4) + (emp.expectedOverallEfficiency * 0.6);
+
+      // Calculate attendance percentage
+      emp.totalWorkingDays = Object.values(emp.monthlyData).reduce((sum, monthly) => sum + monthly.workingDaysInMonth, 0);
+      emp.attendancePercentage = emp.totalWorkingDays > 0
+        ? (emp.totalDays / emp.totalWorkingDays) * 100
+        : 0;
+
+      // Calculate trend (current month vs previous if available)
+      const months = Object.keys(emp.monthlyData).sort();
+      if (months.length >= 2) {
+        const currentMonth = emp.monthlyData[months[months.length - 1]].efficiency;
+        const prevMonth = emp.monthlyData[months[months.length - 2]].efficiency;
+        emp.trend = currentMonth - prevMonth;
+        emp.trendDirection = emp.trend > 0 ? 'up' : emp.trend < 0 ? 'down' : 'stable';
+      } else {
+        emp.trend = 0;
+        emp.trendDirection = 'stable';
+      }
+
+      // Efficiency rating - now includes attendance factor
+      let adjustedEfficiency = emp.overallEfficiency;
+
+      // Penalize low attendance (below 80%)
+      if (emp.attendancePercentage < 80) {
+        adjustedEfficiency = adjustedEfficiency * (emp.attendancePercentage / 100);
+      }
+
+      // Reward high attendance (above 95%)
+      if (emp.attendancePercentage > 95) {
+        adjustedEfficiency = adjustedEfficiency * 1.05; // 5% bonus
+      }
+
+      // Apply rating based on adjusted efficiency
+      if (adjustedEfficiency >= 100) emp.rating = 'Excellent';
+      else if (adjustedEfficiency >= 90) emp.rating = 'Very Good';
+      else if (adjustedEfficiency >= 80) emp.rating = 'Good';
+      else if (adjustedEfficiency >= 70) emp.rating = 'Average';
+      else if (adjustedEfficiency >= 60) emp.rating = 'Below Average';
+      else emp.rating = 'Needs Improvement';
+
+      // Store additional metrics for display
+      emp.adjustedEfficiency = adjustedEfficiency;
+      emp.standardHoursPerDay = 9; // For reference
+    });
+
+    // Convert to array and sort by adjusted efficiency
+    const efficiencyArray = Object.values(metrics)
+      .sort((a, b) => b.adjustedEfficiency - a.adjustedEfficiency)
+      .map((emp, index) => ({
+        ...emp,
+        rank: index + 1
+      }));
+
+    setEfficiencyData(efficiencyArray);
+
+    // Calculate company-wide metrics
+    const totalWorkingDays = Object.values(monthlyDaysCount).reduce((sum, days) => sum + days, 0);
+    const totalExpectedHours = totalWorkingDays * 9; // Assuming 8 hours per day
+
+    return {
+      totalEmployees: efficiencyArray.length,
+      avgEfficiency: efficiencyArray.reduce((sum, emp) => sum + emp.adjustedEfficiency, 0) / (efficiencyArray.length || 1),
+      avgAttendance: efficiencyArray.reduce((sum, emp) => sum + emp.attendancePercentage, 0) / (efficiencyArray.length || 1),
+      totalWorkingDays,
+      totalExpectedHours,
+      topPerformer: efficiencyArray[0],
+      lowPerformer: efficiencyArray[efficiencyArray.length - 1],
+      monthlyStats: monthlyDaysCount
+    };
+  }, [attendanceReport]);
 
   const handleClick = async () => {
     const errors = {};
     if (!formData.fromDate) errors.fromDate = 'From Date is required';
     if (!formData.toDate) errors.toDate = 'To Date is required';
-    
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       showToast('error', 'Please fill in all required fields');
@@ -404,7 +404,7 @@ const EmployeeAttanceReport = () => {
         }));
 
         console.log('API Response formatted:', formattedAttendance); // Debug log
-        
+
         setAttendanceReport(formattedAttendance);
         setSelectedEmployeeName(selectedName);
         setSelectedEmployeeCode(selectedCode);
@@ -463,15 +463,15 @@ const EmployeeAttanceReport = () => {
       showToast('error', 'No data to download');
       return;
     }
-    
+
     const doc = new jsPDF({
       orientation: 'landscape'
     });
-    
+
     // Page dimensions
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
-    
+
     // Title
     const title = 'Attendance & Efficiency Report';
     doc.setFontSize(14);
@@ -482,7 +482,7 @@ const EmployeeAttanceReport = () => {
     const titleHeight = 10;
     const titleX = (pageW - (titleWidth + titlePaddingX * 2)) / 2;
     const titleY = 15;
-    
+
     // Draw background behind title
     doc.setFillColor(220, 240, 255);
     doc.roundedRect(titleX, titleY - titlePaddingY, titleWidth + titlePaddingX * 2, titleHeight, 4, 4, 'F');
@@ -507,11 +507,11 @@ const EmployeeAttanceReport = () => {
       },
       ...(selectedEmployeeCode !== 'ALL' && selectedEmployeeName !== 'ALL'
         ? [
-            {
-              label: 'Employee:',
-              value: `${selectedEmployeeCode} - ${selectedEmployeeName}`,
-            }
-          ]
+          {
+            label: 'Employee:',
+            value: `${selectedEmployeeCode} - ${selectedEmployeeName}`,
+          }
+        ]
         : []),
     ];
 
@@ -525,14 +525,14 @@ const EmployeeAttanceReport = () => {
       const valueW = doc.getTextWidth(pair.value + (idx < labelValuePairs.length - 1 ? ' | ' : ''));
       totalTextWidth += labelW + valueW;
     });
-    
+
     const pageWidth = doc.internal.pageSize.getWidth();
     const rectX = (pageWidth - (totalTextWidth + padding * 2)) / 2;
     const rectY = filterY;
     const rectW = totalTextWidth + padding * 2;
     const rectH = 8;
     const borderRadius = 5;
-    
+
     doc.setFillColor(220, 240, 255);
     doc.roundedRect(rectX, rectY, rectW, rectH, borderRadius, borderRadius, 'F');
 
@@ -568,12 +568,12 @@ const EmployeeAttanceReport = () => {
         'OT Hours'
       ]
     ];
-    
+
     const body = attendanceReport.map((row) => {
       const grossHours = parseTimeToHours(row.grossHours);
       const effectiveHours = parseTimeToHours(row.effectiveHours);
       const efficiency = grossHours > 0 ? (effectiveHours / grossHours) * 100 : 0;
-      
+
       return [
         ...(includeEmpCode ? [row.employeeCode] : []),
         ...(includeEmpName ? [row.employeeName] : []),
@@ -639,7 +639,7 @@ const EmployeeAttanceReport = () => {
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Attendance Report');
-    
+
     // Add logo
     if (logo) {
       try {
@@ -680,7 +680,7 @@ const EmployeeAttanceReport = () => {
     const metaRow = sheet.getRow(5);
     metaRow.getCell(1).value = `From: ${formData.fromDate ? dayjs(formData.fromDate).format('DD-MM-YYYY') : '-'}`;
     metaRow.getCell(2).value = `To: ${formData.toDate ? dayjs(formData.toDate).format('DD-MM-YYYY') : '-'}`;
-    
+
     if (selectedEmployeeCode !== 'ALL' && selectedEmployeeName !== 'ALL') {
       metaRow.getCell(3).value = `Employee: ${selectedEmployeeCode} - ${selectedEmployeeName}`;
       metaRow.getCell(5).value = `Print On: ${dayjs().format('DD-MM-YYYY HH:mm')}`;
@@ -697,7 +697,7 @@ const EmployeeAttanceReport = () => {
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'FF593C8F' }
+        fgColor: { argb: 'FF2A4B4D' }
       };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
       cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -718,18 +718,18 @@ const EmployeeAttanceReport = () => {
     ];
 
     sheet.columns = headers.map(() => ({ width: 20 }));
-    
+
     const headerRow = sheet.getRow(6);
     headerRow.height = 20;
     headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    
+
     headers.forEach((header, index) => {
       const cell = headerRow.getCell(index + 1);
       cell.value = header;
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: '3F51B5' }
+        fgColor: { argb: '2A4B4D' }
       };
       cell.border = allBorders;
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -740,7 +740,7 @@ const EmployeeAttanceReport = () => {
       const grossHours = parseTimeToHours(row.grossHours);
       const effectiveHours = parseTimeToHours(row.effectiveHours);
       const efficiency = grossHours > 0 ? (effectiveHours / grossHours) * 100 : 0;
-      
+
       const rowData = [];
       if (selectedEmployeeCode === 'ALL') rowData.push(row.employeeCode);
       if (selectedEmployeeName === 'ALL') rowData.push(row.employeeName);
@@ -753,9 +753,9 @@ const EmployeeAttanceReport = () => {
         `${efficiency.toFixed(1)}%`,
         formatHoursForExport(row.otHours)
       );
-      
+
       const dataRow = sheet.addRow(rowData);
-      
+
       // Set alignments
       let cellIndex = 1;
       if (selectedEmployeeCode === 'ALL') {
@@ -771,7 +771,7 @@ const EmployeeAttanceReport = () => {
       dataRow.getCell(cellIndex++).alignment = { vertical: 'middle', horizontal: 'right' };
       dataRow.getCell(cellIndex++).alignment = { vertical: 'middle', horizontal: 'right' };
       dataRow.getCell(cellIndex++).alignment = { vertical: 'middle', horizontal: 'right' };
-      
+
       // Style the row
       dataRow.eachCell((cell) => {
         cell.fill = {
@@ -787,15 +787,15 @@ const EmployeeAttanceReport = () => {
     // Add Efficiency Summary sheet
     if (efficiencyData.length > 0) {
       const summarySheet = workbook.addWorksheet('Efficiency Summary');
-      
+
       // Summary sheet headers
-      const summaryHeaders = ['Rank', 'Employee Code', 'Name', 'Total Days', 'Gross Hours', 
-                             'Effective Hours', 'OT Hours', 'Efficiency %', 'Rating', 'Trend'];
+      const summaryHeaders = ['Rank', 'Employee Code', 'Name', 'Total Days', 'Gross Hours',
+        'Effective Hours', 'OT Hours', 'Efficiency %', 'Rating', 'Trend'];
       summarySheet.columns = summaryHeaders.map(() => ({ width: 15 }));
-      
+
       const summaryHeaderRow = summarySheet.getRow(1);
       summaryHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-      
+
       summaryHeaders.forEach((header, index) => {
         const cell = summaryHeaderRow.getCell(index + 1);
         cell.value = header;
@@ -807,7 +807,7 @@ const EmployeeAttanceReport = () => {
         cell.border = allBorders;
         cell.alignment = { vertical: 'middle', horizontal: 'center' };
       });
-      
+
       // Summary sheet data
       efficiencyData.forEach((emp, index) => {
         const rowData = [
@@ -820,12 +820,12 @@ const EmployeeAttanceReport = () => {
           formatHoursDisplay(emp.totalOTHours),
           `${emp.overallEfficiency.toFixed(1)}%`,
           emp.rating,
-          emp.trendDirection === 'up' ? '↑ Improving' : 
-          emp.trendDirection === 'down' ? '↓ Declining' : '→ Stable'
+          emp.trendDirection === 'up' ? '↑ Improving' :
+            emp.trendDirection === 'down' ? '↓ Declining' : '→ Stable'
         ];
-        
+
         const dataRow = summarySheet.addRow(rowData);
-        
+
         // Color code based on rating
         let fillColor = 'F3F3F3';
         if (emp.rating === 'Excellent') fillColor = 'C8E6C9';
@@ -834,7 +834,7 @@ const EmployeeAttanceReport = () => {
         else if (emp.rating === 'Average') fillColor = 'FFF9C4';
         else if (emp.rating === 'Below Average') fillColor = 'FFE0B2';
         else fillColor = 'FFCDD2';
-        
+
         dataRow.eachCell((cell) => {
           cell.fill = {
             type: 'pattern',
@@ -849,7 +849,7 @@ const EmployeeAttanceReport = () => {
     }
 
     sheet.views = [{ state: 'frozen', ySplit: 6 }];
-    
+
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -861,24 +861,24 @@ const EmployeeAttanceReport = () => {
     <Card sx={{ height: '100%', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
       <CardContent>
         <Box display="flex" alignItems="center" mb={2}>
-          <EfficiencyIcon color="primary" sx={{ mr: 1 }} />
+          <EfficiencyIcon sx={{ color: 'rgb(42, 75, 77)' }} />
           <Typography variant="h6" component="div">
             Employee #{data.rank}: {data.name}
           </Typography>
-          <Chip 
-            label={data.rating} 
+          <Chip
+            label={data.rating}
             size="small"
             color={
               data.rating === 'Excellent' ? 'success' :
-              data.rating === 'Very Good' ? 'success' :
-              data.rating === 'Good' ? 'primary' :
-              data.rating === 'Average' ? 'warning' :
-              data.rating === 'Below Average' ? 'warning' : 'error'
+                data.rating === 'Very Good' ? 'success' :
+                  data.rating === 'Good' ? 'primary' :
+                    data.rating === 'Average' ? 'warning' :
+                      data.rating === 'Below Average' ? 'warning' : 'error'
             }
             sx={{ ml: 'auto' }}
           />
         </Box>
-        
+
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <Typography variant="body2" color="text.secondary">
@@ -906,7 +906,7 @@ const EmployeeAttanceReport = () => {
             <Typography variant="h6">{data.totalDays}</Typography>
           </Grid>
         </Grid>
-        
+
         <Box mt={2}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Hours Breakdown
@@ -938,17 +938,17 @@ const EmployeeAttanceReport = () => {
             </Grid>
           </Grid>
         </Box>
-        
-        <LinearProgress 
-          variant="determinate" 
-          value={Math.min(data.overallEfficiency, 100)} 
+
+        <LinearProgress
+          variant="determinate"
+          value={Math.min(data.overallEfficiency, 100)}
           sx={{ mt: 2, height: 8, borderRadius: 4 }}
           color={
             data.overallEfficiency >= 100 ? 'success' :
-            data.overallEfficiency >= 90 ? 'success' :
-            data.overallEfficiency >= 80 ? 'primary' :
-            data.overallEfficiency >= 70 ? 'warning' :
-            data.overallEfficiency >= 60 ? 'warning' : 'error'
+              data.overallEfficiency >= 90 ? 'success' :
+                data.overallEfficiency >= 80 ? 'primary' :
+                  data.overallEfficiency >= 70 ? 'warning' :
+                    data.overallEfficiency >= 60 ? 'warning' : 'error'
           }
         />
         <Typography variant="caption" color="text.secondary" display="block" textAlign="center" mt={1}>
@@ -966,7 +966,10 @@ const EmployeeAttanceReport = () => {
             <Typography variant="subtitle2" color="text.secondary">
               Total Employees
             </Typography>
-            <Typography variant="h4" color="primary">
+            <Typography
+              variant="h4"
+              sx={{ color: 'rgb(42, 75, 77)' }}
+            >
               {efficiencyData.length}
             </Typography>
           </Paper>
@@ -1014,15 +1017,43 @@ const EmployeeAttanceReport = () => {
   return (
     <>
       <ToastContainer />
-      <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
-        <Box mb={3}>
-          <Typography variant="h5" gutterBottom fontWeight="bold">
+      <div
+        className="card w-full shadow-xl"
+        style={{
+          borderRadius: '18px',
+          overflow: 'hidden',
+          background: '#ffffff',
+          border: '1px solid #e5e7eb'
+        }}
+      >
+        {/* Header Section */}
+        <Box
+          sx={{
+            background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+            px: 3,
+            py: 2.5,
+            color: '#fff'
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              fontSize: '16px',
+              lineHeight: 1.2,
+              letterSpacing: '0.2px',
+              mb: 0.5,
+              color: '#fff'
+            }}
+          >
             Attendance & Efficiency Report
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Track employee attendance and analyze work efficiency based on gross vs effective hours
-          </Typography>
+
+
         </Box>
+
+
+
 
         <Paper sx={{ p: 3, mb: 3 }}>
           <Grid container spacing={2}>
@@ -1048,7 +1079,7 @@ const EmployeeAttanceReport = () => {
                 />
               </LocalizationProvider>
             </Grid>
-            
+
             <Grid item xs={12} md={3}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
@@ -1072,7 +1103,7 @@ const EmployeeAttanceReport = () => {
                 />
               </LocalizationProvider>
             </Grid>
-            
+
             <Grid item xs={12} md={4}>
               <Autocomplete
                 size="small"
@@ -1091,25 +1122,25 @@ const EmployeeAttanceReport = () => {
                 )}
               />
             </Grid>
-            
+
             <Grid item xs={12} md={2} sx={{ display: 'flex', gap: 1 }}>
-              <ActionButton 
-                title="Search" 
-                icon={SearchIcon} 
+              <ActionButton
+                title="Search"
+                icon={SearchIcon}
                 onClick={handleClick}
                 disabled={isLoading}
                 fullWidth
               />
-              <ActionButton 
-                title="Clear" 
-                icon={ClearIcon} 
+              <ActionButton
+                title="Clear"
+                icon={ClearIcon}
                 onClick={handleAllClear}
                 variant="outlined"
                 fullWidth
               />
             </Grid>
           </Grid>
-          
+
           {isLoading && (
             <Box mt={2} display="flex" justifyContent="center">
               <CircularProgress size={30} />
@@ -1129,17 +1160,26 @@ const EmployeeAttanceReport = () => {
             }
           }}
         >
-          <DialogTitle sx={{ 
-            bgcolor: 'primary.main', 
+          <DialogTitle sx={{
+            background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
             color: 'white',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
             <Box>
-              <Typography variant="h6">Attendance & Efficiency Report</Typography>
-              <Typography variant="body2">
-                {formData.fromDate && formData.toDate && 
+              <Typography
+                variant="h6"
+                sx={{ color: '#fff', fontWeight: 600 }}
+              >
+                Attendance & Efficiency Report
+              </Typography>
+
+              <Typography
+                variant="body2"
+                sx={{ color: '#fff' }}
+              >
+                {formData.fromDate && formData.toDate &&
                   `${dayjs(formData.fromDate).format('DD-MM-YYYY')} to ${dayjs(formData.toDate).format('DD-MM-YYYY')}`
                 }
                 {selectedEmployeeName !== 'ALL' && ` • ${selectedEmployeeName}`}
@@ -1147,7 +1187,7 @@ const EmployeeAttanceReport = () => {
             </Box>
             <Box display="flex" gap={1}>
               <Tooltip title="Export PDF">
-                <IconButton size="small" sx={{ color: 'white' }} 
+                <IconButton size="small" sx={{ color: 'white' }}
                   onClick={() => handleDownloadPDF({ logo: companyDetails?.[0]?.companyLogo })}>
                   <PictureAsPdfIcon />
                 </IconButton>
@@ -1161,8 +1201,35 @@ const EmployeeAttanceReport = () => {
             </Box>
           </DialogTitle>
 
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+          <Box
+            sx={{
+              borderBottom: '1px solid #d1d5db',
+              background: 'linear-gradient(193deg, rgba(58, 107, 109, 0.08) 30%, rgba(42, 75, 77, 0.08) 90%)',
+              px: 2
+            }}
+          >
+            <Tabs
+              value={activeTab}
+              onChange={(e, newValue) => setActiveTab(newValue)}
+              TabIndicatorProps={{
+                style: {
+                  backgroundColor: 'rgb(42, 75, 77)',
+                  height: 3,
+                  borderRadius: 3
+                }
+              }}
+              sx={{
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  color: '#4b5563',
+                  minHeight: 55
+                },
+                '& .Mui-selected': {
+                  color: 'rgb(42, 75, 77) !important'
+                }
+              }}
+            >
               <Tab label="Attendance Details" />
               <Tab label="Efficiency Analysis" />
             </Tabs>
@@ -1185,27 +1252,72 @@ const EmployeeAttanceReport = () => {
                   </Typography>
                 </Box>
 
-                <Box sx={{ overflow: 'auto', maxHeight: '60vh' }}>
+                <Box
+                  sx={{
+                    overflow: 'auto',
+                    maxHeight: '60vh',
+                    borderRadius: '16px',
+                    border: '1px solid #d1d5db',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+                    background: '#fff'
+                  }}
+                >
                   <Table stickyHeader size="small">
                     <TableHead>
                       <TableRow>
                         {selectedEmployeeName === 'ALL' && (
                           <>
-                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{
+                              background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
                               Code
                             </TableCell>
-                            <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>
+                            <TableCell sx={{
+                              background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
                               Name
                             </TableCell>
                           </>
                         )}
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }}>Date</TableCell>
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }} align="right">Check In</TableCell>
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }} align="right">Check Out</TableCell>
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }} align="right">Gross Hours</TableCell>
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }} align="right">Effective Hours</TableCell>
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }} align="right">Efficiency</TableCell>
-                        <TableCell sx={{ bgcolor: 'primary.main', color: 'white', fontWeight: 'bold' }} align="right">OT Hours</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }}>Date</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }} align="right">Check In</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }} align="right">Check Out</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }} align="right">Gross Hours</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }} align="right">Effective Hours</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }} align="right">Efficiency</TableCell>
+                        <TableCell sx={{
+                          background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }} align="right">OT Hours</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1222,7 +1334,7 @@ const EmployeeAttanceReport = () => {
                             const grossHours = parseTimeToHours(row.grossHours);
                             const effectiveHours = parseTimeToHours(row.effectiveHours);
                             const efficiency = grossHours > 0 ? (effectiveHours / grossHours) * 100 : 0;
-                            
+
                             return (
                               <TableRow key={`${row.employeeCode}-${row.entryDate}`} hover>
                                 {selectedEmployeeName === 'ALL' && (
@@ -1243,10 +1355,10 @@ const EmployeeAttanceReport = () => {
                                     variant="outlined"
                                     color={
                                       efficiency >= 100 ? 'success' :
-                                      efficiency >= 90 ? 'success' :
-                                      efficiency >= 80 ? 'primary' :
-                                      efficiency >= 70 ? 'warning' :
-                                      efficiency >= 60 ? 'warning' : 'error'
+                                        efficiency >= 90 ? 'success' :
+                                          efficiency >= 80 ? 'primary' :
+                                            efficiency >= 70 ? 'warning' :
+                                              efficiency >= 60 ? 'warning' : 'error'
                                     }
                                   />
                                 </TableCell>
@@ -1277,7 +1389,7 @@ const EmployeeAttanceReport = () => {
                 {attendanceReport.length > 0 ? (
                   <>
                     <SummaryStats />
-                    
+
                     <Alert severity="info" sx={{ mb: 2 }}>
                       <Box display="flex" alignItems="center">
                         <InfoIcon sx={{ mr: 1 }} />
@@ -1321,7 +1433,22 @@ const EmployeeAttanceReport = () => {
           </DialogContent>
 
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end', borderTop: 1, borderColor: 'divider' }}>
-            <Button onClick={() => setDialogOpen(false)} variant="contained">
+            <Button
+              onClick={() => setDialogOpen(false)}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                color: '#fff',
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 600,
+                px: 3,
+                '&:hover': {
+                  background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                  opacity: 0.95
+                }
+              }}
+            >
               Close
             </Button>
           </Box>

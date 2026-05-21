@@ -10,7 +10,8 @@ import {
   IconBeach,
   IconReportMoney,
   IconReport,
-  IconFileInvoice
+  IconFileInvoice,
+  IconReportAnalytics  
 } from '@tabler/icons-react';
 
 // screen access utility
@@ -41,6 +42,13 @@ const teamChildren = [
     type: 'item',
     url: '/team/EmployeeAttanceReport',
     icon: IconUsers
+  },
+  hasScreenAccess('CIOR') && {
+    id: 'checkInOutReport',
+    title: 'Rejected Logs',
+    type: 'item',
+    url: '/team/RejectedRequestsReport',
+    icon: IconReportAnalytics 
   },
   hasScreenAccess('SAR') && {
     id: 'shiftAssignReport',

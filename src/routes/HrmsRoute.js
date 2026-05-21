@@ -97,6 +97,7 @@ const PermissionApproval = Loadable(lazy(() => import('views/team/PermissionAppr
 const AttendanceReport = Loadable(lazy(() => import('views/team/AttendanceReport')));
 const DailyAttendance = Loadable(lazy(() => import('views/team/DailyAttendance')));
 const EmployeeAttanceReport = Loadable(lazy(() => import('views/team/EmployeeAttanceReport')));
+const RejectedRequestsReport = Loadable(lazy(() => import('views/team/RejectedRequestsReport ')));
 const ShiftAssignReport = Loadable(lazy(() => import('views/team/ShiftAssignReport')));
 const PayslipGenerate = Loadable(lazy(() => import('views/team/PayslipGeneration')));
 const OverAllReport = Loadable(lazy(() => import('views/team/OverAllReport')));
@@ -435,6 +436,10 @@ const HrmsRoute = {
     {
       path: '/team/EmployeeAttanceReport',
       element: <EmployeeAttanceReport />
+    },
+    {
+      path: '/team/RejectedRequestsReport',
+      element: <RejectedRequestsReport />
     },
     {
       path: '/team/ShiftAssignReport',

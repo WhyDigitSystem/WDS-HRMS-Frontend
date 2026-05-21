@@ -18,6 +18,7 @@ const Calendar = () => {
   const [birthdayEvents, setBirthdayEvents] = useState([]);
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [selectedDayEvents, setSelectedDayEvents] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Local storage values
   const [orgId] = useState(localStorage.getItem('orgId'));
@@ -879,6 +880,16 @@ const Calendar = () => {
     setSelectedDayEvents([]);
   };
 
+  const isToday = (date) => {
+    const today = new Date();
+    return (
+      date &&
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
   return (
     <div
       style={{
@@ -914,94 +925,321 @@ const Calendar = () => {
       </div>
       {activeTab === 'calendar' ? (
         <>
-          {/* Calendar Header */}
+
+          {/* ===== CALENDAR SECTION  ===== */}
           <div
+            className="card w-full p-6"
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              flexDirection: isMobile ? 'column' : 'row',
-              alignItems: isMobile ? 'flex-start' : 'center',
-              gap: isMobile ? 12 : 0
+              background: '#ffffff',
+              borderRadius: '24px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+              padding: '18px'
             }}
           >
-            <div>
-              <h1
-                style={{
-                  fontSize: isMobile ? '16px' : '18px',
-                  fontWeight: 'bold',
-                  color: '#4a4a4a',
-                  margin: 0,
-                  marginBottom: isMobile ? 8 : 0
-                }}
-              >
-                {`${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginTop: '4px',
-                    fontSize: isMobile ? '12px' : '14px'
-                  }}
-                >
-                  <label style={{ color: '#4a4a4a' }}>Time:</label>
-                  <span style={{ marginLeft: '6px', color: '#4a4a4a' }}>{currentTime}</span>
-                </div>
-              </h1>
-            </div>
 
+            {/* HEADER */}
             <div
               style={{
                 display: 'flex',
-                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: 12,
-                width: isMobile ? '100%' : 'auto'
+                flexWrap: 'wrap',
+                marginBottom: '14px',
+                padding: '12px 14px',
+                borderRadius: '16px',
+                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                color: '#fff'
               }}
             >
-              {/* Navigation and Add Event */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '6px',
-                  marginTop: isMobile ? '8px' : '0',
-                  order: isMobile ? 2 : 1
-                }}
-              >
-                <button onClick={handlePrevMonth} style={smallButtonStyle}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+
+                {/* Date + Day */}
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 700, letterSpacing: '0.3px' }}>
+                    {dayjs().format('DD MMM YYYY')}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      opacity: 0.9,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span style={{ color: '#10b981', fontSize: '10px' }}>●</span>
+
+                    <span>{dayjs().format('dddd')}</span>
+
+                    <span style={{ color: '#10b981', fontSize: '10px' }}>●</span>
+
+                    <span>{currentTime}</span>
+                  </div>
+                </div>
+
+
+              </div>
+
+              {/* NAV BUTTONS */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button onClick={handlePrevMonth} className="cal-btn">
                   ←
                 </button>
-                <button onClick={handleNextMonth} style={smallButtonStyle}>
+
+                <button onClick={handleNextMonth} className="cal-btn">
                   →
                 </button>
-                <button
-                  onClick={handleAddEvent}
-                  style={{
-                    ...smallButtonStyle,
-                    backgroundColor: '#1d4ed8',
-                    color: '#fff',
-                    padding: '6px 10px',
-                    fontWeight: 500,
-                    fontSize: isMobile ? 12 : 13
-                  }}
-                >
-                  Add Event
+
+                <button onClick={handleAddEvent} className="cal-btn primary">
+                  + Event
                 </button>
               </div>
-
-              {/* Legend - moved to bottom on mobile */}
-              <div
-                style={{
-                  order: isMobile ? 1 : 2,
-                  width: isMobile ? '100%' : 'auto',
-                  marginTop: isMobile ? 0 : 'auto'
-                }}
-              >
-                <EventLegend />
-              </div>
             </div>
+
+            {/* WEEK HEADER */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(7, 1fr)',
+                gap: '6px',
+                marginBottom: '10px'
+              }}
+            >
+              {fullWeekdays.map((day, i) => (
+                <div
+                  key={i}
+                  style={{
+                    textAlign: 'center',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '8px',
+                    borderRadius: '10px',
+                    background: '#f1f5f9',
+                    color: '#334155'
+                  }}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* CALENDAR GRID */}
+            {/* CALENDAR GRID */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(7, 1fr)',
+                gap: '8px'
+              }}
+            >
+              {calendarDays.map((week, wIdx) =>
+                week.map((cell, cIdx) => {
+                  if (!cell) return <div key={`${wIdx}-${cIdx}`} />;
+
+                  const today = new Date();
+                  const isToday =
+                    cell.date &&
+                    cell.date.getDate() === today.getDate() &&
+                    cell.date.getMonth() === today.getMonth() &&
+                    cell.date.getFullYear() === today.getFullYear();
+
+                  const isSelected =
+                    selectedDate &&
+                    cell.date.toDateString() === selectedDate.toDateString();
+
+                  return (
+                    <div
+                      key={`${wIdx}-${cIdx}`}
+                      onClick={() => {
+                        setSelectedDate(cell.date);
+                        handleDayClick(cell);
+                      }}
+                      className="calendar-cell"
+                      style={{
+                        minHeight: '78px',
+                        borderRadius: '14px',
+
+                        background: isToday
+                          ? '#e0f2fe'
+                          : isSelected
+                            ? '#fef9c3'
+                            : '#ffffff',
+
+                        border: isToday
+                          ? '2px solid #0284c7'
+                          : '1px solid #e2e8f0',
+
+                        boxShadow: isToday
+                          ? '0 0 0 3px rgba(2,132,199,0.15)'
+                          : '0 2px 8px rgba(0,0,0,0.04)',
+
+                        padding: '8px',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      {/* TODAY BADGE */}
+                      {isToday && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            left: 6,
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: '#0284c7',
+                            background: '#e0f2fe',
+                            padding: '2px 6px',
+                            borderRadius: '6px'
+                          }}
+                        >
+                          TODAY
+                        </span>
+                      )}
+
+                      {/* DATE */}
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#2a4b4d'
+                        }}
+                      >
+                        {cell.day}
+                      </div>
+
+                      {/* WEEK OFF */}
+                      {cell.isWeekOff && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            right: 6,
+                            fontSize: '10px',
+                            color: '#dc2626',
+                            fontWeight: 600
+                          }}
+                        >
+                          OFF
+                        </span>
+                      )}
+
+                      {/* EVENT TITLE */}
+                      {cell.latestEvent && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: 6,
+                            left: 6,
+                            right: 6,
+                            fontSize: '10px',
+                            padding: '2px 6px',
+                            borderRadius: '6px',
+
+                            background: cell.latestEvent.isHoliday
+                              ? '#fff7ed'
+                              : cell.latestEvent.isBirthday
+                                ? '#fdf2f8'
+                                : '#f1f5f9',
+
+                            borderLeft: `3px solid ${eventTypeColors[cell.latestEvent.eventType] || '#3a6b6d'
+                              }`,
+
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            color: '#334155'
+                          }}
+                        >
+                          {cell.latestEvent.eventTitle}
+                        </div>
+                      )}
+
+                      {/* EVENT COUNT BADGE */}
+                      {cell.hasEvents && cell.events.length > 1 && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            left: 6,
+                            background: '#3a6b6d',
+                            color: '#fff',
+                            fontSize: '10px',
+                            width: '18px',
+                            height: '18px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          {cell.events.length}
+                        </div>
+                      )}
+
+                      {/* EVENT DOT */}
+                      {cell.hasEvents && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: 6,
+                            right: 6,
+                            width: 7,
+                            height: 7,
+                            borderRadius: '50%',
+                            backgroundColor: '#22c55e'
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* HOVER STYLE */}
+            <style>
+              {`
+    .calendar-cell:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
+    }
+  `}
+            </style>
+
+            {/* BUTTON STYLE */}
+            <style>
+              {`
+      .cal-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        transition: 0.2s;
+      }
+
+      .cal-btn:hover {
+        background: rgba(255,255,255,0.35);
+      }
+
+      .cal-btn.primary {
+        background: #10b981;
+        font-weight: 600;
+      }
+
+      .cal-btn.primary:hover {
+        background: #34d399;
+      }
+    `}
+            </style>
           </div>
 
-          <CalendarGrid />
+
         </>
       ) : (
         <EventListView />
@@ -1011,35 +1249,47 @@ const Calendar = () => {
         <div
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
             display: 'flex',
             justifyContent: 'center',
             alignItems: isMobile ? 'flex-start' : 'center',
             zIndex: 9999,
-            padding: isMobile ? 12 : 0,
-            overflowY: 'auto'
+            padding: isMobile ? 12 : 24,
+            overflowY: 'auto',
+            backdropFilter: 'blur(4px)'
           }}
         >
           <div
             style={{
-              backgroundColor: 'white',
-              padding: isMobile ? 12 : 16,
-              borderRadius: 8,
-              width: isMobile ? '100%' : 500,
-              maxWidth: isMobile ? '100%' : 500,
+              backgroundColor: '#ffffff',
+              borderRadius: 12,
+              width: isMobile ? '100%' : 520,
+              maxWidth: isMobile ? '100%' : 520,
               maxHeight: isMobile ? '100%' : '90vh',
               overflowY: 'auto',
               fontSize: 13,
-              marginTop: isMobile ? 0 : 'auto',
-              marginBottom: isMobile ? 0 : 'auto'
+              boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+              border: '1px solid #e5e7eb',
+              animation: 'fadeIn 0.2s ease-in-out'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: 16 }}>
+            {/* Header */}
+            {/* Header */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '14px 16px',
+                borderBottom: '1px solid rgba(255,255,255,0.15)',
+                background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                borderTopLeftRadius: 12,
+                borderTopRightRadius: 12,
+                color: '#fff'
+              }}
+            >
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#fff' }}>
                 {loadingEvent
                   ? 'Loading Event...'
                   : newEvent.isHoliday
@@ -1050,44 +1300,58 @@ const Calendar = () => {
                         ? 'Edit Event'
                         : 'New Event'}
               </h3>
+
               <button
                 onClick={handleCloseModal}
                 style={{
-                  background: 'none',
+                  background: 'transparent',
                   border: 'none',
-                  fontSize: 18,
+                  fontSize: 20,
                   cursor: 'pointer',
-                  color: '#666'
+                  color: '#fff',
+                  padding: 4,
+                  borderRadius: 6
                 }}
               >
                 ×
               </button>
             </div>
 
+            {/* Banner */}
             {(newEvent.isHoliday || newEvent.isBirthday) && (
               <div
                 style={{
+                  margin: 12,
                   padding: 10,
-                  margin: '8px 0',
-                  backgroundColor: '#fff3cd',
-                  borderRadius: 6,
-                  fontSize: 12
+                  backgroundColor: newEvent.isHoliday ? '#fff7ed' : '#fef9c3',
+                  border: `1px solid ${newEvent.isHoliday ? '#fed7aa' : '#fde047'}`,
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: '#374151'
                 }}
               >
-                <strong>{newEvent.isHoliday ? 'Official Organization Holiday' : 'Employee Birthday'}</strong>
+                {newEvent.isHoliday
+                  ? 'Official Organization Holiday'
+                  : 'Employee Birthday'}
               </div>
             )}
 
+            {/* Day Events */}
             {selectedDayEvents.length > 0 && (
-              <div style={{ margin: '12px 0' }}>
-                <h4 style={{ marginBottom: 8, fontSize: 14 }}>Events on this day (sorted by time):</h4>
+              <div style={{ margin: '12px 16px' }}>
+                <h4 style={{ marginBottom: 8, fontSize: 13, color: '#374151' }}>
+                  Events on this day
+                </h4>
+
                 <div
                   style={{
-                    maxHeight: 150,
+                    maxHeight: 160,
                     overflowY: 'auto',
-                    border: '1px solid #eee',
-                    borderRadius: 6,
-                    padding: 8
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 8,
+                    padding: 6,
+                    background: '#fafafa'
                   }}
                 >
                   {sortEventsByTime(selectedDayEvents).map((event, idx) => {
@@ -1098,37 +1362,42 @@ const Calendar = () => {
                         key={idx}
                         onClick={() => handleEventClick(event)}
                         style={{
-                          padding: '6px 8px',
-                          marginBottom: 4,
-                          borderRadius: 4,
-                          backgroundColor: '#f8f9fa',
+                          padding: '8px 10px',
+                          marginBottom: 6,
+                          borderRadius: 6,
+                          backgroundColor: '#fff',
                           cursor: 'pointer',
                           borderLeft: `3px solid ${eventTypeColors[event.eventType]}`,
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          opacity: isActive ? 1 : 0.7
+                          opacity: isActive ? 1 : 0.6,
+                          transition: '0.2s ease'
                         }}
                       >
                         <div>
-                          <strong style={{ textDecoration: isActive ? 'none' : 'line-through' }}>{event.eventTitle}</strong>
-                          <div style={{ fontSize: 11, color: isActive ? '#666' : '#aaa' }}>
-                            {new Date(event.date).toLocaleDateString()}
-                            {event.startTime && ` • ${event.startTime}${event.endTime ? ` - ${event.endTime}` : ''}`}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {!isActive && <span style={{ color: '#f00', fontSize: 11 }}>Closed</span>}
                           <div
                             style={{
-                              width: 10,
-                              height: 10,
-                              borderRadius: '50%',
-                              backgroundColor: eventTypeColors[event.eventType],
-                              opacity: isActive ? 1 : 0.5
+                              fontWeight: 600,
+                              fontSize: 12,
+                              textDecoration: isActive ? 'none' : 'line-through',
+                              color: '#111827'
                             }}
-                          />
+                          >
+                            {event.eventTitle}
+                          </div>
+                          <div style={{ fontSize: 11, color: '#6b7280' }}>
+                            {new Date(event.date).toLocaleDateString()}
+                            {event.startTime &&
+                              ` • ${event.startTime}${event.endTime ? ` - ${event.endTime}` : ''}`}
+                          </div>
                         </div>
+
+                        {!isActive && (
+                          <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 600 }}>
+                            Closed
+                          </span>
+                        )}
                       </div>
                     );
                   })}
@@ -1136,16 +1405,10 @@ const Calendar = () => {
               </div>
             )}
 
+            {/* Loading */}
             {loadingEvent ? (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  padding: 20
-                }}
-              >
-                <div>Loading event details...</div>
+              <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>
+                Loading event details...
               </div>
             ) : (
               <form
@@ -1153,125 +1416,144 @@ const Calendar = () => {
                   e.preventDefault();
                   handleSaveEvent();
                 }}
-                style={{ marginTop: 8 }}
+                style={{ padding: '0 16px 16px 16px' }}
               >
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ display: 'block', marginBottom: 4, fontSize: 13 }}>Title</label>
+                {/* Title */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>
+                    Title
+                  </label>
                   <input
                     name="eventTitle"
                     value={newEvent.eventTitle}
                     onChange={handleEventChange}
                     disabled={newEvent.isHoliday || newEvent.isBirthday}
-                    style={inputStyleSmall}
+                    style={{
+                      ...inputStyleSmall,
+                      marginTop: 4,
+                      borderRadius: 8
+                    }}
                   />
                 </div>
 
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ display: 'block', marginBottom: 4, fontSize: 13 }}>Date</label>
+                {/* Date */}
+                <div style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>
+                    Date
+                  </label>
+
                   {newEvent.isHoliday || newEvent.isBirthday ? (
                     <div
                       style={{
-                        padding: 8,
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: 6,
-                        fontSize: 13
+                        marginTop: 4,
+                        padding: 10,
+                        background: '#f9fafb',
+                        borderRadius: 8,
+                        border: '1px solid #e5e7eb'
                       }}
                     >
-                      {new Date(newEvent.date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(newEvent.date).toLocaleDateString()}
                     </div>
                   ) : (
-                    <input type="date" name="date" value={newEvent.date} onChange={handleEventChange} style={inputStyleSmall} />
+                    <input
+                      type="date"
+                      name="date"
+                      value={newEvent.date}
+                      onChange={handleEventChange}
+                      style={{ ...inputStyleSmall, marginTop: 4, borderRadius: 8 }}
+                    />
                   )}
                 </div>
 
-                <div style={{ display: isMobile ? 'block' : 'flex', gap: 8 }}>
-                  <div style={{ marginBottom: 8, flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: 4, fontSize: 13 }}>Start Time</label>
+                {/* Time */}
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 12, fontWeight: 500 }}>Start</label>
                     <input
                       type="time"
                       name="startTime"
                       value={newEvent.startTime}
                       onChange={handleEventChange}
                       disabled={newEvent.isHoliday || newEvent.isBirthday}
-                      style={inputStyleSmall}
+                      style={{ ...inputStyleSmall, marginTop: 4, borderRadius: 8 }}
                     />
                   </div>
 
-                  <div style={{ marginBottom: 8, flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: 4, fontSize: 13 }}>End Time</label>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ fontSize: 12, fontWeight: 500 }}>End</label>
                     <input
                       type="time"
                       name="endTime"
                       value={newEvent.endTime}
                       onChange={handleEventChange}
                       disabled={newEvent.isHoliday || newEvent.isBirthday}
-                      min={newEvent.startTime || undefined}
                       style={{
                         ...inputStyleSmall,
-                        border: isInvalidEndTime
-                          ? '1px solid #ef4444'
-                          : '1px solid #ccc',
-                        backgroundColor: isInvalidEndTime
-                          ? '#fef2f2'
-                          : '#fff'
+                        marginTop: 4,
+                        borderRadius: 8,
+                        border: isInvalidEndTime ? '1px solid #ef4444' : '1px solid #ccc'
                       }}
                     />
                   </div>
                 </div>
 
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ display: 'block', marginBottom: 4, fontSize: 13 }}>Type</label>
+                {/* Type */}
+                <div style={{ marginTop: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 500 }}>Type</label>
                   <select
                     name="eventType"
                     value={newEvent.eventType}
                     onChange={handleEventChange}
                     disabled={newEvent.isHoliday || newEvent.isBirthday}
-                    style={inputStyleSmall}
+                    style={{ ...inputStyleSmall, marginTop: 4, borderRadius: 8 }}
                   >
                     <option value="meeting">Meeting</option>
-                    <option value="birthday">Birthday</option>
                     <option value="training">Training</option>
-                    <option value="holiday">Holiday</option>
                     <option value="other">Other</option>
+                    <option value="holiday">Holiday</option>
+                    <option value="birthday">Birthday</option>
                   </select>
                 </div>
 
-                <div style={{ marginBottom: 12 }}>
-                  <label style={{ display: 'block', marginBottom: 4, fontSize: 13 }}>Description</label>
+                {/* Description */}
+                <div style={{ marginTop: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 500 }}>Description</label>
                   <textarea
                     name="description"
                     value={newEvent.description}
                     onChange={handleEventChange}
                     disabled={newEvent.isHoliday || newEvent.isBirthday}
                     rows={3}
-                    style={inputStyleSmall}
+                    style={{ ...inputStyleSmall, marginTop: 4, borderRadius: 8 }}
                   />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button type="button" onClick={handleCloseModal} style={buttonStyleSmall}>
-                      Cancel
-                    </button>
+                {/* Actions */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 8,
+                    marginTop: 14
+                  }}
+                >
+                  <button type="button" onClick={handleCloseModal} style={buttonStyleSmall}>
+                    Cancel
+                  </button>
 
-                    {!newEvent.isHoliday && !newEvent.isBirthday && (
-                      <button
-                        type="submit"
-                        style={{
-                          ...buttonStyleSmall,
-                          backgroundColor: '#1d4ed8',
-                          color: 'white'
-                        }}
-                      >
-                        Save
-                      </button>
-                    )}
-                  </div>
+                  {!newEvent.isHoliday && !newEvent.isBirthday && (
+                    <button
+                      type="submit"
+                      style={{
+                        ...buttonStyleSmall,
+                        backgroundColor: '#1d4ed8',
+                        color: '#fff',
+                        border: '1px solid #1d4ed8'
+                      }}
+                    >
+                      Save
+                    </button>
+                  )}
                 </div>
               </form>
             )}
