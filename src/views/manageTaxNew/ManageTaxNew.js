@@ -4,6 +4,7 @@ import TaxDeclarations from '../manageTaxNew/pages/TaxDeclarations';
 import TDSSummary from '../manageTaxNew/pages/TDSSummary';
 import TaxRegime from '../manageTaxNew/pages/TaxRegime';
 import Form from '../manageTaxNew/pages/Form';
+import FormUser from '../manageTaxNew/pages/FormUser'
 import ProofSubmission from '../manageTaxNew/pages/ProofSubmission';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import apiCalls from 'apicall';
@@ -190,7 +191,7 @@ const [selectedYear, setSelectedYear] = useState(currentYear);
 
         {/* Tab Panels */}
         <TabPanel value={activeTab} index={0}>
-          <TaxDeclarations />
+          <TaxDeclarations employee={employeeCode} employeeName={employeeName} selectedYear={selectedYear}/>
         </TabPanel>
         <TabPanel value={activeTab} index={1}>
           <TDSSummary />
@@ -199,7 +200,7 @@ const [selectedYear, setSelectedYear] = useState(currentYear);
           <TaxRegime />
         </TabPanel>
         <TabPanel value={activeTab} index={3}>
-          <Form employeeCode={employeeCode} employeeName={employeeName} selectedYear={selectedYear}/>
+         {designation === 'HR MANAGER' ?<Form employeeCode={employeeCode} employeeName={employeeName} selectedYear={selectedYear}/> : <FormUser />}
         </TabPanel>
          <TabPanel value={activeTab} index={4}>
           <ProofSubmission />

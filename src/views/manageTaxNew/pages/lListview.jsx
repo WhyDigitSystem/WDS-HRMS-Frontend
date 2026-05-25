@@ -23,32 +23,32 @@ import ToastComponent, { showToast } from 'utils/toast-component';
 import apiCalls from 'apicall';
 import ControlCameraOutlinedIcon from '@mui/icons-material/ControlCameraOutlined';
 
-const Listview = ({ data = [],columns = [], totalDeclared = '₹0', id,branch,branchCode,employeeCode,userName,orgId,createdBy, }) => {
+const Listview = ({ data = [],columns = [], totalDeclared = '₹0', id,branch,branchCode,employeeCode,userName,orgId,createdBy,employee }) => {
   const statusData= [
     {
       id: 1,
-      name: '✅ Verified'
+      name: 'APPROVED'
+
     },
     {
       id: 2,
-      name: '⏳ Under Review</'
+      name: 'REJECTED'
+
     },
     {
       id: 3,
-      name: '🕒 Pending'
+      name: 'PENDING'
     },
-    {
-      id: 4,
-      name: '⚠️ Review Needed<'
-    }
   ];
-   const designation = localStorage.getItem('designation');
+
+  const designation = localStorage.getItem('designation');
+  
   const getStatusChip = (status) => {
     switch (status) {
-      case 'Approved':
+      case 'APPROVED':
         return (
           <Chip
-            label="Approved"
+            label="APPROVED"
             size="small"
             sx={{
               backgroundColor: '#dcfce7',
@@ -58,10 +58,22 @@ const Listview = ({ data = [],columns = [], totalDeclared = '₹0', id,branch,br
           />
         );
 
-      case 'Pending':
+      case 'REJECTED':
         return (
           <Chip
-            label="Pending"
+            label="REJECTED"
+            size="small"
+            sx={{
+              backgroundColor: '#fef3c7',
+              color: '#d97706',
+              fontWeight: 600
+            }}
+          />
+        );
+         case 'PENDING':
+        return (
+          <Chip
+            label="PENDING"
             size="small"
             sx={{
               backgroundColor: '#fef3c7',
@@ -167,6 +179,46 @@ const upDateDataList = async (updatedTableData = tableData) => {
   }
 };
 
+
+
+const handleStatusChange = async (
+  status,
+  item,
+  rowIndex
+) => {
+
+  try {
+    const updatedData = [...tableData];
+
+    updatedData[rowIndex].status = status;
+
+    setTableData(updatedData);
+
+    const res = await apiCalls(
+      'put',
+      `/investmentDeclaration/approveInvestmentDeclaration?action=${status}&actionBy=${employeeCode}&employeeCode=${employee}&id=${id}&orgId=${orgId}&sourceId=${item?.id}`
+    );
+    if (res?.status === true) {
+
+      showToast(
+        'success',
+        `Status Updated Successfully`
+      );
+
+    }
+
+  } catch (error) {
+
+    console.log(error);
+
+    showToast(
+      'error',
+      error?.res?.paramObjectsMap?.message ||
+      'Status Update Failed'
+    );
+  }
+};
+
 const handleFileUpload = async (e, rowIndex) => {
  
     try {
@@ -263,7 +315,8 @@ const handleFileUpload = async (e, rowIndex) => {
         'File Upload Failed'
       );
     }
-};
+}
+
 
   return (
     <>
@@ -365,59 +418,49 @@ const handleFileUpload = async (e, rowIndex) => {
               }}
             />
           ) : 
-          col.accessor === 'status' && designation === 'HR MANAGER' ? (
-            <Autocomplete
-               disablePortal
-               size="small"
-               options={statusData}
-               defaultValue={statusData.find((item) => item.id === 1)}
-               getOptionLabel={(option) => option.name}
-               sx={{
-                 width: 150,
-                 '& .MuiOutlinedInput-root': {
-                   borderRadius: '10px',
-                   backgroundColor: '#fff'
-                 }
-               }}
-               renderInput={(params) => (
-                 <TextField
-                   {...params}
-                   placeholder="Select Employee"
-                   size="small"
-                 />
-               )}
-             />
+      col.accessor === 'status' && designation === 'HR MANAGER' ? (
+      <Autocomplete
+      disablePortal
+      disableClearable
+      size="small"
+      options={statusData}
+      value={
+        statusData.find(
+          (item) => item.name === row?.status
+        ) || null
+      }
+      getOptionLabel={(option) =>
+        option.name || ''
+      }
+      onChange={(event, newValue) => {
+
+        handleStatusChange(
+          newValue?.name,
+          row,
+          rowIndex
+        );
+
+      }}
+      sx={{
+        width: 140,
+        '& .MuiOutlinedInput-root': {
+          borderRadius: '10px',
+          backgroundColor: '#fff'
+        }
+      }}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder="Select Status"
+          size="small"
+        />
+      )}
+    />
           ) :
           col.accessor === 'status' && designation !== 'HR MANAGER' ? (
         getStatusChip(row?.status)
         ) : 
         
-//         col.accessor === 'fileName' ? (
-//  <>
-//   <Button
-//     component="label"
-//     variant="outlined"
-//     size="small"
-//     sx={{
-//       // display: 'flex',
-//       // alignItems: 'center',
-//       gap: '2px',
-//       borderRadius: '12px',
-//     }}
-//     disabled={Number(row?.declared) <= -1}
-//   >
-//     <CloudUploadOutlinedIcon />
-//     {row?.fileName ?"Done" : 'Upload'}
-
-//     <input
-//       hidden
-//       type="file"
-//       accept=".png,.jpg,.jpeg,.pdf,.xls,.xlsx"
-//       onChange={(e) => handleFileUpload(e, rowIndex)}
-//     />
-//   </Button>
-// </>
-// )  :
 col.accessor === 'fileName' ? (
   <>
     <Stack direction="row" spacing={1}>
@@ -434,7 +477,7 @@ col.accessor === 'fileName' ? (
       >
         <CloudUploadOutlinedIcon />
 
-        {row?.fileName ? 'Done' : 'Upload'}
+        {row?.fileName ? 'Done' : ''}
 
         <input
           hidden
@@ -447,16 +490,6 @@ col.accessor === 'fileName' ? (
       {/* Preview Button */}
 
       {row?.fileName && (
-        // <Button
-        //   variant="contained"
-        //   size="small"
-        //   onClick={() =>
-        //     window.open(
-        //       `${row.fileName}`,
-        //       '_blank'
-        //     )
-        //   }
-        // >
          <ControlCameraOutlinedIcon onClick={() =>
             window.open(
               `${row.filePath}`,
@@ -466,21 +499,6 @@ col.accessor === 'fileName' ? (
         // </Button>
       )}
     </Stack>
-
-    {/* File Name */}
-
-    {/* {row?.fileName && (
-      <Typography
-        variant="caption"
-        sx={{
-          display: 'block',
-          mt: 0.5,
-          fontSize: '0.65rem'
-        }}
-      >
-        {row.fileName}
-      </Typography>
-    )} */}
   </>
 ) :
           (

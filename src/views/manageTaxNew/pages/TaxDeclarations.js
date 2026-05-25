@@ -3,10 +3,11 @@ import { Card, CardContent, Grid, Stack, Typography, } from '@mui/material';
 import Listview from '../pages/lListview';
 import apiCalls from 'apicall';
 
-const TaxDeclarations = () => {
+const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
   const branch = localStorage.getItem('branch');
   const userName = localStorage.getItem('userName');
   const employeeCode = localStorage.getItem('employeeCode');
+  // const L = 'WDS031'
   const orgId = localStorage.getItem('orgId');
   const branchCode = localStorage.getItem('branchCode');
   const createdBy = userName;
@@ -15,6 +16,7 @@ const TaxDeclarations = () => {
   const [id, setId] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
 
+ 
   
 
   const formatNumber = (value) => {
@@ -58,16 +60,16 @@ const TaxDeclarations = () => {
     { id: 2, Label: 'INVESTMENT TYPE', accessor: 'investmentType' },
     { id: 3, Label: 'DECLARED (₹)', accessor: 'declared' },
     { id: 4, Label: 'LIMIT (₹)', accessor: 'limitAmount' },
-    { id: 5, Label: 'PROOF', accessor: 'proof' },
-    { id: 6, Label: 'STATUS', accessor: 'status' },
-    { id: 7, Label: 'UPLOAD', accessor: 'fileName' }
+    // { id: 5, Label: 'PROOF', accessor: 'proof' },
+    { id: 5, Label: 'STATUS', accessor: 'status' },
+    { id: 6, Label: 'UPLOAD', accessor: 'fileName' }
   ];
 
   const CardsData = async () => {
     try {
       const res = await apiCalls(
         'get',
-        `investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`
+        `investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${employee=== ''?employeeCode:employee}&orgId=${orgId}`
       );
       if (res.status === true) {
         setData(res?.paramObjectsMap?.dashBoardDetails[0]);
@@ -81,7 +83,7 @@ const TaxDeclarations = () => {
     try {
       const res = await apiCalls(
         'get',
-        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`
+        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${employee=== ''?employeeCode:employee}&orgId=${orgId}`
       );
       if (res.status === true) {
         setId(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.id);
@@ -96,7 +98,7 @@ const TaxDeclarations = () => {
   useEffect(() => {
     CardsData();
     getAll();
-  }, []);
+  }, [employee,employeeName,selectedYear]);
 
   return (
     <>
@@ -174,6 +176,7 @@ const TaxDeclarations = () => {
           branchCode={branchCode}
           employeeCode={employeeCode}
           userName={userName}
+          employee={employee}
           orgId={orgId}
           createdBy={createdBy}
           totalDeclared={`₹${formatNumber(totalAmount || 0)}`}
