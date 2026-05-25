@@ -755,24 +755,21 @@ const TimeSheet = () => {
           <ActionButton title="Report" icon={DescriptionTwoToneIcon} onClick={handleReportIconClick} />
         </div>
       </div>
-      <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
-        <div className="p-6 bg-white rounded-lg shadow-md w-full">
-          {/* <Calendar
-            onClickDay={(value, e) => {
-              const dayName = value.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
-              if (!weekOff.includes(dayName)) {
-                handleDateClick(value);
-              }
-            }}
-            tileContent={({ date, view }) => (view === 'month' ? renderTimeInputs(date) : null)}
-          /> */}
+      <div>
+        <div
+          className="p-6 w-full"
+          style={{
+            background: '#ffffff',
+            borderRadius: '24px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
+          }}
+        >
           <Calendar
             onClickDay={(date) => {
               if (!isWeekOff(date)) {
                 handleDateClick(date);
               }
             }}
-            // tileDisabled={({ date, view }) => view === 'month' && isWeekOff(date)}
             tileContent={({ date, view }) => (view === 'month' ? renderTimeInputs(date) : null)}
             tileClassName={({ date, view }) => {
               if (view === 'month' && isWeekOff(date)) {
@@ -781,92 +778,376 @@ const TimeSheet = () => {
               return null;
             }}
           />
+
           <style>
             {`
-                .custom-disabled {
-                color: rgba(133, 138, 142, 1);
-                  cursor: not-allowed;
-                  disabled: true;
-                }
-              `}
+/* REMOVE OUTER CARD/BORDER */
+.card,
+.card-body,
+.modal-content {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* MAIN CALENDAR */
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: 'Inter', sans-serif;
+}
+
+/* TOP NAVIGATION */
+.react-calendar__navigation {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 6px;
+}
+
+/* NAV BUTTONS */
+.react-calendar__navigation button {
+  min-width: 34px;
+  height: 40px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%);
+  color: white;
+  font-size: 12px !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.2s ease;
+}
+
+.react-calendar__navigation button span {
+  font-size: 12px !important;
+}
+
+.react-calendar__navigation button:hover {
+  background: linear-gradient(193deg, #4b8587 30%, #355f61 90%);
+}
+
+/* CENTER LABEL */
+.react-calendar__navigation__label {
+  flex-grow: 1 !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%);
+  color: white !important;
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+
+/* WEEKDAY HEADER */
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #2a4b4d;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none;
+}
+
+/* DATE TILE */
+.react-calendar__tile {
+  position: relative;
+  min-height: 90px;
+  border-radius: 18px;
+  border: none;
+  background: #f8fafc;
+  margin: 4px;
+  padding: 10px 6px;
+  overflow: hidden;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border 0.2s ease;
+}
+
+.react-calendar__tile:hover {
+  background: linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%);
+  color: white;
+}
+
+/* TODAY */
+.react-calendar__tile--now {
+  background: rgba(58, 107, 109, 0.12) !important;
+  border: 2px solid #3a6b6d !important;
+  color: #2a4b4d !important;
+  font-weight: bold;
+}
+
+/* SELECTED */
+.react-calendar__tile--active {
+  background: linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%) !important;
+  color: white !important;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(42, 75, 77, 0.18);
+}
+
+/* WEEK OFF */
+.custom-disabled {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  opacity: 0.7;
+  cursor: not-allowed !important;
+  border-radius: 18px;
+}
+
+.custom-disabled:hover {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  .card {
+    padding: 10px !important;
+  }
+
+  .react-calendar {
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .react-calendar__navigation button {
+    height: 34px;
+    min-width: 34px;
+    font-size: 11px !important;
+  }
+
+  .react-calendar__navigation__label {
+    font-size: 14px !important;
+  }
+
+  .react-calendar__month-view__weekdays__weekday {
+    font-size: 10px;
+  }
+
+  .react-calendar__tile {
+    min-height: 68px !important;
+    padding: 4px !important;
+    border-radius: 12px !important;
+    font-size: 12px;
+  }
+
+  .react-calendar__tile div {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .react-calendar__tile {
+    min-height: 58px !important;
+  }
+
+  .react-calendar__tile div {
+    display: none;
+  }
+}
+`}
           </style>
         </div>
       </div>
 
       {modalOpen && (
-        <div className="modal show fade d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
-            <div className="modal-content shadow-lg">
-              <div className="modal-header">
-                <h5 className="modal-title">Add Entry for {selectedDate.toDateString()}</h5>
-                <button type="button" className="btn-close" onClick={() => setModalOpen(false)}></button>
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{
+            background: 'rgba(15,23,42,0.55)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999
+          }}
+        >
+          <div
+            className="modal-dialog modal-dialog-centered custom-task-modal"
+            style={{
+              width: 'clamp(320px, 85vw, 1100px)',
+              maxWidth: '85vw',
+              margin: '1rem auto'
+            }}
+          >
+            <div
+              className="modal-content border-0"
+              style={{
+                borderRadius: '24px',
+                overflow: 'hidden',
+                background: '#ffffff',
+                boxShadow: '0 18px 45px rgba(15,23,42,0.20)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                maxHeight: '92vh',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              {/* HEADER */}
+              <div
+                className="modal-header border-0 px-3 py-2"
+                style={{
+                  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                  minHeight: '55px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div className="d-flex flex-column justify-content-center">
+                  <h5
+                    className="mb-0 text-white fw-semibold"
+                    style={{
+                      letterSpacing: '0.3px',
+                      fontSize: '15px',
+                      lineHeight: '18px'
+                    }}
+                  >
+                    Daily Work Summary
+                  </h5>
+
+                  <p className="mb-0 text-light mt-1" style={{ fontSize: '11px' }}>
+                    {selectedDate?.toDateString()}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setModalOpen(false)}
+                />
               </div>
 
-              <div className="modal-body">
-                <div className="table-responsive">
-                  <table className="table table-bordered">
-                    <thead className="table-light">
+              {/* BODY */}
+              <div
+                className="modal-body"
+                style={{
+                  background: '#f8fafc',
+                  padding: '14px',
+                  overflowY: 'auto'
+                }}
+              >
+                <div
+                  className="table-responsive"
+                  style={{
+                    borderRadius: '16px',
+                    overflow: 'auto',
+                    border: '1px solid #e2e8f0',
+                    background: '#fff'
+                  }}
+                >
+                  <table className="table table-sm align-middle mb-0 custom-task-table">
+                    <thead>
                       <tr>
-                        <th>Action</th>
-                        <th>Project Name</th>
-                        <th>From Time</th>
-                        <th>To Time</th>
+                        <th style={{ width: '80px', textAlign: 'center' }}>Action</th>
+                        <th style={{ minWidth: '240px' }}>Project</th>
+                        <th style={{ width: '130px' }}>From</th>
+                        <th style={{ width: '130px' }}>To</th>
                         <th>Description</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {formRows.map((row, index) => (
                         <tr key={index}>
+                          {/* DELETE */}
                           <td>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleDeleteRow(index)}
-                              disabled={!isCurrentMonth(selectedDate)}
-                            >
-                              Delete
-                            </button>
+                            <div className="d-flex justify-content-center align-items-center">
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => handleDeleteRow(index)}
+                                disabled={!isCurrentMonth(selectedDate)}
+                                style={{
+                                  width: '34px',
+                                  height: '34px',
+                                  padding: 0,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </td>
-                          <td>
+
+                          {/* PROJECT */}
+                          <td style={{ minWidth: '240px' }}>
                             <select
                               name="projectName"
                               value={row.projectName}
-                              onChange={(e) => handleRowChange(index, 'projectName', e.target.value)}
-                              className="form-select form-select-sm w-100"
+                              onChange={(e) =>
+                                handleRowChange(index, 'projectName', e.target.value)
+                              }
+                              className="form-select custom-input"
                               disabled={!isCurrentMonth(selectedDate)}
                             >
                               <option value="">Select Project</option>
+
                               {alProject.map((project) => (
-                                <option key={project.id} value={project.projectCode}>
+                                <option
+                                  key={project.id}
+                                  value={project.projectCode}
+                                >
                                   {project.projectCode} - {project.projectName}
                                 </option>
                               ))}
                             </select>
                           </td>
+
+                          {/* FROM */}
                           <td>
                             <input
                               type="time"
                               value={row.fromTime}
-                              onChange={(e) => handleRowChange(index, 'fromTime', e.target.value)}
-                              className="form-control form-control-sm"
+                              onChange={(e) =>
+                                handleRowChange(index, 'fromTime', e.target.value)
+                              }
+                              className="form-control custom-input"
                               disabled={!isCurrentMonth(selectedDate)}
                             />
                           </td>
+
+                          {/* TO */}
                           <td>
                             <input
                               type="time"
                               value={row.toTime}
-                              onChange={(e) => handleRowChange(index, 'toTime', e.target.value)}
-                              className="form-control form-control-sm"
+                              onChange={(e) =>
+                                handleRowChange(index, 'toTime', e.target.value)
+                              }
+                              className="form-control custom-input"
                               disabled={!isCurrentMonth(selectedDate)}
                             />
                           </td>
+
+                          {/* DESCRIPTION */}
                           <td>
-                            <input
-                              type="text"
+                            <textarea
                               value={row.description}
-                              onChange={(e) => handleRowChange(index, 'description', e.target.value)}
-                              className="form-control form-control-sm"
+                              onChange={(e) =>
+                                handleRowChange(index, 'description', e.target.value)
+                              }
+                              className="form-control custom-input custom-scroll-textarea"
                               placeholder="Enter description"
+                              rows={2}
+                              style={{
+                                minWidth: '300px',
+                                maxHeight: '90px'
+                              }}
                               disabled={!isCurrentMonth(selectedDate)}
                             />
                           </td>
@@ -876,31 +1157,272 @@ const TimeSheet = () => {
                   </table>
                 </div>
 
-                <div className="text-end mt-2">
-                  <button className="btn btn-sm btn-success" onClick={handleAddRow} disabled={!isCurrentMonth(selectedDate)}>
+                {/* ADD ROW */}
+                <div className="d-flex justify-content-end mt-3">
+                  <button
+                    className="btn px-3 py-2 d-flex align-items-center justify-content-center"
+                    onClick={handleAddRow}
+                    disabled={!isCurrentMonth(selectedDate)}
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                      color: '#fff',
+                      borderRadius: '10px',
+                      fontWeight: 600,
+                      border: 'none',
+                      fontSize: '13px',
+                      minWidth: '120px'
+                    }}
+                  >
                     + Add Row
                   </button>
                 </div>
               </div>
 
-              <div className="modal-footer d-flex flex-wrap justify-content-between gap-2">
-                <button className="btn btn-secondary" onClick={() => setModalOpen(false)} disabled={!isCurrentMonth(selectedDate)}>
-                  Cancel
-                </button>
-                <button className="btn btn-warning" onClick={handleModalClear} disabled={!isCurrentMonth(selectedDate)}>
-                  Clear
-                </button>
-                <button className="btn btn-primary" onClick={handleSubmit} disabled={!isCurrentMonth(selectedDate)}>
-                  Save Entry
-                </button>
+              {/* FOOTER */}
+              <div
+                className="modal-footer border-0"
+                style={{
+                  background: '#fff',
+                  padding: '10px 14px'
+                }}
+              >
+                <div className="d-flex flex-wrap gap-2 w-100 justify-content-end footer-actions">
+                  <button
+                    onClick={() => setModalOpen(false)}
+                    className="footer-btn cancel"
+                    disabled={!isCurrentMonth(selectedDate)}
+                  >
+                    Cancel
+                  </button>
 
-                <Button onClick={handleShareWhatsApp}>
-                  <FaWhatsapp style={{ marginRight: '5px' }} />
-                  Share on WhatsApp
-                </Button>
+                  <button
+                    onClick={handleModalClear}
+                    className="footer-btn warning"
+                    disabled={!isCurrentMonth(selectedDate)}
+                  >
+                    Clear
+                  </button>
+
+                  <button
+                    onClick={handleSubmit}
+                    className="footer-btn save"
+                    disabled={!isCurrentMonth(selectedDate)}
+                  >
+                    Save Entry
+                  </button>
+
+                  <button
+                    onClick={handleShareWhatsApp}
+                    className="footer-btn success"
+                  >
+                    <FaWhatsapp
+                      style={{
+                        marginRight: 5,
+                        fontSize: 14
+                      }}
+                    />
+                    Share
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* MODAL STYLES */}
+          <style>
+            {`
+        .custom-task-table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0;
+        }
+
+        .custom-task-table th {
+          font-size: 12px;
+          padding: 12px 10px;
+          white-space: nowrap;
+          background: #f1f5f9;
+          color: #334155;
+          font-weight: 600;
+          position: sticky;
+          top: 0;
+          z-index: 5;
+          text-align: left;
+          vertical-align: middle;
+        }
+
+        .custom-task-table td {
+          padding: 10px;
+          vertical-align: middle;
+          border-bottom: 1px solid #eef2f7;
+        }
+
+        .custom-task-table tbody tr:nth-child(even) {
+          background: #fcfcfd;
+        }
+
+        .custom-task-table tbody tr:hover {
+          background: #f8fafc;
+        }
+
+        .custom-input,
+        .custom-task-table .form-select,
+        .custom-task-table .form-control {
+          min-height: 38px !important;
+          font-size: 13px !important;
+          border-radius: 10px !important;
+          padding: 6px 10px !important;
+          border: 1px solid #dbe3ea !important;
+          box-shadow: none !important;
+          background: #ffffff !important;
+          transition: all 0.2s ease;
+          width: 100%;
+        }
+
+        .custom-input:focus,
+        .form-control:focus,
+        .form-select:focus {
+          border-color: #3a6b6d !important;
+          box-shadow: 0 0 0 2px rgba(58,107,109,0.12) !important;
+        }
+
+        .custom-scroll-textarea {
+          resize: none;
+          overflow-y: auto;
+        }
+
+        .footer-btn {
+          font-size: 12px;
+          padding: 8px 14px;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          transition: 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 100px;
+          font-weight: 600;
+        }
+
+        .footer-btn:hover {
+          transform: translateY(-1px);
+        }
+
+        .footer-btn.cancel {
+          background: #dc2626;
+          color: #fff;
+        }
+
+        .footer-btn.warning {
+          background: #facc15;
+          color: #111;
+        }
+
+        .footer-btn.save {
+          background: linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%);
+          color: #fff;
+        }
+
+        .footer-btn.success {
+          background: #16a34a;
+          color: #fff;
+        }
+
+        @media (max-width: 768px) {
+          .custom-task-modal {
+            margin: 10px auto;
+          }
+
+          .custom-task-table {
+            min-width: 850px;
+          }
+
+          .footer-actions {
+            justify-content: space-between;
+          }
+
+          .footer-btn {
+            flex: 1;
+            min-width: 45%;
+            font-size: 11px;
+            padding: 8px;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .footer-btn {
+            min-width: 100%;
+          }
+        }
+
+.custom-task-modal {
+  transition: all 0.3s ease;
+}
+
+/* Large screens */
+@media (min-width: 1400px) {
+  .custom-task-modal {
+    max-width: 1550px !important;
+  }
+}
+
+/* Laptop */
+@media (max-width: 1200px) {
+  .custom-task-modal {
+    max-width: 98vw !important;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .custom-task-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 8px auto !important;
+  }
+
+  .custom-task-table {
+    min-width: 850px;
+  }
+
+  .footer-actions {
+    justify-content: space-between;
+  }
+
+  .footer-btn {
+    flex: 1;
+    min-width: 45%;
+    font-size: 11px;
+    padding: 8px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .custom-task-modal {
+    width: calc(100vw - 10px) !important;
+    max-width: calc(100vw - 10px) !important;
+    margin: 5px auto !important;
+  }
+
+  .modal-content {
+    border-radius: 16px !important;
+    max-height: 96vh !important;
+  }
+
+  .modal-body {
+    padding: 10px !important;
+  }
+
+  .footer-btn {
+    min-width: 100%;
+  }
+}
+
+      `}
+          </style>
         </div>
       )}
       <Dialog open={reportDialogOpen} onClose={() => setReportDialogOpen(false)}>

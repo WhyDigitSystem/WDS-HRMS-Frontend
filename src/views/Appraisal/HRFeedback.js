@@ -442,31 +442,116 @@ const HRFeedback = () => {
         </div>
       )}
       {open && (
-        <Dialog open={open} onClose={handleCloseDialog} TransitionComponent={Transition} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ backgroundColor: '#f0f0f0', fontSize: '15px' }}>Select Employee</DialogTitle>
-          <DialogContent>
-            <Paper sx={{ height: 400, width: '100%' }}>
-              <DataGrid
-                rows={allEmployees}
-                columns={columns}
-                // initialState={{ pagination: { paginationModel } }}
-                // pageSizeOptions={[5, 10]}
-                hideFooter={true}
-                onRowClick={(params) => setSelectedRow(params.row)}
-                sx={{ border: 0 }}
-              />
-            </Paper>
-            <DialogActions>
-              <Button variant="contained" color="error" size="small" onClick={handleCloseDialog} autoFocus>
-                Close
-              </Button>
+       <Dialog
+  open={open}
+  onClose={handleCloseDialog}
+  TransitionComponent={Transition}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: '18px',
+      overflow: 'hidden',
+      boxShadow: '0 18px 45px rgba(15,23,42,0.20)'
+    }
+  }}
+>
+  {/* HEADER */}
+  <DialogTitle
+    sx={{
+      background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+      color: '#fff',
+      fontSize: '15px',
+      fontWeight: 600,
+      py: 1.5,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}
+  >
+    Select Employee
+  </DialogTitle>
 
-              <Button variant="contained" size="small" onClick={handleEmployeeSelect} autoFocus>
-                Select
-              </Button>
-            </DialogActions>
-          </DialogContent>
-        </Dialog>
+  {/* BODY */}
+  <DialogContent
+    sx={{
+      background: '#f8fafc',
+      p: 2
+    }}
+  >
+    <Paper
+      elevation={0}
+      sx={{
+        height: 400,
+        width: '100%',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        overflow: 'hidden'
+      }}
+    >
+      <DataGrid
+        rows={allEmployees}
+        columns={columns}
+        hideFooter
+        onRowClick={(params) => setSelectedRow(params.row)}
+        sx={{
+          border: 0,
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: '#f1f5f9',
+            fontWeight: 600,
+            fontSize: '13px'
+          },
+          '& .MuiDataGrid-cell': {
+            fontSize: '13px'
+          },
+          '& .MuiDataGrid-row:hover': {
+            backgroundColor: '#f8fafc'
+          }
+        }}
+      />
+    </Paper>
+  </DialogContent>
+
+  {/* FOOTER (IMPORTANT: OUTSIDE DialogContent) */}
+  <DialogActions
+    sx={{
+      background: '#fff',
+      px: 2,
+      py: 1.5,
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: 1
+    }}
+  >
+    <Button
+      variant="contained"
+      color="error"
+      size="small"
+      onClick={handleCloseDialog}
+      sx={{
+        borderRadius: '8px',
+        textTransform: 'none',
+        fontWeight: 600
+      }}
+    >
+      Close
+    </Button>
+
+    <Button
+      variant="contained"
+      size="small"
+      onClick={handleEmployeeSelect}
+      sx={{
+        borderRadius: '8px',
+        textTransform: 'none',
+        fontWeight: 600,
+        background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)'
+      }}
+    >
+      Select
+    </Button>
+  </DialogActions>
+</Dialog>
       )}
     </>
   );

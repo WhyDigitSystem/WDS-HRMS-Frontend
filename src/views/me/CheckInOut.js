@@ -575,54 +575,162 @@ const CheckInOut = () => {
       </TableContainer>
 
       {/* Single Modal for both Check-In and Check-Out adjustments */}
-      <Modal open={checkInModalOpen} onClose={() => setCheckInModalOpen(false)}>
-        <Box sx={{ ...modalStyle }}>
-          <Typography variant="h6" gutterBottom>
-            Set Check-In & Check-Out Time
-          </Typography>
-
-          <TextField
-            type="time"
-            label="Check-In Time"
-            fullWidth
-            value={checkInTime}
-            onChange={(e) => setCheckInTime(e.target.value)}
-            sx={{ mt: 2 }}
-            inputProps={{ step: 60 }}
-          />
-
-          <TextField
-            type="time"
-            label="Check-Out Time"
-            fullWidth
-            value={checkOutTime}
-            onChange={(e) => setCheckOutTime(e.target.value)}
-            sx={{ mt: 2 }}
-            inputProps={{ step: 60 }}
-          />
-
-          <TextField
-            label="Reason for Adjustment"
-            fullWidth
-            multiline
-            rows={3}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Please provide a reason for this time adjustment..."
-            sx={{ mt: 2 }}
-            required
-          />
-
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 3 }}
-            onClick={handleSave}
-            disabled={isLoading}
+      <Modal
+        open={checkInModalOpen}
+        onClose={() => setCheckInModalOpen(false)}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: {
+              xs: '95vw',
+              sm: '85vw',
+              md: '550px'
+            },
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            bgcolor: '#ffffff',
+            borderRadius: '24px',
+            boxShadow: '0 18px 45px rgba(15,23,42,0.20)',
+            p: 0,
+            outline: 'none'
+          }}
+        >
+          {/* HEADER */}
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              px: 3,
+              py: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
           >
-            {isLoading ? 'Saving...' : 'Save'}
-          </Button>
+            <Box>
+              <Typography
+                sx={{
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '18px',
+                  lineHeight: 1.2
+                }}
+              >
+                Set Check-In & Check-Out Time
+              </Typography>
+
+              <Typography
+                sx={{
+                  color: 'rgba(255,255,255,0.75)',
+                  fontSize: '12px',
+                  mt: 0.5
+                }}
+              >
+                Update attendance timing details
+              </Typography>
+            </Box>
+
+            <Button
+              onClick={() => setCheckInModalOpen(false)}
+              sx={{
+                minWidth: '34px',
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                color: '#fff',
+                fontSize: '18px'
+              }}
+            >
+              ✕
+            </Button>
+          </Box>
+
+          {/* BODY */}
+          <Box
+            sx={{
+              p: 3,
+              background: '#f8fafc'
+            }}
+          >
+            <TextField
+              type="time"
+              label="Check-In Time"
+              fullWidth
+              value={checkInTime}
+              onChange={(e) => setCheckInTime(e.target.value)}
+              inputProps={{ step: 60 }}
+              sx={{
+                mb: 2.5,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: '#fff'
+                }
+              }}
+            />
+
+            <TextField
+              type="time"
+              label="Check-Out Time"
+              fullWidth
+              value={checkOutTime}
+              onChange={(e) => setCheckOutTime(e.target.value)}
+              inputProps={{ step: 60 }}
+              sx={{
+                mb: 2.5,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: '#fff'
+                }
+              }}
+            />
+
+            <TextField
+              label="Reason for Adjustment"
+              fullWidth
+              multiline
+              rows={4}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Please provide a reason for this time adjustment..."
+              required
+              sx={{
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: '#fff'
+                }
+              }}
+            />
+
+            {/* FOOTER BUTTON */}
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleSave}
+              disabled={isLoading}
+              sx={{
+                mt: 1,
+                py: 1.2,
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '14px',
+                background:
+                  'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                boxShadow: 'none',
+                '&:hover': {
+                  background:
+                    'linear-gradient(135deg, #345f61 0%, #223d3f 100%)',
+                  boxShadow: 'none'
+                }
+              }}
+            >
+              {isLoading ? 'Saving...' : 'Save'}
+            </Button>
+          </Box>
         </Box>
       </Modal>
 

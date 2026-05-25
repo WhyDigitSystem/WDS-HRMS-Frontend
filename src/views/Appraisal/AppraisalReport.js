@@ -909,16 +909,47 @@ export default function AppraisalReport({ employeesData }) {
                     </Grid> */}
 
           <Grid item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleDownload}
-              disabled={isDownloading || flattenedData.length === 0}
-              startIcon={isDownloading && <CircularProgress size={20} />}
-              sx={{ mb: 1 }}
-            >
-              {isDownloading ? 'Downloading...' : 'Download Appraisal Report'}
-            </Button>
+           <Button
+  variant="contained"
+  onClick={handleDownload}
+  disabled={isDownloading || flattenedData.length === 0}
+  startIcon={
+    isDownloading ? <CircularProgress size={18} thickness={5} sx={{ color: '#fff' }} /> : undefined
+  }
+  sx={{
+    mb: 1,
+    borderRadius: '10px',
+    px: 2,
+    py: 0.8,
+    minWidth: 240,
+    fontWeight: 600,
+    fontSize: '13px',
+    textTransform: 'none',
+
+    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+    color: '#fff',
+
+    boxShadow: '0 4px 12px rgba(15,23,42,0.12)',
+    transition: 'all 0.25s ease',
+
+    '&:hover': {
+      background: 'linear-gradient(135deg, #325c5e 0%, #223d3f 100%)',
+      boxShadow: '0 6px 16px rgba(15,23,42,0.18)',
+      transform: 'translateY(-1px)'
+    },
+
+    '&:active': {
+      transform: 'scale(0.98)'
+    },
+
+    '&.Mui-disabled': {
+      background: '#90a4ae',
+      color: '#fff'
+    }
+  }}
+>
+  {isDownloading ? 'Downloading...' : 'Download Appraisal Report'}
+</Button>
           </Grid>
         </Grid>
       </Paper>

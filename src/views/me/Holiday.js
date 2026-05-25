@@ -76,121 +76,123 @@ const Holiday = () => {
 
     try {
       const doc = new jsPDF({
-         orientation: 'landscape',
-    });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-    // ==== Title with Background ====
-  const title = 'Holiday Report';
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  const titleWidth = doc.getTextWidth(title);
-  const titlePaddingX = 6;
-  const titlePaddingY = 4;
-  const titleHeight = 10;
-  const titleX = (pageW - (titleWidth + titlePaddingX * 2)) / 2;
-  const titleY = 15;
-   doc.setFillColor(220, 240, 255); // Light blue
-  doc.roundedRect(
-    titleX,
-    titleY - titlePaddingY,
-    titleWidth + titlePaddingX * 2,
-    titleHeight,
-    4,
-    4,
-    'F'
-  );
-   doc.setTextColor(40, 40, 40);
-  doc.text(title, pageW / 2, titleY + 3, { align: 'center' });
+        orientation: 'landscape',
+      });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      // ==== Title with Background ====
+      const title = 'Holiday Report';
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      const titleWidth = doc.getTextWidth(title);
+      const titlePaddingX = 6;
+      const titlePaddingY = 4;
+      const titleHeight = 10;
+      const titleX = (pageW - (titleWidth + titlePaddingX * 2)) / 2;
+      const titleY = 15;
+      doc.setFillColor(220, 240, 255); // Light blue
+      doc.roundedRect(
+        titleX,
+        titleY - titlePaddingY,
+        titleWidth + titlePaddingX * 2,
+        titleHeight,
+        4,
+        4,
+        'F'
+      );
+      doc.setTextColor(40, 40, 40);
+      doc.text(title, pageW / 2, titleY + 3, { align: 'center' });
       //
-     if (logo) {
-    doc.addImage(logo, 'PNG', 5, 0, 40, 30); // X, Y, width, height
-  }
-   const filterY = 25;
-   const labelValuePairs = [
-    { label: 'Branch:', value: listViewData.length > 0 ? listViewData[0].branchName : branchName },
-  ];
-  doc.setFontSize(10);
- const padding = 3;
-  let totalTextWidth = 0;
-  labelValuePairs.forEach((pair, idx) => {
-    doc.setFont('helvetica', 'bold');
-    const labelW = doc.getTextWidth(pair.label + ' ');
-    doc.setFont('helvetica', 'normal');
-    const valueW = doc.getTextWidth(pair.value + (idx < labelValuePairs.length - 1 ? ' | ' : ''));
-    totalTextWidth += labelW + valueW;
-  });
-const pageWidth = doc.internal.pageSize.getWidth();
-const rectX = (pageWidth - (totalTextWidth + padding * 2)) / 2;
-const rectY = filterY;
-const rectW = totalTextWidth + padding * 2;
-const rectH = 8;
-const borderRadius = 5;
-doc.setFillColor(220, 240, 255);
-doc.roundedRect(rectX, rectY, rectW, rectH, borderRadius, borderRadius, 'F');
-let cursorX = rectX + padding;
-labelValuePairs.forEach((pair, idx) => {
-  // Bold label
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(40, 40, 40);
-  doc.text(pair.label, cursorX, rectY + 6);
-  const labelW = doc.getTextWidth(pair.label + ' ');
-  cursorX += labelW;
+      if (logo) {
+        doc.addImage(logo, 'PNG', 5, 0, 40, 30); // X, Y, width, height
+      }
+      const filterY = 25;
+      const labelValuePairs = [
+        { label: 'Branch:', value: listViewData.length > 0 ? listViewData[0].branchName : branchName },
+      ];
+      doc.setFontSize(10);
+      const padding = 3;
+      let totalTextWidth = 0;
+      labelValuePairs.forEach((pair, idx) => {
+        doc.setFont('helvetica', 'bold');
+        const labelW = doc.getTextWidth(pair.label + ' ');
+        doc.setFont('helvetica', 'normal');
+        const valueW = doc.getTextWidth(pair.value + (idx < labelValuePairs.length - 1 ? ' | ' : ''));
+        totalTextWidth += labelW + valueW;
+      });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const rectX = (pageWidth - (totalTextWidth + padding * 2)) / 2;
+      const rectY = filterY;
+      const rectW = totalTextWidth + padding * 2;
+      const rectH = 8;
+      const borderRadius = 5;
+      doc.setFillColor(220, 240, 255);
+      doc.roundedRect(rectX, rectY, rectW, rectH, borderRadius, borderRadius, 'F');
+      let cursorX = rectX + padding;
+      labelValuePairs.forEach((pair, idx) => {
+        // Bold label
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(40, 40, 40);
+        doc.text(pair.label, cursorX, rectY + 6);
+        const labelW = doc.getTextWidth(pair.label + ' ');
+        cursorX += labelW;
 
-  // Normal value
-  doc.setFont('helvetica', 'normal');
-  const valueText = pair.value + (idx < labelValuePairs.length - 1 ? ' | ' : '');
-  doc.text(valueText, cursorX, rectY + 6);
-  const valueW = doc.getTextWidth(valueText);
-  cursorX += valueW;
-});
+        // Normal value
+        doc.setFont('helvetica', 'normal');
+        const valueText = pair.value + (idx < labelValuePairs.length - 1 ? ' | ' : '');
+        doc.text(valueText, cursorX, rectY + 6);
+        const valueW = doc.getTextWidth(valueText);
+        cursorX += valueW;
+      });
 
- doc.autoTable({
-  startY: rectY + rectH + 5,
-  head:[['Date', 'Day', 'Holidays']],
-  body: listViewData.map((row) => {
-  const formatValue = (val) => (val === 0 || val === null || val === '' ? '-' : val);
-  return [
-    formatValue(dayjs(row.holidayDate).format('DD-MM-YYYY')),
-    formatValue(row.day),
-    formatValue(row.festival),
-  ]
-}),
+      doc.autoTable({
+        startY: rectY + rectH + 5,
+        head: [['Date', 'Day', 'Holidays']],
+        body: listViewData.map((row) => {
+          const formatValue = (val) => (val === 0 || val === null || val === '' ? '-' : val);
+          return [
+            formatValue(dayjs(row.holidayDate).format('DD-MM-YYYY')),
+            formatValue(row.day),
+            formatValue(row.festival),
+          ]
+        }),
 
-   styles: { fontSize: 8, cellPadding: 2,
-  lineColor: [200, 200, 200],
-  lineWidth: 0.1  },
-  headStyles: { fillColor: [42, 75, 77], textColor: 255, halign: 'center' },
-  margin: { left: 14, right: 14 },
-   columnStyles: {
-    0: { halign: 'left' }, 
-    1: { halign: 'left' }, 
-    2: { halign: 'left' },  
-  },
+        styles: {
+          fontSize: 8, cellPadding: 2,
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1
+        },
+        headStyles: { fillColor: [42, 75, 77], textColor: 255, halign: 'center' },
+        margin: { left: 14, right: 14 },
+        columnStyles: {
+          0: { halign: 'left' },
+          1: { halign: 'left' },
+          2: { halign: 'left' },
+        },
 
-     didDrawPage: (data) => {
-  const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
-      doc.setFontSize(8).setTextColor('#555555');
-      doc.text(
-        `Print On: ${dayjs().format('DD-MM-YYYY hh:mm A')}`,
-        pageW - 15,
-        pageH - 10,
-        { align: 'right' }
-      );
-      doc.text(
-      `Holiday Report - ${currentPage}`,
-       pageW / 2,
-      pageH - 10,
-    { align: 'center' }
-    );
-      doc.text(
-        `Printed By: ${loginUserName}`,
-        15,
-        pageH - 10,
-        { align: 'left' }
-      );
-    }
-  });
+        didDrawPage: (data) => {
+          const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+          doc.setFontSize(8).setTextColor('#555555');
+          doc.text(
+            `Print On: ${dayjs().format('DD-MM-YYYY hh:mm A')}`,
+            pageW - 15,
+            pageH - 10,
+            { align: 'right' }
+          );
+          doc.text(
+            `Holiday Report - ${currentPage}`,
+            pageW / 2,
+            pageH - 10,
+            { align: 'center' }
+          );
+          doc.text(
+            `Printed By: ${loginUserName}`,
+            15,
+            pageH - 10,
+            { align: 'left' }
+          );
+        }
+      });
       doc.save('Holiday_Report.pdf');
       // toast.success('PDF downloaded successfully!');
     } catch (error) {
@@ -230,34 +232,34 @@ labelValuePairs.forEach((pair, idx) => {
     }
 
     // 
- const allBorders = {
-  top:    { style: 'thin' },
-  left:   { style: 'thin' },
-  bottom: { style: 'thin' },
-  right:  { style: 'thin' }
-};
+    const allBorders = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
     const titleRow = sheet.getRow(2);
-    sheet.mergeCells('C2:H3'); 
+    sheet.mergeCells('C2:H3');
     const titleCell = sheet.getCell('C2');
     titleCell.value = 'Holiday Report';
     titleCell.font = { size: 16, bold: true };
     titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
     // 
-     const metaRow = sheet.getRow(5);
+    const metaRow = sheet.getRow(5);
     metaRow.getCell(1).value = `Branch: ${branchName}`;
     metaRow.getCell(2).value = `Print On: ${dayjs().format('DD-MM-YYYY HH:mm')} `;
     metaRow.getCell(3).value = `Printed By: ${loginUserName || 'Admin'}`;
-   for (let i = 1; i <= 3; i++) {
-  const cell = metaRow.getCell(i);
-  cell.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FF593C8F'} 
-  };
-  cell.alignment = { vertical: 'middle', horizontal: 'center' };
-  cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-  cell.border = allBorders;
-}
+    for (let i = 1; i <= 3; i++) {
+      const cell = metaRow.getCell(i);
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF593C8F' }
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.border = allBorders;
+    }
     const headers = ['Date', 'Day', 'Holidays'];
     const columnWidths = headers.map(() => ({ width: 20 }));
     sheet.columns = headers.map((header, i) => ({
@@ -275,16 +277,16 @@ labelValuePairs.forEach((pair, idx) => {
         pattern: 'solid',
         fgColor: { argb: '3F51B5' }
       };
-         cell.border = allBorders;
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = allBorders;
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
     });
-    const formatValue = (val) => (val === 0 || val === null || val === ''? '-' : val);
+    const formatValue = (val) => (val === 0 || val === null || val === '' ? '-' : val);
     listViewData.forEach((row) => {
       const rowData = [];
       rowData.push(
-         formatValue(dayjs(row.holidayDate).format('DD-MM-YYYY')),
-         formatValue(row.day),
-         formatValue(row.festival)
+        formatValue(dayjs(row.holidayDate).format('DD-MM-YYYY')),
+        formatValue(row.day),
+        formatValue(row.festival)
       )
 
       const dataRow = sheet.addRow(rowData);
@@ -296,15 +298,15 @@ labelValuePairs.forEach((pair, idx) => {
         };
         cell.border = allBorders;
         if (cell.value === '-') {
-      cell.alignment = {
-        horizontal: 'right',
-        indent: 1
-      };
-    } else {
-      cell.alignment = {
-        indent: 1
-      };
-    }
+          cell.alignment = {
+            horizontal: 'right',
+            indent: 1
+          };
+        } else {
+          cell.alignment = {
+            indent: 1
+          };
+        }
       });
     });
     sheet.views = [{ state: 'frozen', ySplit: 6 }];
@@ -317,10 +319,12 @@ labelValuePairs.forEach((pair, idx) => {
   };
 
   const listViewColumns = [
-    { accessorKey: 'holidayDate',
-      header:'Date',
-      size: 140, 
-      Cell: ({ cell }) => formatDate(cell.getValue()) },
+    {
+      accessorKey: 'holidayDate',
+      header: 'Date',
+      size: 140,
+      Cell: ({ cell }) => formatDate(cell.getValue())
+    },
     { accessorKey: 'day', header: 'Day', size: 140 },
     { accessorKey: 'festival', header: 'Holidays', size: 140 }
   ];
@@ -341,32 +345,65 @@ labelValuePairs.forEach((pair, idx) => {
 
   return (
     <>
-      <Card
-        sx={{
-          padding: 4,
-          backgroundColor: '#ffffff',
-          boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
-          borderRadius: 4,
-          maxWidth: '100%',
-          mt: 3
-        }}
-      >
+      
         <ToastContainer position="top-right" autoClose={5000} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#3f51b5' }}>
+        <Box
+          sx={{
+            mb: 2,
+            px: 2,
+            py: 1.2,
+            borderRadius: '14px',
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 4px 12px rgba(15,23,42,0.10)'
+          }}
+        >
+          <Typography
+            sx={{
+              color: 'white',
+              fontWeight: 700,
+              fontSize: {
+                xs: '15px',
+                sm: '18px'
+              },
+              letterSpacing: '0.3px'
+            }}
+          >
             Holiday Report - {branchName}
           </Typography>
-          <Box className="d-flex justify-end">
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Tooltip title="Download PDF">
-              {/* <ActionButton title="Download PDF" icon={DownloadIcon} onClick={handleDownloadPDF} margin="0 10px 0 0" /> */}
-              <IconButton onClick={() => handleDownloadPDF({ logo: companyDetails[0]?.companyLogo })}>
-                <PictureAsPdfIcon color="error" />
+              <IconButton
+                onClick={() => handleDownloadPDF({ logo: companyDetails[0]?.companyLogo })}
+                sx={{
+                  color: '#fff',
+                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  p: 0.8,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.22)'
+                  }
+                }}
+              >
+                <PictureAsPdfIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Tooltip>
-            {/* <ActionButton title="Download Excel" icon={CloudDownloadIcon} onClick={handleDownloadExcel} margin="0 10px 0 0" /> */}
+
             <Tooltip title="Download Excel">
-              <IconButton onClick={() => handleDownloadExcel({ logo: companyDetails[0]?.companyLogo })}>
-                <DownloadIcon color="primary" />
+              <IconButton
+                onClick={() => handleDownloadExcel({ logo: companyDetails[0]?.companyLogo })}
+                sx={{
+                  color: '#fff',
+                  backgroundColor: 'rgba(255,255,255,0.12)',
+                  p: 0.8,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.22)'
+                  }
+                }}
+              >
+                <DownloadIcon sx={{ fontSize: 20 }} />
               </IconButton>
             </Tooltip>
           </Box>
@@ -389,7 +426,7 @@ labelValuePairs.forEach((pair, idx) => {
             </Paper>
           )}
         </Box>
-      </Card>
+     
     </>
   );
 };

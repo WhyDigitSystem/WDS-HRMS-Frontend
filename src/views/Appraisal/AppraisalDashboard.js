@@ -367,14 +367,22 @@ const AppraisalDashboard = () => {
                                 height: 38,
                                 width: 42,
                                 minWidth: 42,
-                                borderRadius: 1,
+                                borderRadius: "10px",
                                 p: 0,
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+
+                                background: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)",
+                                boxShadow: "0 4px 10px rgba(42, 75, 77, 0.25)",
+
                                 "&:hover": {
-                                    background: "linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)",
+                                    background: "linear-gradient(135deg, #4b8587 0%, #355f61 100%)",
+                                },
+
+                                "&:disabled": {
+                                    background: "#cbd5e1",
+                                    color: "#64748b",
                                 },
                             }}
                         >

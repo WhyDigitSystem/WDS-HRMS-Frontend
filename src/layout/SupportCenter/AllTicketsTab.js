@@ -19,7 +19,7 @@ import {
   Typography
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import FilterListIcon from '@mui/icons-material/FilterList';
 import apiCalls from 'apicall';
@@ -71,7 +71,7 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
   const [isSearchExpanded, setSearchExpanded] = useState(false);
 
   const getCommentSuccessMessage = (isEdit) =>
-  isEdit ? "Comment updated successfully" : "Comment added successfully";
+    isEdit ? "Comment updated successfully" : "Comment added successfully";
 
   const handleOpenDialog = (ticket) => {
     setSelectedTicket(ticket);
@@ -91,89 +91,28 @@ const AllTicketsTab = ({ tickets, onRowClick, getAllTickets }) => {
     setComment('');
   };
 
- const getComments = async (ticketId) => {
-  try {
-    setIsLoading(true);
-
-    const [myRes, otherRes] = await Promise.all([
-      apiCalls(
-        'get',
-        `ticketcontroller/getAllCommentsMyServer?ticketId=${ticketId}`
-      ),
-      apiCalls(
-        'get',
-        `ticketcontroller/getAllCommentsAnotherServer?ticketId=${ticketId}`
-      )
-    ]);
-
-    const myComments =
-      myRes?.status && Array.isArray(myRes.paramObjectsMap?.commentsVO)
-        ? myRes.paramObjectsMap.commentsVO
-        : [];
-
-    const otherComments =
-      otherRes?.status && Array.isArray(otherRes.paramObjectsMap?.commentsVO)
-        ? otherRes.paramObjectsMap.commentsVO
-        : [];
-
-    const normalizedMy = myComments.map((c) => ({
-      ...c,
-      displayName: c.createdBy || c.userName,
-      source: 'MY'
-    }));
-
-  const normalizedOther = otherComments.map((c) => ({
-  ...c,
-  displayName: c.sourceUserName
-    ? c.sourceUserName.split('@')[0]
-    : 'External',
-  source: 'OTHER'
-}));
-
-    const merged = [...normalizedMy, ...normalizedOther].sort((a, b) => {
-      const dateA = dayjs(a.commonDate?.createdon, 'DD-MM-YYYY hh:mm:ss A');
-      const dateB = dayjs(b.commonDate?.createdon, 'DD-MM-YYYY hh:mm:ss A');
-      return dateB.valueOf() - dateA.valueOf();
-    });
-
-    setComments(merged);
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    setComments([]);
-    showToast('error', 'Failed to fetch comments');
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-useEffect(() => {
-  if (!openDialog || !selectedTicket?.id) return;
-
-  // initial load
-  getComments(selectedTicket.id);
-
-  const interval = setInterval(async () => {
+  const getComments = async (ticketId) => {
     try {
+      setIsLoading(true);
+
       const [myRes, otherRes] = await Promise.all([
         apiCalls(
           'get',
-          `ticketcontroller/getAllCommentsMyServer?ticketId=${selectedTicket.id}`
+          `ticketcontroller/getAllCommentsMyServer?ticketId=${ticketId}`
         ),
         apiCalls(
           'get',
-          `ticketcontroller/getAllCommentsAnotherServer?ticketId=${selectedTicket.id}`
+          `ticketcontroller/getAllCommentsAnotherServer?ticketId=${ticketId}`
         )
       ]);
 
       const myComments =
-        myRes?.status &&
-        Array.isArray(myRes.paramObjectsMap?.commentsVO)
+        myRes?.status && Array.isArray(myRes.paramObjectsMap?.commentsVO)
           ? myRes.paramObjectsMap.commentsVO
           : [];
 
       const otherComments =
-        otherRes?.status &&
-        Array.isArray(otherRes.paramObjectsMap?.commentsVO)
+        otherRes?.status && Array.isArray(otherRes.paramObjectsMap?.commentsVO)
           ? otherRes.paramObjectsMap.commentsVO
           : [];
 
@@ -192,137 +131,198 @@ useEffect(() => {
       }));
 
       const merged = [...normalizedMy, ...normalizedOther].sort((a, b) => {
-        const dateA = dayjs(
-          a.commonDate?.createdon,
-          'DD-MM-YYYY hh:mm:ss A'
-        );
-
-        const dateB = dayjs(
-          b.commonDate?.createdon,
-          'DD-MM-YYYY hh:mm:ss A'
-        );
-
+        const dateA = dayjs(a.commonDate?.createdon, 'DD-MM-YYYY hh:mm:ss A');
+        const dateB = dayjs(b.commonDate?.createdon, 'DD-MM-YYYY hh:mm:ss A');
         return dateB.valueOf() - dateA.valueOf();
       });
 
-      setComments((prev) => {
-        const prevString = JSON.stringify(prev);
-        const newString = JSON.stringify(merged);
-
-        if (prevString === newString) {
-          return prev;
-        }
-
-        return merged;
-      });
+      setComments(merged);
     } catch (error) {
-      console.error('Auto refresh comments error:', error);
+      console.error('Error fetching comments:', error);
+      setComments([]);
+      showToast('error', 'Failed to fetch comments');
+    } finally {
+      setIsLoading(false);
     }
-  }, 5000);
-
-  return () => clearInterval(interval);
-}, [openDialog, selectedTicket?.id]);
-
-
-
-
-const handleSubmitComment = async (commentText, editingId) => {
-  if (!commentText.trim()) {
-    showToast('error', 'Please enter a comment');
-    return;
-  }
-
-  const basePayload = {
-    comments: commentText,
-    ticketId: selectedTicket?.id,
-    createdBy: loginUserName,
-    orgId: orgId,
-    userName: loginUserName
   };
 
-  try {
-    setIsLoading(true);
+  useEffect(() => {
+    if (!openDialog || !selectedTicket?.id) return;
 
-    let response;
+    // initial load
+    getComments(selectedTicket.id);
 
-    // ✏️ UPDATE COMMENT
-    if (editingId) {
-      response = await apiCalls(
-        'put',
-        'ticketcontroller/updateComments',
-        {
-          ...basePayload,
-          id: editingId
-        }
-      );
-    } 
-    
-    // ➕ CREATE COMMENT
-    else {
-      response = await apiCalls(
-        'post',
-        'ticketcontroller/createComments',
-        basePayload
-      );
+    const interval = setInterval(async () => {
+      try {
+        const [myRes, otherRes] = await Promise.all([
+          apiCalls(
+            'get',
+            `ticketcontroller/getAllCommentsMyServer?ticketId=${selectedTicket.id}`
+          ),
+          apiCalls(
+            'get',
+            `ticketcontroller/getAllCommentsAnotherServer?ticketId=${selectedTicket.id}`
+          )
+        ]);
+
+        const myComments =
+          myRes?.status &&
+            Array.isArray(myRes.paramObjectsMap?.commentsVO)
+            ? myRes.paramObjectsMap.commentsVO
+            : [];
+
+        const otherComments =
+          otherRes?.status &&
+            Array.isArray(otherRes.paramObjectsMap?.commentsVO)
+            ? otherRes.paramObjectsMap.commentsVO
+            : [];
+
+        const normalizedMy = myComments.map((c) => ({
+          ...c,
+          displayName: c.createdBy || c.userName,
+          source: 'MY'
+        }));
+
+        const normalizedOther = otherComments.map((c) => ({
+          ...c,
+          displayName: c.sourceUserName
+            ? c.sourceUserName.split('@')[0]
+            : 'External',
+          source: 'OTHER'
+        }));
+
+        const merged = [...normalizedMy, ...normalizedOther].sort((a, b) => {
+          const dateA = dayjs(
+            a.commonDate?.createdon,
+            'DD-MM-YYYY hh:mm:ss A'
+          );
+
+          const dateB = dayjs(
+            b.commonDate?.createdon,
+            'DD-MM-YYYY hh:mm:ss A'
+          );
+
+          return dateB.valueOf() - dateA.valueOf();
+        });
+
+        setComments((prev) => {
+          const prevString = JSON.stringify(prev);
+          const newString = JSON.stringify(merged);
+
+          if (prevString === newString) {
+            return prev;
+          }
+
+          return merged;
+        });
+      } catch (error) {
+        console.error('Auto refresh comments error:', error);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [openDialog, selectedTicket?.id]);
+
+
+
+
+  const handleSubmitComment = async (commentText, editingId) => {
+    if (!commentText.trim()) {
+      showToast('error', 'Please enter a comment');
+      return;
     }
 
-    console.log('COMMENT RESPONSE =>', response);
+    const basePayload = {
+      comments: commentText,
+      ticketId: selectedTicket?.id,
+      createdBy: loginUserName,
+      orgId: orgId,
+      userName: loginUserName
+    };
 
-    // ✅ SUCCESS CHECK
-    if (response) {
+    try {
+      setIsLoading(true);
 
-      // 🔥 INSTANT UI UPDATE FOR EDIT
+      let response;
+
+      // ✏️ UPDATE COMMENT
       if (editingId) {
+        response = await apiCalls(
+          'put',
+          'ticketcontroller/updateComments',
+          {
+            ...basePayload,
+            id: editingId
+          }
+        );
+      }
 
-        setComments((prev) =>
-          prev.map((c) =>
-            c.id === editingId
-              ? {
+      // ➕ CREATE COMMENT
+      else {
+        response = await apiCalls(
+          'post',
+          'ticketcontroller/createComments',
+          basePayload
+        );
+      }
+
+      console.log('COMMENT RESPONSE =>', response);
+
+      // ✅ SUCCESS CHECK
+      if (response) {
+
+        // 🔥 INSTANT UI UPDATE FOR EDIT
+        if (editingId) {
+
+          setComments((prev) =>
+            prev.map((c) =>
+              c.id === editingId
+                ? {
                   ...c,
                   comments: commentText
                 }
-              : c
-          )
+                : c
+            )
+          );
+
+        } else {
+
+          // 🔥 REFRESH COMMENTS AFTER NEW COMMENT
+          await getComments(selectedTicket?.id);
+
+        }
+
+        showToast(
+          'success',
+          editingId
+            ? 'Comment updated successfully'
+            : 'Comment added successfully'
         );
+
+        setComment('');
 
       } else {
 
-        // 🔥 REFRESH COMMENTS AFTER NEW COMMENT
-        await getComments(selectedTicket?.id);
+        showToast('error', 'Operation failed');
 
       }
 
+    } catch (error) {
+
+      console.error('Comment submit error:', error);
+
       showToast(
-        'success',
-        editingId
-          ? 'Comment updated successfully'
-          : 'Comment added successfully'
+        'error',
+        error?.response?.data?.message ||
+        'Failed to submit comment'
       );
 
-      setComment('');
+    } finally {
 
-    } else {
-
-      showToast('error', 'Operation failed');
+      setIsLoading(false);
 
     }
-
-  } catch (error) {
-
-    console.error('Comment submit error:', error);
-
-    showToast(
-      'error',
-      error?.response?.data?.message ||
-      'Failed to submit comment'
-    );
-
-  } finally {
-
-    setIsLoading(false);
-
-  }
-};
+  };
 
   const handleStatusChange = async (newStatus, rowData) => {
     console.log('Testing==>', rowData);
@@ -349,28 +349,28 @@ const handleSubmitComment = async (commentText, editingId) => {
   };
 
   const handleDeleteComment = async (id) => {
-  try {
-    setIsLoading(true);
+    try {
+      setIsLoading(true);
 
-    const response = await apiCalls(
-      'delete',
-      `ticketcontroller/deleteComments?id=${id}&sourceId=${id}`
-    );
+      const response = await apiCalls(
+        'delete',
+        `ticketcontroller/deleteComments?id=${id}&sourceId=${id}`
+      );
 
-    if (response.status) {
-      //  REMOVE LOCALLY INSTEAD OF REFETCH
-      setComments((prev) => prev.filter((c) => c?.id !== id));
-      showToast('success', 'Comment deleted');
-    } else {
-      showToast('error', 'Delete failed');
+      if (response.status) {
+        //  REMOVE LOCALLY INSTEAD OF REFETCH
+        setComments((prev) => prev.filter((c) => c?.id !== id));
+        showToast('success', 'Comment deleted');
+      } else {
+        showToast('error', 'Delete failed');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('error', 'Failed to delete comment');
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error(error);
-    showToast('error', 'Failed to delete comment');
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const transformedTickets = tickets.map((t) => ({
     ...t,
@@ -392,53 +392,55 @@ const handleSubmitComment = async (commentText, editingId) => {
   return (
     <>
       <Box sx={{ height: 400, mt: 0 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-          {/* Left side: Title */}
-          <Typography variant="h6" fontWeight="bold">
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+          sx={{
+            background: '#fff',
+            p: 1.5,
+            borderRadius: 2,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}
+        >
+          {/* Left: Title */}
+          <Typography variant="h6" fontWeight={700} sx={{ color: '#2a4b4d' }}>
             All Tickets
           </Typography>
 
-          {/* Right side: Filter + Search in a horizontal stack */}
-          <Stack direction="row" spacing={2} alignItems="center">
-            {/* Filter Icon */}
-            <IconButton onClick={() => setStatusFilter(statusFilter === 'All' ? 'Open' : 'All')} size="small">
-              <FilterListIcon sx={{ color: '#007BFF' }} />
+          {/* Right: Controls */}
+          <Stack direction="row" spacing={1.5} alignItems="center">
+
+            {/* Status Filter */}
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Open">Open</MenuItem>
+                <MenuItem value="InProgress">In Progress</MenuItem>
+                <MenuItem value="Closed">Closed</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Search */}
+            <TextField
+              size="small"
+              placeholder="Search tickets..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              sx={{ width: 240 }}
+            />
+
+            {/* Optional action buttons */}
+            <IconButton size="small" sx={{ bgcolor: '#f1f5f9', borderRadius: 2 }}>
+              <FilterListIcon sx={{ color: '#3a6b6d' }} />
             </IconButton>
 
-            {/* Status Filter Dropdown */}
-            {statusFilter !== 'All' && (
-              <FormControl size="small" sx={{ width: 200 }}>
-                <InputLabel>Status Filter</InputLabel>
-                <Select value={statusFilter} label="Status Filter" onChange={(e) => setStatusFilter(e.target.value)}>
-                  <MenuItem value="All">All</MenuItem>
-                  <MenuItem value="Open">Open</MenuItem>
-                  <MenuItem value="InProgress">In Progress</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                </Select>
-              </FormControl>
-            )}
-
-            {/* Search Icon with Expandable Input */}
-            <IconButton onClick={handleSearchExpand} size="small">
-              <SearchIcon fontSize="small" sx={{ color: '#17A2B8' }} />
-            </IconButton>
-
-            {isSearchExpanded && (
-              <TextField
-                size="small"
-                placeholder="Search tickets..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ width: 250 }}
-                //   InputProps={{
-                //     startAdornment: (
-                //       <InputAdornment position="start">
-                //         <SearchIcon fontSize="small" />
-                //       </InputAdornment>
-                //     )
-                //   }}
-              />
-            )}
           </Stack>
         </Stack>
         <DataGrid
@@ -516,12 +518,12 @@ const handleSubmitComment = async (commentText, editingId) => {
             },
             ...(loginUserName === 'WDS002'
               ? [
-                  {
-                    field: 'userName',
-                    headerName: 'User',
-                    width: 160
-                  }
-                ]
+                {
+                  field: 'userName',
+                  headerName: 'User',
+                  width: 160
+                }
+              ]
               : []),
 
             {
@@ -546,46 +548,163 @@ const handleSubmitComment = async (commentText, editingId) => {
           rowsPerPageOptions={[5]}
           disableSelectionOnClick
           sx={{
-            borderRadius: 2,
+            borderRadius: 3,
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden',
+            background: '#fff',
+
+            // Header styling (aligned with your teal system theme)
             '& .MuiDataGrid-columnHeaders': {
-              background: 'linear-gradient(145deg, #6a11cb, #2575fc)',
-              color: 'white',
-              fontWeight: 'bold'
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 13,
+              borderBottom: 'none'
             },
+
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 600,
+              letterSpacing: '0.3px'
+            },
+
+            // Rows
+            '& .MuiDataGrid-row': {
+              fontSize: 13
+            },
+
             '& .MuiDataGrid-row:hover': {
-              backgroundColor: '#f0f4ff'
+              backgroundColor: '#f1f5f9',
+              transition: '0.2s ease'
             },
+
+            // Cells
             '& .MuiDataGrid-cell': {
-              borderBottom: '1px solid #eee'
+              borderBottom: '1px solid #eef2f7',
+              fontSize: 13,
+              color: '#334155'
+            },
+
+            // Remove ugly focus outline
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+
+            '& .MuiDataGrid-cell:focus-within': {
+              outline: 'none'
+            },
+
+            // Footer (pagination area)
+            '& .MuiDataGrid-footerContainer': {
+              background: '#f8fafc',
+              borderTop: '1px solid #e2e8f0',
+              minHeight: 50
+            },
+
+            '& .MuiTablePagination-root': {
+              fontSize: 12
+            },
+
+            // Checkbox (if enabled later)
+            '& .MuiCheckbox-root': {
+              color: '#3a6b6d'
+            },
+
+            // Selected row (optional but clean UX)
+            '& .Mui-selected': {
+              backgroundColor: 'rgba(58, 107, 109, 0.08) !important'
             }
           }}
         />
 
         {/* Dialog for Ticket Details */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>Ticket Details</DialogTitle>
-          <DialogContent dividers>
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              overflow: 'hidden',
+              boxShadow: '0 18px 45px rgba(15,23,42,0.2)',
+              border: '1px solid #e2e8f0'
+            }
+          }}
+        >
+          {/* HEADER */}
+          <DialogTitle
+            sx={{
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              color: '#fff',
+              fontSize: '15px',
+              fontWeight: 600,
+              py: 1.5,
+              letterSpacing: '0.3px'
+            }}
+          >
+            Ticket Details
+          </DialogTitle>
+
+          {/* BODY */}
+          <DialogContent
+            dividers
+            sx={{
+              background: '#f8fafc',
+              p: 2.5
+            }}
+          >
             {selectedTicket && (
-              <Stack spacing={3}>
+              <Stack spacing={2.5}>
                 <TicketInfo selectedTicket={selectedTicket} />
-                <CommentSection
-                  commentsVO={comments}
-                  currentUser={loginUserName}
-                  onSubmitComment={handleSubmitComment}
-                  onGetComments={getComments}
-                  onEditComment={handleSubmitComment}
-                  onDeleteComment={handleDeleteComment}
-                />
+
+                <Box
+                  sx={{
+                    background: '#fff',
+                    borderRadius: 2,
+                    border: '1px solid #e2e8f0',
+                    p: 2,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                  }}
+                >
+                  <CommentSection
+                    commentsVO={comments}
+                    currentUser={loginUserName}
+                    onSubmitComment={handleSubmitComment}
+                    onGetComments={getComments}
+                    onEditComment={handleSubmitComment}
+                    onDeleteComment={handleDeleteComment}
+                  />
+                </Box>
               </Stack>
             )}
           </DialogContent>
 
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
+          {/* FOOTER */}
+          <DialogActions
+            sx={{
+              background: '#fff',
+              px: 2,
+              py: 1.5,
+              borderTop: '1px solid #e2e8f0'
+            }}
+          >
+            <Button
+              onClick={handleCloseDialog}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 3
+              }}
+            >
+              Close
+            </Button>
           </DialogActions>
         </Dialog>
       </Box>
-     
+
     </>
   );
 };

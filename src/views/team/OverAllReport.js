@@ -781,27 +781,47 @@ function OverAllReport() {
                 variant="contained"
                 onClick={handleSearchTasks}
                 disabled={isLoading}
-                startIcon={<TaskAltIcon />}
+                startIcon={!isLoading && <TaskAltIcon sx={{ fontSize: 18 }} />}
                 sx={{
-                  borderRadius: '30px',
-                  padding: '6px 14px',
-                  fontWeight: '100',
-                  fontSize: '12px',
+                  borderRadius: '10px',
+                  px: 2,
+                  py: 0.8,
+                  minWidth: 140,
+                  fontWeight: 600,
+                  fontSize: '13px',
                   textTransform: 'none',
-                  background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
-                  boxShadow: '0 2spx 10px rgba(25, 118, 210, 0.4)',
-                  transition: 'all 0.3s ease-in-out',
+                  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                  color: '#fff',
+                  boxShadow: '0 4px 12px rgba(15,23,42,0.12)',
+                  transition: 'all 0.25s ease',
+
                   '&:hover': {
-                    background: 'linear-gradient(90deg, #1565c0, #1e88e5)',
-                    transform: 'translateY(-3px) scale(1.05)',
-                    boxShadow: '0 8px 25px rgba(25, 118, 210, 0.6)'
+                    background: 'linear-gradient(135deg, #325c5e 0%, #223d3f 100%)',
+                    boxShadow: '0 6px 16px rgba(15,23,42,0.18)',
+                    transform: 'translateY(-1px)'
                   },
+
                   '&:active': {
-                    transform: 'scale(0.97)'
+                    transform: 'scale(0.98)'
+                  },
+
+                  '&.Mui-disabled': {
+                    background: '#90a4ae',
+                    color: '#fff'
                   }
                 }}
               >
-                {isLoading ? <CircularProgress size={14} sx={{ color: 'white' }} /> : 'Show Tasks'}
+                {isLoading ? (
+                  <CircularProgress
+                    size={16}
+                    thickness={5}
+                    sx={{
+                      color: '#fff'
+                    }}
+                  />
+                ) : (
+                  'Show Tasks'
+                )}
               </Button>
             </div>
           </div>
@@ -814,39 +834,163 @@ function OverAllReport() {
           PaperComponent={PaperComponent}
           aria-labelledby="draggable-dialog-title"
           PaperProps={{
-            sx: { p: 0, m: 0, borderRadius: 1 }
+            sx: {
+              borderRadius: {
+                xs: '14px',
+                sm: '22px'
+              },
+              overflow: 'hidden',
+              background: '#ffffff',
+              boxShadow: '0 18px 45px rgba(15,23,42,0.20)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              width: {
+                xs: 'calc(100vw - 10px)',
+                sm: '95vw'
+              },
+              maxWidth: {
+                xs: 'calc(100vw - 10px)',
+                xl: '1600px'
+              },
+              m: {
+                xs: '5px auto',
+                sm: 2
+              },
+              maxHeight: '96vh',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundImage: 'linear-gradient(to bottom, #ffffff, #f8fafc)'
+            }
           }}
         >
-          <DialogTitle style={{ cursor: 'move', backgroundColor: '#0f0f1a', color: 'white' }} id="draggable-dialog-title">
-            Task Details
-            {/* Download Icon */}
-            <Tooltip title="Download">
-              <IconButton
-                onClick={handleMenuOpen}
+          {/* HEADER */}
+          <DialogTitle
+            id="draggable-dialog-title"
+            sx={{
+              cursor: 'move',
+              px: {
+                xs: 1.5,
+                sm: 2.5
+              },
+              py: 1.5,
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              minHeight: '60px',
+              borderBottom: '1px solid rgba(255,255,255,0.08)'
+            }}
+          >
+            <Box>
+              <Typography
                 sx={{
-                  position: 'absolute',
-                  right: 40,
-                  top: 2,
-                  color: 'white'
+                  fontWeight: 700,
+                  letterSpacing: 0.3,
+                  fontSize: {
+                    xs: '15px',
+                    sm: '18px'
+                  }
                 }}
               >
-                <DownloadIcon />
-              </IconButton>
-            </Tooltip>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleMenuClose} PaperProps={{ sx: { minWidth: 150 } }}>
+                Task Details
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontSize: '11px',
+                  color: 'rgba(255,255,255,0.75)',
+                  mt: 0.3
+                }}
+              >
+                Employee Task Report Summary
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.7
+              }}
+            >
+              <Tooltip title="Download">
+                <IconButton
+                  onClick={handleMenuOpen}
+                  size="small"
+                  sx={{
+                    color: '#fff',
+                    backgroundColor: 'rgba(255,255,255,0.12)',
+                    width: 34,
+                    height: 34,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.22)'
+                    }
+                  }}
+                >
+                  <DownloadIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Close">
+                <IconButton
+                  onClick={() => setListView(false)}
+                  size="small"
+                  sx={{
+                    color: '#fff',
+                    backgroundColor: 'rgba(255,255,255,0.12)',
+                    width: 34,
+                    height: 34,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.22)'
+                    }
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
+
+            {/* DOWNLOAD MENU */}
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              PaperProps={{
+                sx: {
+                  borderRadius: 3,
+                  minWidth: 180,
+                  boxShadow: '0 8px 24px rgba(15,23,42,0.15)',
+                  mt: 1
+                }
+              }}
+            >
               <MenuItem
                 onClick={() => {
                   handleMenuClose();
                   exportToExcel({
                     logo: listViewData[0]?.companyLogo,
-                    empName: formData.employeeCode === 'All' ? 'All Employees' : formData.employeeCode,
+                    empName:
+                      formData.employeeCode === 'All'
+                        ? 'All Employees'
+                        : formData.employeeCode,
                     filters: formData,
                     rowData: filteredRowData
                   });
                 }}
+                sx={{
+                  py: 1,
+                  fontSize: '13px'
+                }}
               >
-                <TableViewIcon sx={{ mr: 1, color: 'green' }} /> Excel
+                <TableViewIcon
+                  sx={{
+                    mr: 1.2,
+                    color: 'green'
+                  }}
+                />
+                Export Excel
               </MenuItem>
+
               <MenuItem
                 onClick={() => {
                   handleMenuClose();
@@ -854,327 +998,529 @@ function OverAllReport() {
                     logo: listViewData[0]?.companyLogo,
                     loginUserName,
                     fileName: 'Employee Task Report',
-                    empName: formData.employeeCode === 'All' ? 'All Employees' : formData.employeeCode,
+                    empName:
+                      formData.employeeCode === 'All'
+                        ? 'All Employees'
+                        : formData.employeeCode,
                     filters: formData,
                     rowData: filteredRowData
                   });
                 }}
+                sx={{
+                  py: 1,
+                  fontSize: '13px'
+                }}
               >
-                <PictureAsPdfIcon sx={{ mr: 1, color: 'red' }} /> PDF
+                <PictureAsPdfIcon
+                  sx={{
+                    mr: 1.2,
+                    color: 'red'
+                  }}
+                />
+                Export PDF
               </MenuItem>
             </Menu>
-            <IconButton
-              onClick={() => setListView(false)}
-              sx={{
-                position: 'absolute',
-                right: 2,
-                top: 2,
-                color: 'white'
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
           </DialogTitle>
+
+          {/* BODY */}
           <DialogContent
             sx={{
-              p: 0,
-              backgroundColor: '#0f0f1a'
+              background: '#f8fafc',
+              p: {
+                xs: 1,
+                sm: 1.5
+              },
+              overflow: 'auto'
             }}
           >
-            <>
-              {/* Filter Info Section */}
-              {(screenFilter !== 'All' || dateFilter !== 'All') && (
+            {/* FILTER BAR */}
+            {(screenFilter !== 'All' || dateFilter !== 'All') && (
+              <Paper
+                elevation={0}
+                sx={{
+                  mb: 2,
+                  p: 1.5,
+                  borderRadius: '16px',
+                  background:
+                    'linear-gradient(90deg, #eef7ff 0%, #d8ecff 100%)',
+                  border: '1px solid #bbdefb',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
+                    flexWrap: 'wrap',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 2,
-                    py: 1.2,
-                    px: 2,
-                    borderRadius: 2,
-                    background: 'linear-gradient(90deg, #e3f2fd 0%, #bbdefb 100%)',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                    border: '1px solid #90caf9',
-                    mb: 1.5
+                    justifyContent: 'space-between',
+                    gap: 1.5
                   }}
                 >
-                  <Typography
-                    variant="body1"
+                  <Box
                     sx={{
-                      color: '#0d47a1',
-                      fontWeight: 600,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 1,
+                      flexWrap: 'wrap'
                     }}
                   >
-                    <span>Active Filters:</span>
+                    <Typography
+                      sx={{
+                        fontWeight: 700,
+                        color: '#1565c0',
+                        fontSize: '13px'
+                      }}
+                    >
+                      Active Filters :
+                    </Typography>
 
                     {screenFilter !== 'All' && (
                       <Chip
-                        label={`Screen: ${screenFilter}`}
-                        color="primary"
-                        variant="filled"
+                        label={`Screen : ${screenFilter}`}
                         size="small"
                         sx={{
-                          fontWeight: 'bold',
-                          letterSpacing: 0.3,
-                          backgroundColor: '#1976d2',
-                          color: 'white',
-                          px: 1
+                          fontWeight: 600,
+                          background: '#1976d2',
+                          color: '#fff'
                         }}
                       />
                     )}
 
                     {dateFilter !== 'All' && (
                       <Chip
-                        label={`Date: ${dayjs(dateFilter).format('DD/MM/YYYY')}`}
-                        color="secondary"
-                        variant="filled"
+                        label={`Date : ${dayjs(dateFilter).format('DD/MM/YYYY')}`}
                         size="small"
                         sx={{
-                          fontWeight: 'bold',
-                          letterSpacing: 0.3,
-                          backgroundColor: '#7b1fa2',
-                          color: 'white',
-                          px: 1
+                          fontWeight: 600,
+                          background: '#7b1fa2',
+                          color: '#fff'
                         }}
                       />
                     )}
-                  </Typography>
+                  </Box>
 
                   <Button
                     size="small"
-                    variant="outlined"
-                    color="primary"
+                    variant="contained"
+                    startIcon={<FilterListOffIcon />}
                     onClick={() => {
                       handleScreenFilterChange('All');
                       handleDateFilterChange('All');
                     }}
-                    startIcon={<FilterListOffIcon />}
                     sx={{
+                      borderRadius: '10px',
                       textTransform: 'none',
-                      borderRadius: 2,
-                      borderColor: '#1976d2',
-                      color: '#1976d2',
+                      fontWeight: 600,
+                      px: 2,
+                      py: 0.7,
+                      background:
+                        'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                      boxShadow: '0 4px 12px rgba(15,23,42,0.10)',
                       '&:hover': {
-                        backgroundColor: '#bbdefb',
-                        borderColor: '#1565c0'
+                        background:
+                          'linear-gradient(135deg, #325c5e 0%, #223d3f 100%)'
                       }
                     }}
                   >
-                    Clear All Filters
+                    Clear Filters
                   </Button>
                 </Box>
-              )}
+              </Paper>
+            )}
 
-              <TableContainer component={Paper}>
-                <Table stickyHeader aria-label="employee task report table" size="small">
+            {/* TABLE */}
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: '18px',
+                overflow: 'hidden',
+                border: '1px solid #e2e8f0',
+                background: '#fff'
+              }}
+            >
+              <TableContainer
+                sx={{
+                  maxHeight: '72vh',
+                  overflow: 'auto',
+
+                  '&::-webkit-scrollbar': {
+                    height: 8,
+                    width: 8
+                  },
+
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#cbd5e1',
+                    borderRadius: 10
+                  }
+                }}
+              >
+                <Table
+                  stickyHeader
+                  size="small"
+                  sx={{
+                    minWidth: 1250,
+
+                    '& .MuiTableCell-root': {
+                      borderColor: '#eef2f7'
+                    }
+                  }}
+                >
+                  {/* HEADER */}
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ minWidth: 110, fontWeight: 'bold' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          Date
-                          {/* Date Filter Icon - Always show for all employees */}
-                          <Tooltip title="Filter by Date">
-                            <IconButton
-                              onClick={handleDateFilterMenuOpen}
-                              size="small"
-                              sx={{
-                                padding: '2px',
-                                color: 'primary.main',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(25, 118, 210, 0.04)'
-                                }
-                              }}
-                            >
-                              <CalendarMonthIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ minWidth: 90, fontWeight: 'bold' }}>Tot Hrs</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Project</TableCell>
-                      <TableCell sx={{ minWidth: 50, maxWidth: 70, fontWeight: 'bold' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          Screens
-                          {/* Screen Filter Icon - Only show when specific employee is selected */}
-                          {formData.employeeCode !== 'All' && formData.employeeCode !== '' && (
-                            <Tooltip title="Filter by Screen">
-                              <IconButton
-                                onClick={handleScreenFilterMenuOpen}
-                                size="small"
-                                sx={{
-                                  padding: '2px',
-                                  color: 'primary.main',
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(25, 118, 210, 0.04)'
-                                  }
-                                }}
-                              >
-                                <FilterListIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>From</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>To</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>WIP%</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Remarks</TableCell>
+                      {[
+                        'Date',
+                        'Tot Hrs',
+                        'Project',
+                        'Screens',
+                        'Status',
+                        'From',
+                        'To',
+                        'WIP%',
+                        'Description',
+                        'Remarks'
+                      ].map((head, index) => (
+                        <TableCell
+                          key={index}
+                          sx={{
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            py: 1.5,
+                            whiteSpace: 'nowrap',
+                            textAlign:
+                              head === 'Description' ||
+                                head === 'Remarks'
+                                ? 'left'
+                                : 'center'
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent:
+                                head === 'Description' ||
+                                  head === 'Remarks'
+                                  ? 'flex-start'
+                                  : 'center',
+                              gap: 0.5
+                            }}
+                          >
+                            {head}
+
+                            {head === 'Date' && (
+                              <Tooltip title="Filter by Date">
+                                <IconButton
+                                  onClick={handleDateFilterMenuOpen}
+                                  size="small"
+                                  sx={{
+                                    p: 0.3,
+                                    color: '#3a6b6d'
+                                  }}
+                                >
+                                  <CalendarMonthIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+
+                            {head === 'Screens' &&
+                              formData.employeeCode !== 'All' &&
+                              formData.employeeCode !== '' && (
+                                <Tooltip title="Filter by Screen">
+                                  <IconButton
+                                    onClick={handleScreenFilterMenuOpen}
+                                    size="small"
+                                    sx={{
+                                      p: 0.3,
+                                      color: '#3a6b6d'
+                                    }}
+                                  >
+                                    <FilterListIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                          </Box>
+                        </TableCell>
+                      ))}
                     </TableRow>
                   </TableHead>
 
-                  {/* Screen Filter Menu */}
-                  <Menu
-                    anchorEl={screenFilterAnchorEl}
-                    open={screenFilterOpen}
-                    onClose={handleScreenFilterMenuClose}
-                    PaperProps={{ sx: { maxHeight: 300, minWidth: 200 } }}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        handleScreenFilterChange('All');
-                        handleScreenFilterMenuClose();
-                      }}
-                      selected={screenFilter === 'All'}
-                    >
-                      All Screens
-                    </MenuItem>
-                    {screenList
-                      .filter((screen) => screen !== 'All')
-                      .map((screen, index) => (
-                        <MenuItem
-                          key={index}
-                          onClick={() => {
-                            handleScreenFilterChange(screen);
-                            handleScreenFilterMenuClose();
-                          }}
-                          selected={screenFilter === screen}
-                        >
-                          {screen}
-                        </MenuItem>
-                      ))}
-                  </Menu>
-
-                  {/* Date Filter Menu */}
-                  <Menu
-                    anchorEl={dateFilterAnchorEl}
-                    open={dateFilterOpen}
-                    onClose={handleDateFilterMenuClose}
-                    PaperProps={{ sx: { maxHeight: 300, minWidth: 150 } }}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        handleDateFilterChange('All');
-                        handleDateFilterMenuClose();
-                      }}
-                      selected={dateFilter === 'All'}
-                    >
-                      All Dates
-                    </MenuItem>
-                    {dateList
-                      .filter((date) => date.value !== 'All')
-                      .map((date, index) => (
-                        <MenuItem
-                          key={index}
-                          onClick={() => {
-                            handleDateFilterChange(date.value);
-                            handleDateFilterMenuClose();
-                          }}
-                          selected={dateFilter === date.value}
-                        >
-                          {date.label}
-                        </MenuItem>
-                      ))}
-                  </Menu>
-
+                  {/* BODY */}
                   <TableBody>
                     {filteredRowData.length > 0 ? (
                       filteredRowData.map((row, rowIndex) => (
                         <React.Fragment key={rowIndex}>
-                          <TableRow sx={{ backgroundColor: 'blue' }}>
-                            <TableCell colSpan={11} style={{ fontWeight: 'bold' }}>
+                          {/* EMPLOYEE HEADER */}
+                          <TableRow>
+                            <TableCell
+                              colSpan={10}
+                              sx={{
+                                background:
+                                  'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                py: 1.3,
+                                px: 2,
+                                borderBottom: 'none'
+                              }}
+                            >
                               {(() => {
                                 const totalDays = row.timesheets.length;
-                                const presentDays = row.timesheets.filter((ts) => ts.status === 'TIMESHEET').length;
+
+                                const presentDays = row.timesheets.filter(
+                                  (ts) => ts.status === 'TIMESHEET'
+                                ).length;
+
                                 const leaveDays = row.timesheets.filter(
                                   (ts) =>
-                                    ts.status === 'ABSENT' || ts.status === 'COMPENSATORY OFF' || ts.status?.toUpperCase().includes('LEAVE')
+                                    ts.status === 'ABSENT' ||
+                                    ts.status === 'COMPENSATORY OFF' ||
+                                    ts.status?.toUpperCase().includes('LEAVE')
                                 ).length;
+
                                 return (
-                                  <>
-                                    <span style={{ color: '#FFFFFF' }}>{row.empcodename}</span> &nbsp; | &nbsp;
-                                    <span style={{ color: '#FFFFFF' }}>Total Days: {totalDays}</span> &nbsp; | &nbsp;
-                                    <span style={{ color: '#FFFFFF' }}>Present: {presentDays}</span> &nbsp; | &nbsp;
-                                    <span style={{ color: '#FFFFFF' }}>Leave: {leaveDays}</span>
-                                  </>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      justifyContent: {
+                                        xs: 'flex-start',
+                                        sm: 'center'
+                                      },
+                                      alignItems: {
+                                        xs: 'flex-start',
+                                        sm: 'center'
+                                      },
+                                      flexDirection: {
+                                        xs: 'column',
+                                        sm: 'row'
+                                      },
+                                      flexWrap: 'wrap',
+                                      gap: {
+                                        xs: 0.5,
+                                        sm: 2
+                                      }
+                                    }}
+                                  >
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: '#fff',
+                                        fontSize: {
+                                          xs: '13px',
+                                          sm: '14px'
+                                        }
+                                      }}
+                                    >
+                                      {row.empcodename}
+                                    </Typography>
+
+                                    <Typography
+                                      sx={{
+                                        color: '#e0f2f1',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Total Days : {totalDays}
+                                    </Typography>
+
+                                    <Typography
+                                      sx={{
+                                        color: '#c8e6c9',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Present : {presentDays}
+                                    </Typography>
+
+                                    <Typography
+                                      sx={{
+                                        color: '#ffcdd2',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      Leave : {leaveDays}
+                                    </Typography>
+                                  </Box>
                                 );
                               })()}
                             </TableCell>
                           </TableRow>
-                          {/* Timesheet Loop */}
-                          {[...row.timesheets]
-                            .sort((a, b) => new Date(a.date) - new Date(b.date))
-                            .map((ts, tsIndex) => {
-                              const details = ts.timeSheetDetailsVO || [];
-                              const detailCount = details.length || 1;
 
-                              if (ts.status === 'TIMESHEET' && details.length > 0) {
+                          {[...row.timesheets]
+                            .sort(
+                              (a, b) =>
+                                new Date(a.date) - new Date(b.date)
+                            )
+                            .map((ts, tsIndex) => {
+                              const details =
+                                ts.timeSheetDetailsVO || [];
+
+                              const detailCount =
+                                details.length || 1;
+
+                              if (
+                                ts.status === 'TIMESHEET' &&
+                                details.length > 0
+                              ) {
                                 return details.map((task, i) => (
-                                  <TableRow key={`${rowIndex}-${tsIndex}-${i}`}>
-                                    {/* Show Date/Status/Hours only once, span all rows */}
+                                  <TableRow
+                                    key={`${rowIndex}-${tsIndex}-${i}`}
+                                    hover
+                                    sx={{
+                                      '&:nth-of-type(even)': {
+                                        backgroundColor: '#fcfcfd'
+                                      },
+
+                                      '&:hover': {
+                                        backgroundColor: '#f8fafc'
+                                      }
+                                    }}
+                                  >
                                     {i === 0 && (
                                       <>
-                                        <TableCell rowSpan={detailCount} sx={{ verticalAlign: 'middle', fontWeight: 'bold' }}>
-                                          {dayjs(ts.date).format('DD/MM/YYYY')}
+                                        <TableCell
+                                          rowSpan={detailCount}
+                                          sx={{
+                                            verticalAlign: 'middle',
+                                            fontWeight: 600,
+                                            whiteSpace: 'nowrap',
+                                            textAlign: 'center',
+                                            fontSize: '12px'
+                                          }}
+                                        >
+                                          {dayjs(ts.date).format(
+                                            'DD/MM/YYYY'
+                                          )}
                                         </TableCell>
-                                        <TableCell rowSpan={detailCount} sx={{ verticalAlign: 'middle' }}>
+
+                                        <TableCell
+                                          rowSpan={detailCount}
+                                          sx={{
+                                            verticalAlign: 'middle',
+                                            textAlign: 'center',
+                                            fontWeight: 600,
+                                            fontSize: '12px'
+                                          }}
+                                        >
                                           {ts.totalhours} h
                                         </TableCell>
                                       </>
                                     )}
 
-                                    {/* Task details */}
-                                    <TableCell>{task.projectName}</TableCell>
-                                    <TableCell>{task.project}</TableCell>
-                                    <TableCell>
-                                      <StatusBadge status={task.status} />
+                                    <TableCell
+                                      sx={{
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      {task.projectName}
                                     </TableCell>
-                                    <TableCell>{task.fromTime}</TableCell>
-                                    <TableCell>{task.toTime}</TableCell>
-                                    <TableCell>{task.wip}</TableCell>
-                                    <TableCell>{task.description}</TableCell>
-                                    <TableCell>{task.remarks}</TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        textAlign: 'center',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      {task.project}
+                                    </TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        textAlign: 'center'
+                                      }}
+                                    >
+                                      <StatusBadge
+                                        status={task.status}
+                                      />
+                                    </TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        textAlign: 'center',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      {task.fromTime}
+                                    </TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        textAlign: 'center',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      {task.toTime}
+                                    </TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        textAlign: 'center',
+                                        fontSize: '12px'
+                                      }}
+                                    >
+                                      {task.wip}
+                                    </TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        minWidth: 240,
+                                        fontSize: '12px',
+                                        wordBreak: 'break-word'
+                                      }}
+                                    >
+                                      {task.description}
+                                    </TableCell>
+
+                                    <TableCell
+                                      sx={{
+                                        minWidth: 220,
+                                        fontSize: '12px',
+                                        wordBreak: 'break-word'
+                                      }}
+                                    >
+                                      {task.remarks}
+                                    </TableCell>
                                   </TableRow>
                                 ));
                               }
-                              // ✅ Case 2: Any other status (holiday, leave, absent, weekend, etc.)
+
                               return (
                                 <TableRow
                                   key={`${rowIndex}-${tsIndex}`}
                                   sx={{
-                                    backgroundColor: '#ffeaea',
-                                    textAlign: 'center'
+                                    background: '#fff7f7'
                                   }}
                                 >
-                                  <TableCell sx={{ textAlign: 'start', fontWeight: 'bold' }}>
-                                    {dayjs(ts.date).format('DD/MM/YYYY')}
+                                  <TableCell
+                                    sx={{
+                                      fontWeight: 700,
+                                      textAlign: 'center',
+                                      fontSize: '12px'
+                                    }}
+                                  >
+                                    {dayjs(ts.date).format(
+                                      'DD/MM/YYYY'
+                                    )}
                                   </TableCell>
-                                  <TableCell sx={{ textAlign: 'center' }}>
+
+                                  <TableCell
+                                    sx={{
+                                      textAlign: 'center',
+                                      fontSize: '12px'
+                                    }}
+                                  >
                                     {ts.totalhours}
-                                    {ts.totalhours ? 'hrs' : ''}
+                                    {ts.totalhours ? ' hrs' : ''}
                                   </TableCell>
+
                                   <TableCell
                                     colSpan={8}
                                     sx={{
                                       textAlign: 'center',
-                                      fontStyle: 'italic',
-                                      fontWeight: 'bold',
-                                      color: '#d32f2f'
+                                      fontWeight: 700,
+                                      color: '#dc2626',
+                                      letterSpacing: 0.3,
+                                      fontSize: '12px'
                                     }}
                                   >
                                     {ts.status}
@@ -1186,11 +1532,20 @@ function OverAllReport() {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={11} align="center" sx={{ py: 3 }}>
-                          <Typography variant="body1" color="textSecondary">
-                            {screenFilter !== 'All' || dateFilter !== 'All'
-                              ? `No data found for the selected filters`
-                              : 'No data available'}
+                        <TableCell
+                          colSpan={10}
+                          align="center"
+                          sx={{
+                            py: 6
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              color: '#64748b',
+                              fontWeight: 500
+                            }}
+                          >
+                            No data available
                           </Typography>
                         </TableCell>
                       </TableRow>
@@ -1198,7 +1553,7 @@ function OverAllReport() {
                   </TableBody>
                 </Table>
               </TableContainer>
-            </>
+            </Paper>
           </DialogContent>
         </Dialog>
       </div>

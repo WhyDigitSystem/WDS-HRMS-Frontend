@@ -582,153 +582,206 @@ const IncrementManagement = () => {
             <Grid container spacing={3}>
                 {/* Employee Selection & Current Details - Always Visible */}
                 <Grid item xs={12} md={6}>
-                    <Card elevation={4} sx={{
-                        borderRadius: 3,
-                        transition: 'all 0.3s ease-in-out',
-                        '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 12px 20px rgba(0,0,0,0.1)'
-                        },
-                        border: '1px solid #e0e0e0',
-                        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}>
+                    <Card
+                        elevation={0}
+                        sx={{
+                            borderRadius: 3,
+                            border: '1px solid rgba(148, 163, 184, 0.3)',
+                            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: '100%',
+                            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+                            transition: 'all 0.25s ease',
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 14px 30px rgba(15, 23, 42, 0.12)'
+                            }
+                        }}
+                    >
+                        {/* HEADER */}
                         <CardHeader
                             title="Employee Selection & Current Details"
                             sx={{
-                                background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-                                color: 'white',
-                                borderRadius: '12px 12px 0 0',
-                                py: 1
+                                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                color: '#fff',
+                                py: 1.2,
+                                '& .MuiCardHeader-title': {
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    letterSpacing: '0.3px',
+                                    color: '#ffffff'
+                                }
                             }}
                         />
-                        <CardContent sx={{ p: 3, flexGrow: 1 }}>
-                            <Stack spacing={2} sx={{ height: '100%' }}>
+
+                        <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+                            <Stack spacing={2.2} sx={{ height: '100%' }}>
+
+                                {/* SECTION TITLE */}
                                 <Typography
-                                    variant="h5"
+                                    variant="h6"
                                     sx={{
                                         fontWeight: 700,
-                                        color: '#34495e',
-                                        borderLeft: '4px solid #667eea',
-                                        pl: 1.5,
+                                        color: '#2a4b4d',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        borderLeft: '4px solid #3a6b6d',
+                                        pl: 1.5
                                     }}
                                 >
                                     Select Employee
                                 </Typography>
-                                <Box>
-                                    <Autocomplete
-                                        options={employees}
-                                        getOptionLabel={(option) => option.label || ""}
-                                        value={selectedEmployee}
-                                        onChange={handleEmployeeSelect}
-                                        size="small"
-                                        loading={loading}
-                                        renderInput={(params) => (
-                                            <TextField
-                                                {...params}
-                                                label="Name"
-                                                variant="outlined"
-                                                placeholder="Type to search employees..."
-                                                InputProps={{
-                                                    ...params.InputProps,
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <Search sx={{ color: '#667eea' }} />
-                                                        </InputAdornment>
-                                                    ),
-                                                    endAdornment: (
-                                                        <>
-                                                            {loading ? <CircularProgress color="inherit" size={18} /> : null}
-                                                            {params.InputProps.endAdornment}
-                                                        </>
-                                                    ),
-                                                }}
-                                                sx={{
-                                                    "& .MuiOutlinedInput-root": {
-                                                        borderRadius: 2,
-                                                        height: 45,
-                                                        "&:hover fieldset": {
-                                                            borderColor: '#667eea',
-                                                        },
-                                                        "&.Mui-focused fieldset": {
-                                                            borderColor: '#667eea',
-                                                            borderWidth: 2,
-                                                        },
+
+                                {/* AUTOCOMPLETE */}
+                                <Autocomplete
+                                    options={employees}
+                                    getOptionLabel={(option) => option.label || ''}
+                                    value={selectedEmployee}
+                                    onChange={handleEmployeeSelect}
+                                    size="small"
+                                    loading={loading}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Employee Name"
+                                            placeholder="Search employee..."
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <Search sx={{ color: '#3a6b6d' }} />
+                                                    </InputAdornment>
+                                                ),
+                                                endAdornment: (
+                                                    <>
+                                                        {loading && <CircularProgress size={18} />}
+                                                        {params.InputProps.endAdornment}
+                                                    </>
+                                                )
+                                            }}
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: 2,
+                                                    height: 44,
+                                                    '& fieldset': {
+                                                        borderColor: 'rgba(148,163,184,0.4)'
                                                     },
-                                                    "& .MuiInputLabel-root.Mui-focused": {
-                                                        color: '#667eea',
+                                                    '&:hover fieldset': {
+                                                        borderColor: '#3a6b6d'
+                                                    },
+                                                    '&.Mui-focused fieldset': {
+                                                        borderColor: '#3a6b6d',
+                                                        borderWidth: 1.5
                                                     }
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                </Box>
+                                                },
+                                                '& .MuiInputLabel-root.Mui-focused': {
+                                                    color: '#3a6b6d'
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                />
 
-                                <Divider sx={{ borderColor: '#e0e0e0', my: 1 }} />
+                                <Divider sx={{ borderColor: 'rgba(148,163,184,0.25)' }} />
 
-                                <Typography variant="h6" sx={{
-                                    color: '#2c3e50',
-                                    fontWeight: 600,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1
-                                }}>
-                                    <TrendingUp sx={{ color: '#27ae60', fontSize: 20 }} />
+                                {/* SUB TITLE */}
+                                <Typography
+                                    variant="subtitle1"
+                                    sx={{
+                                        fontWeight: 700,
+                                        color: '#2a4b4d',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1
+                                    }}
+                                >
                                     Current Compensation
-                                    {salaryLoading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+                                    {salaryLoading && <CircularProgress size={14} />}
                                 </Typography>
 
-                                <TableContainer component={Paper} elevation={1} sx={{ borderRadius: 2, flexGrow: 1 }}>
+                                {/* TABLE */}
+                                <TableContainer
+                                    component={Paper}
+                                    elevation={0}
+                                    sx={{
+                                        borderRadius: 2,
+                                        border: '1px solid rgba(148,163,184,0.25)',
+                                        flexGrow: 1,
+                                        overflow: 'hidden'
+                                    }}
+                                >
                                     <Table size="small">
                                         <TableHead>
                                             <TableRow>
-                                                <TableCell sx={{
-                                                    fontWeight: 700,
-                                                    backgroundColor: '#34495e',
-                                                    color: 'white',
-                                                    fontSize: '0.875rem'
-                                                }}>
+                                                <TableCell
+                                                    sx={{
+                                                        background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                                        color: '#fff',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
                                                     Component
                                                 </TableCell>
-                                                <TableCell sx={{
-                                                    fontWeight: 700,
-                                                    backgroundColor: '#34495e',
-                                                    color: 'white',
-                                                    fontSize: '0.875rem'
-                                                }}>
+                                                <TableCell
+                                                    sx={{
+                                                        background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                                        color: '#fff',
+                                                        fontWeight: 600
+                                                    }}
+                                                >
                                                     Amount (₹)
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
+
                                         <TableBody>
                                             {currentCompensation.length > 0 ? (
                                                 currentCompensation.map((row, index) => (
                                                     <TableRow
                                                         key={index}
                                                         sx={{
-                                                            '&:nth-of-type(odd)': { backgroundColor: '#f8f9fa' },
-                                                            '&:hover': { backgroundColor: '#e3f2fd' }
+                                                            '&:nth-of-type(even)': {
+                                                                backgroundColor: '#f8fafc'
+                                                            },
+                                                            '&:hover': {
+                                                                backgroundColor: 'rgba(58,107,109,0.08)'
+                                                            }
                                                         }}
                                                     >
-                                                        <TableCell sx={{ fontWeight: 500 }}>{row.component}</TableCell>
-                                                        <TableCell sx={{ color: '#2e7d32', fontWeight: 600 }}>{row.amount}</TableCell>
+                                                        <TableCell sx={{ fontWeight: 500, color: '#334155' }}>
+                                                            {row.component}
+                                                        </TableCell>
+                                                        <TableCell sx={{ fontWeight: 600, color: '#1b5e20' }}>
+                                                            {row.amount}
+                                                        </TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : (
                                                 <TableRow>
                                                     <TableCell colSpan={2} align="center" sx={{ py: 3 }}>
                                                         <Typography color="text.secondary">
-                                                            {selectedEmployee ? 'No salary data found' : 'Select an employee to view salary details'}
+                                                            {selectedEmployee
+                                                                ? 'No salary data found'
+                                                                : 'Select an employee to view details'}
                                                         </Typography>
                                                     </TableCell>
                                                 </TableRow>
                                             )}
+
                                             {currentCompensation.length > 0 && (
-                                                <TableRow sx={{ backgroundColor: '#e8f5e8' }}>
-                                                    <TableCell sx={{ fontWeight: 700, color: '#1b5e20' }}>Current CTC</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, color: '#1b5e20' }}>{totalCurrentCTC}</TableCell>
+                                                <TableRow
+                                                    sx={{
+                                                        background: 'rgba(58,107,109,0.08)'
+                                                    }}
+                                                >
+                                                    <TableCell sx={{ fontWeight: 700, color: '#2a4b4d' }}>
+                                                        Current CTC
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontWeight: 700, color: '#2a4b4d' }}>
+                                                        {totalCurrentCTC}
+                                                    </TableCell>
                                                 </TableRow>
                                             )}
                                         </TableBody>
@@ -742,73 +795,101 @@ const IncrementManagement = () => {
                 {/* Employee Quick View - Only show when employee is selected */}
                 {selectedEmployee && (
                     <Grid item xs={12} md={6}>
-                        <Card elevation={4} sx={{
-                            borderRadius: 3,
-                            transition: 'all 0.3s ease-in-out',
-                            '&:hover': {
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 12px 20px rgba(0,0,0,0.1)'
-                            },
-                            border: '1px solid #e0e0e0',
-                            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column'
-                        }}>
+                        <Card
+                            elevation={0}
+                            sx={{
+                                borderRadius: 3,
+                                border: '1px solid rgba(148, 163, 184, 0.3)',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: '100%',
+                                boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+                                transition: 'all 0.25s ease',
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 14px 30px rgba(15, 23, 42, 0.12)'
+                                }
+                            }}
+                        >
+                            {/* HEADER */}
                             <CardHeader
                                 title="Employee Quick View"
                                 sx={{
+                                    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                    color: '#fff',
                                     textAlign: 'center',
-                                    background: 'linear-gradient(45deg, #11998e 0%, #38ef7d 100%)',
-                                    color: 'white',
-                                    borderRadius: '12px 12px 0 0',
-                                    py: 1
+                                    py: 1.2,
+                                    '& .MuiCardHeader-title': {
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.3px',
+                                        color: '#ffffff'
+                                    }
                                 }}
                             />
+
                             <CardContent sx={{ p: 3, flexGrow: 1 }}>
+
+                                {/* AVATAR */}
                                 <Avatar
                                     sx={{
-                                        width: 100,
-                                        height: 100,
+                                        width: 92,
+                                        height: 92,
                                         mx: 'auto',
                                         mb: 3,
-                                        bgcolor: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-                                        border: '4px solid',
-                                        borderColor: '#11998e',
-                                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                                        bgcolor: '#3a6b6d',
+                                        border: '3px solid #2a4b4d',
+                                        boxShadow: '0 6px 16px rgba(15, 23, 42, 0.15)',
+                                        fontSize: 28,
+                                        fontWeight: 600
                                     }}
-                                    src={selectedEmployee.profileImage || ""}
+                                    src={selectedEmployee.profileImage || ''}
                                 >
-                                    {!selectedEmployee.profileImage &&
-                                        <Person sx={{ fontSize: 48, color: 'white' }} />
-                                    }
+                                    {!selectedEmployee.profileImage && <Person sx={{ fontSize: 44 }} />}
                                 </Avatar>
 
-                                <Stack spacing={2} sx={{ height: '100%' }}>
+                                {/* DETAILS */}
+                                <Stack spacing={1.5}>
                                     {employeeDetails.map((detail, index) => (
                                         <Box
                                             key={index}
-                                            display="flex"
-                                            alignItems="center"
-                                            py={0}
                                             sx={{
-                                                borderBottom: '1px dashed #e0e0e0',
-                                                transition: 'background-color 0.2s',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                py: 1,
+                                                px: 1,
+                                                borderRadius: 1.5,
+                                                borderBottom: '1px solid rgba(148,163,184,0.25)',
+                                                transition: 'all 0.2s ease',
                                                 '&:hover': {
-                                                    backgroundColor: '#f5f5f5',
-                                                    borderRadius: 1
+                                                    backgroundColor: 'rgba(58,107,109,0.06)'
                                                 }
                                             }}
                                         >
-                                            <Box display="flex" alignItems="center" width={140}>
-                                                <Box sx={{ color: '#11998e' }}>
-                                                    {detail.icon}
-                                                </Box>
-                                                <Typography variant="body2" fontWeight={600} ml={1} color="#555">
+                                            {/* LABEL */}
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <Box sx={{ color: '#3a6b6d' }}>{detail.icon}</Box>
+                                                <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                        fontWeight: 600,
+                                                        color: '#334155'
+                                                    }}
+                                                >
                                                     {detail.label}
                                                 </Typography>
                                             </Box>
-                                            <Typography variant="body2" fontWeight={500} color="#2c3e50">
+
+                                            {/* VALUE */}
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontWeight: 500,
+                                                    color: '#1e293b'
+                                                }}
+                                            >
                                                 {detail.value}
                                             </Typography>
                                         </Box>
@@ -822,41 +903,60 @@ const IncrementManagement = () => {
                 {/* Increment Proposal Details - Only show when employee is selected */}
                 {selectedEmployee && (
                     <Grid item xs={12}>
-                        <Card elevation={4} sx={{
-                            borderRadius: 3,
-                            transition: 'all 0.3s ease-in-out',
-                            '&:hover': {
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-                            },
-                            border: '1px solid #e0e0e0'
-                        }}>
+                        <Card
+                            elevation={0}
+                            sx={{
+                                borderRadius: 3,
+                                border: '1px solid #e2e8f0',
+                                background: '#ffffff',
+                                transition: 'all 0.25s ease-in-out',
+                                boxShadow: '0 2px 10px rgba(15, 23, 42, 0.06)',
+                                overflow: 'hidden',
+
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 10px 25px rgba(42, 75, 77, 0.15)',
+                                    borderColor: '#3a6b6d'
+                                }
+                            }}
+                        >
                             <CardHeader
                                 title="Increment Proposal Details"
                                 sx={{
-                                    background: 'linear-gradient(45deg, #2196F3 0%, #21CBF3 100%)',
-                                    color: 'white',
+                                    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                    color: '#ffffff',
                                     borderRadius: '12px 12px 0 0',
-                                    py: 1
+                                    py: 1.2,
+                                    '& .MuiCardHeader-title': {
+                                        fontSize: '15px',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.3px',
+                                        color: '#ffffff'
+                                    }
                                 }}
                             />
                             <CardContent sx={{ p: 3 }}>
                                 <Grid container spacing={3}>
+
+                                    {/* Increment Cycle */}
                                     <Grid item xs={12} md={6}>
                                         <FormControl fullWidth size="small">
-                                            <InputLabel sx={{ color: '#2c3e50' }}>Increment Cycle</InputLabel>
+                                            <InputLabel>Increment Cycle</InputLabel>
                                             <Select
                                                 value={employeeData.incrementCycle}
                                                 onChange={handleInputChange('incrementCycle')}
                                                 label="Increment Cycle"
                                                 sx={{
                                                     borderRadius: 2,
-                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#ff6b6b',
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#e2e8f0'
                                                     },
-                                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#ff6b6b',
-                                                        borderWidth: 2,
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#3a6b6d'
+                                                    },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#3a6b6d',
+                                                        borderWidth: 2
                                                     }
                                                 }}
                                             >
@@ -867,6 +967,8 @@ const IncrementManagement = () => {
                                             </Select>
                                         </FormControl>
                                     </Grid>
+
+                                    {/* Effective Date */}
                                     <Grid item xs={12} md={6}>
                                         <TextField
                                             fullWidth
@@ -877,188 +979,201 @@ const IncrementManagement = () => {
                                             InputLabelProps={{ shrink: true }}
                                             size="small"
                                             sx={{
-                                                borderRadius: 2,
-                                                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: '#ff6b6b' },
-                                                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: '#ff6b6b', borderWidth: 2 }
+                                                '& .MuiOutlinedInput-root': {
+                                                    borderRadius: 2,
+                                                    '& fieldset': { borderColor: '#e2e8f0' },
+                                                    '&:hover fieldset': { borderColor: '#3a6b6d' },
+                                                    '&.Mui-focused fieldset': {
+                                                        borderColor: '#3a6b6d',
+                                                        borderWidth: 2
+                                                    }
+                                                }
                                             }}
                                         />
                                     </Grid>
-                                </Grid>
 
-                                <Typography
-                                    variant="h6"
-                                    mt={4}
-                                    mb={2}
-                                    sx={{
-                                        color: '#2c3e50',
-                                        fontWeight: 600,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                    }}
-                                >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <TrendingUp sx={{ color: '#ff6b6b', fontSize: 20 }} />
-                                        Proposed New Compensation
-                                        {salaryLoading && <CircularProgress size={16} sx={{ ml: 1 }} />}
-                                    </Box>
+                                    {/* Header */}
+                                    <Grid item xs={12}>
+                                        <Box
+                                            sx={{
+                                                mt: 2,
+                                                mb: 1,
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                            }}
+                                        >
+                                            <Typography
+                                                variant="h6"
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 1,
+                                                    color: '#2a4b4d'
+                                                }}
+                                            >
+                                                Proposed New Compensation
+                                                {salaryLoading && <CircularProgress size={16} />}
+                                            </Typography>
 
-                                    <Button
-                                        variant="contained"
-                                        size="medium"
-                                        onClick={handleAddRow}
-                                        sx={{
-                                            borderRadius: 2,
-                                            px: 3,
-                                            fontWeight: 600,
-                                            background: 'linear-gradient(45deg, #1976d2 0%, #42a5f5 100%)',
-                                            '&:hover': {
-                                                background: 'linear-gradient(45deg, #1565c0 0%, #1e88e5 100%)',
-                                                boxShadow: '0 4px 12px rgba(21, 101, 192, 0.3)',
-                                            },
-                                        }}
-                                    >
-                                        Add
-                                    </Button>
-                                </Typography>
+                                            <Button
+                                                variant="contained"
+                                                onClick={handleAddRow}
+                                                sx={{
+                                                    borderRadius: 2,
+                                                    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                                    '&:hover': {
+                                                        background: 'linear-gradient(135deg, #2a4b4d 0%, #1f3638 100%)'
+                                                    }
+                                                }}
+                                            >
+                                                Add
+                                            </Button>
+                                        </Box>
+                                    </Grid>
 
-                                <TableContainer component={Paper} elevation={2} sx={{ borderRadius: 2 }}>
-                                    <Table size="small">
-                                        <TableHead>
-                                            <TableRow>
-                                                <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Component</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Current Amount (₹)</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Proposed Amount (₹)</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Increase %</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {proposedCompensation.length > 0 ? (
-                                                proposedCompensation.map((row, index) => (
-                                                    <TableRow
-                                                        key={index}
-                                                        sx={{
-                                                            '&:nth-of-type(odd)': { backgroundColor: '#f8f9fa' },
-                                                            '&:hover': { backgroundColor: '#e3f2fd' },
-                                                        }}
-                                                    >
-                                                        {/* Component */}
-                                                        <TableCell sx={{ fontWeight: 500 }}>
-                                                            {row.isNew ? (
-                                                                <Autocomplete
-                                                                    size="small"
-                                                                    value={salaryHeadsType.find(opt => opt.heading === row.component) || null}
-                                                                    onChange={(e, newValue) => handleComponentChange(index, newValue)}
-                                                                    options={salaryHeadsType
-                                                                        .filter(
-                                                                            opt =>
-                                                                                opt.type === 'EARNING' && // ✅ Only earning heads
-                                                                                !proposedCompensation.some(r => r.component === opt.heading)
-                                                                        )}
-                                                                    getOptionLabel={(option) => option.heading || ''}
-                                                                    renderInput={(params) => (
-                                                                        <TextField
-                                                                            {...params}
-                                                                            label="Select Component"
-                                                                            variant="outlined"
-                                                                            sx={{ width: 220 }}
-                                                                        />
-                                                                    )}
-                                                                />
-                                                            ) : (
-                                                                row.component
-                                                            )}
-                                                        </TableCell>
+                                    {/* Table */}
+                                    <Grid item xs={12}>
+                                        <TableContainer
+                                            component={Paper}
+                                            sx={{
+                                                borderRadius: 3,
+                                                border: '1px solid #e2e8f0',
+                                                boxShadow: '0 4px 14px rgba(15,23,42,0.06)'
+                                            }}
+                                        >
+                                            <Table size="small">
 
-                                                        {/* Current Amount */}
-                                                        <TableCell sx={{ color: '#d32f2f', fontWeight: 600 }}>
-                                                            {row.isNew ? (
-                                                                <TextField
-                                                                    size="small"
-                                                                    type="text"
-                                                                    value={row.current}
-                                                                    onChange={(e) => handleCurrentAmountChange(index, e.target.value)}
-                                                                    inputProps={{
-                                                                        inputMode: 'numeric',
-                                                                        pattern: '[0-9]*',
-                                                                    }}
-                                                                    sx={{
-                                                                        width: 120,
-                                                                        '& .MuiOutlinedInput-root': {
-                                                                            borderRadius: 1,
-                                                                            '&:hover fieldset': { borderColor: '#ff6b6b' },
-                                                                        },
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                row.current
-                                                            )}
-                                                        </TableCell>
-
-                                                        {/* Proposed Amount */}
-                                                        <TableCell>
-                                                            <TextField
-                                                                size="small"
-                                                                value={row.proposed}
-                                                                onChange={(e) => handleProposedAmountChange(index, e.target.value)}
+                                                <TableHead>
+                                                    <TableRow sx={{ backgroundColor: '#f1f5f9' }}>
+                                                        {['Component', 'Current (₹)', 'Proposed (₹)', 'Increase %'].map((h) => (
+                                                            <TableCell
+                                                                key={h}
                                                                 sx={{
-                                                                    width: 120,
-                                                                    '& .MuiOutlinedInput-root': {
-                                                                        borderRadius: 1,
-                                                                        '&:hover fieldset': { borderColor: '#667eea' },
-                                                                    },
+                                                                    fontWeight: 700,
+                                                                    color: '#2a4b4d'
                                                                 }}
-                                                            />
-                                                        </TableCell>
-
-                                                        {/* Increase % */}
-                                                        <TableCell>
-                                                            <Chip
-                                                                label={row.increase}
-                                                                size="small"
-                                                                sx={{
-                                                                    backgroundColor: '#e8f5e8',
-                                                                    color: '#2e7d32',
-                                                                    fontWeight: 600,
-                                                                    minWidth: 80,
-                                                                }}
-                                                            />
-                                                        </TableCell>
+                                                            >
+                                                                {h}
+                                                            </TableCell>
+                                                        ))}
                                                     </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
-                                                        <Typography color="text.secondary">No salary data available</Typography>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
+                                                </TableHead>
 
-                                            {/* Total Row */}
-                                            {proposedCompensation.length > 0 && (
-                                                <TableRow sx={{ backgroundColor: '#e3f2fd' }}>
-                                                    <TableCell sx={{ fontWeight: 700, color: '#1565c0' }}>Total CTC</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, color: '#d32f2f' }}>{totalCurrentCTC}</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, color: '#2e7d32' }}>{totalProposedCTC}</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, color: '#2e7d32' }}>{totalIncrease}</TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                                <TableBody>
+                                                    {proposedCompensation.length > 0 ? (
+                                                        proposedCompensation.map((row, index) => (
+                                                            <TableRow
+                                                                key={index}
+                                                                sx={{
+                                                                    '&:hover': { backgroundColor: '#f8fafc' }
+                                                                }}
+                                                            >
 
-                                <Grid container spacing={3} mt={2}>
+                                                                {/* Component */}
+                                                                <TableCell sx={{ fontWeight: 500 }}>
+                                                                    {row.isNew ? (
+                                                                        <Autocomplete
+                                                                            size="small"
+                                                                            value={salaryHeadsType.find(opt => opt.heading === row.component) || null}
+                                                                            onChange={(e, v) => handleComponentChange(index, v)}
+                                                                            options={salaryHeadsType.filter(opt =>
+                                                                                opt.type === 'EARNING' &&
+                                                                                !proposedCompensation.some(r => r.component === opt.heading)
+                                                                            )}
+                                                                            getOptionLabel={(o) => o.heading || ''}
+                                                                            renderInput={(params) => (
+                                                                                <TextField {...params} label="Component" />
+                                                                            )}
+                                                                        />
+                                                                    ) : row.component}
+                                                                </TableCell>
+
+                                                                {/* Current */}
+                                                                <TableCell sx={{ color: '#dc2626', fontWeight: 600 }}>
+                                                                    {row.isNew ? (
+                                                                        <TextField
+                                                                            size="small"
+                                                                            value={row.current}
+                                                                            onChange={(e) => handleCurrentAmountChange(index, e.target.value)}
+                                                                            sx={{
+                                                                                width: 120,
+                                                                                '& .MuiOutlinedInput-root': {
+                                                                                    borderRadius: 2
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    ) : row.current}
+                                                                </TableCell>
+
+                                                                {/* Proposed */}
+                                                                <TableCell>
+                                                                    <TextField
+                                                                        size="small"
+                                                                        value={row.proposed}
+                                                                        onChange={(e) => handleProposedAmountChange(index, e.target.value)}
+                                                                        sx={{ width: 120 }}
+                                                                    />
+                                                                </TableCell>
+
+                                                                {/* Increase */}
+                                                                <TableCell>
+                                                                    <Chip
+                                                                        label={row.increase}
+                                                                        size="small"
+                                                                        sx={{
+                                                                            backgroundColor: '#e6f4ea',
+                                                                            color: '#1e7e34',
+                                                                            fontWeight: 600
+                                                                        }}
+                                                                    />
+                                                                </TableCell>
+
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={4} align="center">
+                                                                No salary data available
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+
+                                                    {/* Total */}
+                                                    {proposedCompensation.length > 0 && (
+                                                        <TableRow sx={{ backgroundColor: '#f1f5f9' }}>
+                                                            <TableCell sx={{ fontWeight: 700 }}>Total CTC</TableCell>
+                                                            <TableCell sx={{ fontWeight: 700, color: '#dc2626' }}>
+                                                                {totalCurrentCTC}
+                                                            </TableCell>
+                                                            <TableCell sx={{ fontWeight: 700, color: '#1e7e34' }}>
+                                                                {totalProposedCTC}
+                                                            </TableCell>
+                                                            <TableCell sx={{ fontWeight: 700 }}>
+                                                                {totalIncrease}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    </Grid>
+
+                                    {/* Bottom Fields */}
                                     <Grid item xs={12} md={6}>
                                         <FormControl fullWidth size="small">
-                                            <InputLabel sx={{ color: '#2c3e50' }}>Adjustment Type</InputLabel>
+                                            <InputLabel>Adjustment Type</InputLabel>
                                             <Select
                                                 value={employeeData.adjustmentType}
                                                 onChange={handleInputChange('adjustmentType')}
                                                 label="Adjustment Type"
                                                 sx={{
-                                                    borderRadius: 2,
-                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#667eea',
+                                                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e2e8f0' },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#3a6b6d' },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#3a6b6d'
                                                     }
                                                 }}
                                             >
@@ -1067,6 +1182,7 @@ const IncrementManagement = () => {
                                             </Select>
                                         </FormControl>
                                     </Grid>
+
                                     <Grid item xs={12} md={6}>
                                         <TextField
                                             fullWidth
@@ -1075,114 +1191,12 @@ const IncrementManagement = () => {
                                             onChange={handleInputChange('adjustmentValue')}
                                             size="small"
                                             InputProps={{
-                                                endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                                            }}
-                                            sx={{
-                                                borderRadius: 2,
-                                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                    borderColor: '#667eea',
-                                                }
+                                                endAdornment: <InputAdornment position="end">%</InputAdornment>
                                             }}
                                         />
                                     </Grid>
+
                                 </Grid>
-
-                                <Grid container spacing={3} mt={1}>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel sx={{ color: '#2c3e50' }}>New Designation (if any)</InputLabel>
-                                            <Select
-                                                value={employeeData.newDesignation || ''}
-                                                onChange={handleInputChange('newDesignation')}
-                                                label="New Designation (if any)"
-                                                sx={{
-                                                    borderRadius: 2,
-                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#667eea',
-                                                    },
-                                                }}
-                                            >
-                                                {/* Optional placeholder */}
-                                                <MenuItem value="">
-                                                    <em>Same as current designation</em>
-                                                </MenuItem>
-
-                                                {designationData.length > 0 ? (
-                                                    designationData
-                                                        .filter((d) => d.active === "Active") // ✅ only active designations
-                                                        .map((designation) => (
-                                                            <MenuItem
-                                                                key={designation.id}
-                                                                value={designation.designationName}
-                                                            >
-                                                                {designation.designationName}
-                                                            </MenuItem>
-                                                        ))
-                                                ) : (
-                                                    <MenuItem disabled>No designations available</MenuItem>
-                                                )}
-                                            </Select>
-                                            <FormHelperText>
-                                                Current: {selectedEmployee?.designation || 'Not specified'}
-                                            </FormHelperText>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth size="small">
-                                            <InputLabel sx={{ color: '#2c3e50' }}>New Grade (if any)</InputLabel>
-                                            <Select
-                                                value={employeeData.newGrade || ""}
-                                                onChange={handleInputChange('newGrade')}
-                                                label="New Grade (if any)"
-                                                sx={{
-                                                    borderRadius: 2,
-                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#667eea',
-                                                    },
-                                                }}
-                                            >
-                                                {/* Pre-select current grade as default option */}
-                                                <MenuItem value={selectedEmployee?.grade || ""}>
-                                                    {selectedEmployee?.grade ? `${selectedEmployee.grade}` : 'Same as current'}
-                                                </MenuItem>
-
-                                                {/* Other grade options */}
-                                                <MenuItem value="A GRADE">A GRADE</MenuItem>
-                                                <MenuItem value="B GRADE">B GRADE</MenuItem>
-                                                <MenuItem value="C GRADE">C GRADE</MenuItem>
-                                                <MenuItem value="D GRADE">D GRADE</MenuItem>
-                                            </Select>
-
-                                            <FormHelperText>
-                                                Current Grade: {selectedEmployee?.grade || 'Not specified'}
-                                            </FormHelperText>
-                                        </FormControl>
-                                    </Grid>
-                                </Grid>
-
-                                <TextField
-                                    fullWidth
-                                    label="Justification / Remarks"
-                                    multiline
-                                    rows={4}
-                                    value={employeeData.justification}
-                                    onChange={handleInputChange('justification')}
-                                    placeholder="Enter detailed justification for the increment..."
-                                    sx={{
-                                        mt: 3,
-                                        "& .MuiOutlinedInput-root": {
-                                            borderRadius: 2,
-                                            "&:hover fieldset": {
-                                                borderColor: '#667eea',
-                                            },
-                                            "&.Mui-focused fieldset": {
-                                                borderColor: '#667eea',
-                                                borderWidth: 2,
-                                            }
-                                        }
-                                    }}
-                                    size="small"
-                                />
                             </CardContent>
                         </Card>
                     </Grid>
@@ -1191,60 +1205,93 @@ const IncrementManagement = () => {
                 {/* Increment Approval Workflow - Only show when employee is selected */}
                 {selectedEmployee && (
                     <Grid item xs={12}>
-                        <Card elevation={4} sx={{
-                            borderRadius: 3,
-                            transition: 'all 0.3s ease-in-out',
-                            '&:hover': {
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-                            },
-                            border: '1px solid #e0e0e0'
-                        }}>
+                        <Card
+                            elevation={0}
+                            sx={{
+                                borderRadius: 3,
+                                border: '1px solid rgba(58, 107, 109, 0.15)',
+                                background: '#ffffff',
+                                boxShadow: '0 2px 10px rgba(42, 75, 77, 0.06)',
+                                transition: 'all 0.25s ease-in-out',
+                                overflow: 'hidden',
+
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 12px 28px rgba(42, 75, 77, 0.18)',
+                                    borderColor: '#3a6b6d'
+                                }
+                            }}
+                        >
+
+                            {/* HEADER */}
                             <CardHeader
                                 title="Increment Approval Workflow"
                                 sx={{
-                                    background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-                                    color: 'white',
-                                    borderRadius: '12px 12px 0 0',
-                                    py: 1
+                                    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                    color: '#ffffff',
+                                    py: 1,
+                                    '& .MuiCardHeader-title': {
+                                        fontSize: '15px',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.3px',
+                                        color: '#ffffff'
+                                    }
                                 }}
                             />
+
                             <CardContent sx={{ p: 3 }}>
                                 <Grid container spacing={3} alignItems="center">
+
+                                    {/* Proposed By */}
                                     <Grid item xs={12} md={3}>
-                                        <Typography variant="body2" color="#666" gutterBottom sx={{ fontWeight: 600 }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b' }}>
                                             Proposed By
                                         </Typography>
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            <Avatar sx={{ width: 32, height: 32, bgcolor: '#667eea' }}>
+
+                                        <Box display="flex" alignItems="center" gap={1} mt={1}>
+                                            <Avatar sx={{ width: 32, height: 32, bgcolor: '#3a6b6d' }}>
                                                 <Person sx={{ fontSize: 18 }} />
                                             </Avatar>
-                                            <Typography fontWeight={600} color="#2c3e50">{loginUserName}</Typography>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item xs={12} md={3}>
-                                        <Typography variant="body2" color="#666" gutterBottom sx={{ fontWeight: 600 }}>
-                                            On
-                                        </Typography>
-                                        <Box display="flex" alignItems="center" gap={1}>
-                                            <CalendarToday sx={{ color: '#667eea', fontSize: 18 }} />
-                                            <Typography fontWeight={600} color="#2c3e50">
-                                                {format(new Date(), "dd-MMM-yyyy")}
+                                            <Typography fontWeight={600} color="#2a4b4d">
+                                                {loginUserName}
                                             </Typography>
                                         </Box>
                                     </Grid>
+
+                                    {/* Date */}
+                                    <Grid item xs={12} md={3}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#64748b' }}>
+                                            On
+                                        </Typography>
+
+                                        <Box display="flex" alignItems="center" gap={1} mt={1}>
+                                            <CalendarToday sx={{ color: '#3a6b6d', fontSize: 18 }} />
+                                            <Typography fontWeight={600} color="#2a4b4d">
+                                                {format(new Date(), 'dd-MMM-yyyy')}
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+
+                                    {/* Next Approval */}
                                     <Grid item xs={12} md={3}>
                                         <FormControl fullWidth size="small">
-                                            <InputLabel sx={{ color: '#2c3e50' }}>Next Approval</InputLabel>
+                                            <InputLabel>Next Approval</InputLabel>
                                             <Select
                                                 value={employeeData.nextApproval || ''}
                                                 onChange={handleInputChange('nextApproval')}
                                                 label="Next Approval"
                                                 sx={{
                                                     borderRadius: 2,
-                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#667eea',
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'rgba(58, 107, 109, 0.2)'
                                                     },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#3a6b6d'
+                                                    },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#3a6b6d',
+                                                        borderWidth: 2
+                                                    }
                                                 }}
                                             >
                                                 {allReportingPersonList.length > 0 ? (
@@ -1260,37 +1307,56 @@ const IncrementManagement = () => {
                                         </FormControl>
                                     </Grid>
 
-                                    {/* status chip */}
+                                    {/* Status */}
                                     <Grid item xs={12} md={3}>
                                         <FormControl fullWidth size="small">
-                                            <InputLabel sx={{ color: '#2c3e50' }}>Status</InputLabel>
+                                            <InputLabel>Status</InputLabel>
                                             <Select
                                                 value={employeeData.status}
-                                                onChange={handleInputChange('status')}
                                                 disabled
                                                 label="Status"
                                                 sx={{
                                                     borderRadius: 2,
-                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                                                        borderColor: '#667eea',
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'rgba(58, 107, 109, 0.2)'
                                                     }
                                                 }}
                                             >
                                                 <MenuItem value="Draft">
-                                                    <Chip label="Draft" size="small" sx={{ backgroundColor: '#fff3e0', color: '#e65100' }} />
+                                                    <Chip
+                                                        label="Draft"
+                                                        size="small"
+                                                        sx={{ backgroundColor: '#f1f5f9', color: '#2a4b4d' }}
+                                                    />
                                                 </MenuItem>
+
                                                 <MenuItem value="Pending Approval">
-                                                    <Chip label="Pending" size="small" sx={{ backgroundColor: '#e3f2fd', color: '#1565c0' }} />
+                                                    <Chip
+                                                        label="Pending"
+                                                        size="small"
+                                                        sx={{ backgroundColor: '#fff7ed', color: '#9a3412' }}
+                                                    />
                                                 </MenuItem>
+
                                                 <MenuItem value="Approved">
-                                                    <Chip label="Approved" size="small" sx={{ backgroundColor: '#e8f5e8', color: '#2e7d32' }} />
+                                                    <Chip
+                                                        label="Approved"
+                                                        size="small"
+                                                        sx={{ backgroundColor: '#e6f4ea', color: '#1e7e34' }}
+                                                    />
                                                 </MenuItem>
+
                                                 <MenuItem value="Rejected">
-                                                    <Chip label="Rejected" size="small" sx={{ backgroundColor: '#ffebee', color: '#c62828' }} />
+                                                    <Chip
+                                                        label="Rejected"
+                                                        size="small"
+                                                        sx={{ backgroundColor: '#fef2f2', color: '#b91c1c' }}
+                                                    />
                                                 </MenuItem>
                                             </Select>
                                         </FormControl>
                                     </Grid>
+
                                 </Grid>
                             </CardContent>
                         </Card>
@@ -1300,103 +1366,177 @@ const IncrementManagement = () => {
                 {/* Increment History - Only show when employee is selected */}
                 {selectedEmployee && (
                     <Grid item xs={12}>
-                        <Card elevation={4} sx={{
-                            borderRadius: 3,
-                            transition: 'all 0.3s ease-in-out',
-                            '&:hover': {
-                                transform: 'translateY(-1px)',
-                                boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-                            },
-                            border: '1px solid #e0e0e0'
-                        }}>
+                        <Card
+                            elevation={0}
+                            sx={{
+                                borderRadius: 3,
+                                border: '1px solid rgba(58, 107, 109, 0.15)',
+                                background: '#ffffff',
+                                boxShadow: '0 2px 10px rgba(42, 75, 77, 0.06)',
+                                transition: 'all 0.25s ease-in-out',
+                                overflow: 'hidden',
+
+                                '&:hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 12px 28px rgba(42, 75, 77, 0.18)',
+                                    borderColor: '#3a6b6d'
+                                }
+                            }}
+                        >
+
+                            {/* HEADER */}
                             <CardHeader
                                 title="Increment History"
                                 sx={{
-                                    background: 'linear-gradient(45deg, #11998e 0%, #38ef7d 100%)',
-                                    color: 'white',
-                                    borderRadius: '12px 12px 0 0',
-                                    py: 1
+                                    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                    color: '#ffffff',
+                                    py: 1,
+                                    '& .MuiCardHeader-title': {
+                                        fontSize: '15px',
+                                        fontWeight: 600,
+                                        letterSpacing: '0.3px',
+                                        color: '#ffffff'
+                                    }
                                 }}
                             />
+
                             <CardContent sx={{ p: 3 }}>
+
+                                {/* Loading */}
                                 {historyLoading ? (
-                                    <Box display="flex" justifyContent="center" alignItems="center" py={4}>
-                                        <CircularProgress />
-                                        <Typography variant="body1" sx={{ ml: 2 }}>
+                                    <Box display="flex" justifyContent="center" alignItems="center" py={4} gap={1}>
+                                        <CircularProgress size={20} sx={{ color: '#3a6b6d' }} />
+                                        <Typography sx={{ color: '#64748b', fontWeight: 500 }}>
                                             Loading increment history...
                                         </Typography>
                                     </Box>
                                 ) : (
-                                    <TableContainer component={Paper} elevation={1} sx={{ borderRadius: 2 }}>
+
+                                    <TableContainer
+                                        component={Paper}
+                                        sx={{
+                                            borderRadius: 2,
+                                            border: '1px solid #e2e8f0',
+                                            boxShadow: 'none'
+                                        }}
+                                    >
+
                                         <Table size="small">
+
+                                            {/* HEADER */}
                                             <TableHead>
-                                                <TableRow>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Year</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Effective Date</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Previous CTC</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>New CTC</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Increase %</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Approved By</TableCell>
-                                                    <TableCell sx={{ fontWeight: 700, backgroundColor: '#34495e', color: 'white' }}>Status</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {incrementHistory.length > 0 ? (
-                                                    incrementHistory.map((row, index) => (
-                                                        <TableRow
-                                                            key={row.id}
-                                                            hover
+                                                <TableRow sx={{ backgroundColor: '#f1f5f9' }}>
+                                                    {[
+                                                        'Year',
+                                                        'Effective Date',
+                                                        'Previous CTC',
+                                                        'New CTC',
+                                                        'Increase %',
+                                                        'Approved By',
+                                                        'Status'
+                                                    ].map((h) => (
+                                                        <TableCell
+                                                            key={h}
                                                             sx={{
-                                                                '&:hover': { backgroundColor: '#f5f5f5' },
-                                                                '&:nth-of-type(odd)': { backgroundColor: '#fafafa' }
+                                                                fontWeight: 700,
+                                                                color: '#2a4b4d'
                                                             }}
                                                         >
-                                                            <TableCell sx={{ fontWeight: 600, color: '#2c3e50' }}>{row.year}</TableCell>
+                                                            {h}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            </TableHead>
+
+                                            <TableBody>
+                                                {incrementHistory.length > 0 ? (
+                                                    incrementHistory.map((row) => (
+                                                        <TableRow
+                                                            key={row.id}
+                                                            sx={{
+                                                                '&:hover': { backgroundColor: '#f8fafc' }
+                                                            }}
+                                                        >
+
+                                                            {/* Year */}
+                                                            <TableCell sx={{ fontWeight: 600, color: '#2a4b4d' }}>
+                                                                {row.year}
+                                                            </TableCell>
+
+                                                            {/* Date */}
                                                             <TableCell>
                                                                 <Box display="flex" alignItems="center" gap={1}>
-                                                                    <CalendarToday sx={{ color: '#667eea', fontSize: 16 }} />
-                                                                    {row.effectiveDate}
+                                                                    <CalendarToday sx={{ color: '#3a6b6d', fontSize: 16 }} />
+                                                                    <Typography>{row.effectiveDate}</Typography>
                                                                 </Box>
                                                             </TableCell>
-                                                            <TableCell sx={{ color: '#d32f2f', fontWeight: 600 }}>{row.previousCTC}</TableCell>
-                                                            <TableCell sx={{ color: '#2e7d32', fontWeight: 600 }}>{row.newCTC}</TableCell>
+
+                                                            {/* Previous */}
+                                                            <TableCell sx={{ color: '#dc2626', fontWeight: 600 }}>
+                                                                {row.previousCTC}
+                                                            </TableCell>
+
+                                                            {/* New */}
+                                                            <TableCell sx={{ color: '#1e7e34', fontWeight: 600 }}>
+                                                                {row.newCTC}
+                                                            </TableCell>
+
+                                                            {/* Increase */}
                                                             <TableCell>
                                                                 <Chip
                                                                     label={row.increase}
                                                                     size="small"
                                                                     sx={{
-                                                                        backgroundColor: '#e8f5e8',
-                                                                        color: '#2e7d32',
+                                                                        backgroundColor: '#e6f4ea',
+                                                                        color: '#1e7e34',
                                                                         fontWeight: 600
                                                                     }}
                                                                 />
                                                             </TableCell>
+
+                                                            {/* Approved By */}
                                                             <TableCell>
                                                                 <Box display="flex" alignItems="center" gap={1}>
-                                                                    <Avatar sx={{ width: 24, height: 24, bgcolor: '#667eea', fontSize: 12 }}>
-                                                                        {row.approvedBy.split(' ').map(n => n[0]).join('')}
+                                                                    <Avatar
+                                                                        sx={{
+                                                                            width: 24,
+                                                                            height: 24,
+                                                                            bgcolor: '#3a6b6d',
+                                                                            fontSize: 12
+                                                                        }}
+                                                                    >
+                                                                        {row.approvedBy
+                                                                            ?.split(' ')
+                                                                            .map((n) => n[0])
+                                                                            .join('')}
                                                                     </Avatar>
-                                                                    {row.approvedBy}
+
+                                                                    <Typography>{row.approvedBy}</Typography>
                                                                 </Box>
                                                             </TableCell>
+
+                                                            {/* Status */}
                                                             <TableCell>
                                                                 {getStatusChip(row.status)}
                                                             </TableCell>
+
                                                         </TableRow>
                                                     ))
                                                 ) : (
                                                     <TableRow>
                                                         <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
-                                                            <Typography variant="body1" color="text.secondary">
+                                                            <Typography sx={{ color: '#64748b' }}>
                                                                 No increment history found for this employee
                                                             </Typography>
                                                         </TableCell>
                                                     </TableRow>
                                                 )}
                                             </TableBody>
+
                                         </Table>
                                     </TableContainer>
                                 )}
+
                             </CardContent>
                         </Card>
                     </Grid>
@@ -1405,7 +1545,20 @@ const IncrementManagement = () => {
 
             {/* Action Buttons - Only show when employee is selected */}
             {selectedEmployee && (
-                <Box display="flex" justifyContent="flex-end" gap={2} mt={4} p={3} sx={{ backgroundColor: '#f8f9fa', borderRadius: 3 }}>
+                <Box
+                    display="flex"
+                    justifyContent="flex-end"
+                    gap={2}
+                    mt={4}
+                    p={3}
+                    sx={{
+                        backgroundColor: '#f8fafc',
+                        borderRadius: 3,
+                        border: '1px solid rgba(58, 107, 109, 0.1)'
+                    }}
+                >
+
+                    {/* CLEAR BUTTON */}
                     <Button
                         variant="outlined"
                         size="large"
@@ -1415,16 +1568,18 @@ const IncrementManagement = () => {
                             borderRadius: 2,
                             px: 4,
                             fontWeight: 600,
-                            borderColor: '#95a5a6',
-                            color: '#7f8c8d',
+                            borderColor: 'rgba(58, 107, 109, 0.4)',
+                            color: '#2a4b4d',
                             '&:hover': {
-                                borderColor: '#7f8c8d',
-                                backgroundColor: '#ecf0f1'
+                                borderColor: '#3a6b6d',
+                                backgroundColor: 'rgba(58, 107, 109, 0.08)'
                             }
                         }}
                     >
                         Clear
                     </Button>
+
+                    {/* SUBMIT BUTTON */}
                     <Button
                         variant="contained"
                         size="large"
@@ -1434,15 +1589,20 @@ const IncrementManagement = () => {
                             borderRadius: 2,
                             px: 4,
                             fontWeight: 600,
-                            background: 'linear-gradient(45deg, #27ae60 0%, #2ecc71 100%)',
+                            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
                             '&:hover': {
-                                background: 'linear-gradient(45deg, #229954 0%, #27ae60 100%)',
-                                boxShadow: '0 4px 12px rgba(39, 174, 96, 0.3)'
+                                background: 'linear-gradient(135deg, #2a4b4d 0%, #1f3638 100%)',
+                                boxShadow: '0 6px 16px rgba(42, 75, 77, 0.25)'
                             }
                         }}
                     >
-                        {submitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Submit for Approval'}
+                        {submitting ? (
+                            <CircularProgress size={24} sx={{ color: '#ffffff' }} />
+                        ) : (
+                            'Submit for Approval'
+                        )}
                     </Button>
+
                 </Box>
             )}
         </Container>

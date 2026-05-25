@@ -65,10 +65,10 @@ const CommentSection = ({
         time: timeAgo(c.commonDate?.createdon),
         user: (c.userName || c.createdBy || "").toLowerCase(),
         display:
-  c.displayName ||   // 🔥 use value from parent (already cleaned)
-  c.userName?.split("@")[0] ||
-  c.createdBy ||
-  "User"
+          c.displayName ||   // 🔥 use value from parent (already cleaned)
+          c.userName?.split("@")[0] ||
+          c.createdBy ||
+          "User"
       }))
       .sort((a, b) => {
         const parse = (d) =>
@@ -83,24 +83,24 @@ const CommentSection = ({
     currentUser?.toLowerCase()?.trim() === c.user;
 
   /* ---------- ACTIONS ---------- */
- const handleSend = async () => {
-  if (!text.trim()) return;
+  const handleSend = async () => {
+    if (!text.trim()) return;
 
-  const latestText = text;
+    const latestText = text;
 
-  setText("");
+    setText("");
 
-  try {
-    if (editing) {
-      await onEditComment(latestText, editing.id);
-      setEditing(null);
-    } else {
-      await onSubmitComment(latestText);
+    try {
+      if (editing) {
+        await onEditComment(latestText, editing.id);
+        setEditing(null);
+      } else {
+        await onSubmitComment(latestText);
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
-};
+  };
 
   const handleMenuOpen = (e, c) => {
     setAnchorEl(e.currentTarget);
@@ -124,177 +124,198 @@ const CommentSection = ({
   };
 
   return (
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      borderRadius: 3,
+      overflow: 'hidden',
+      border: '1px solid #e2e8f0',
+      backgroundColor: '#fff'
+    }}
+  >
+    {/* HEADER */}
     <Box
       sx={{
-        borderRadius: 3,
-        border: "1px solid #e0e0e0",
-        display: "flex",
-        flexDirection: "column",
-        height: 400,
-        backgroundColor: "#fafafa"
+        px: 2,
+        py: 1.5,
+        background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
       }}
     >
-      {/* HEADER */}
-      <Box
-        sx={{
-          px: 2,
-          py: 1.5,
-          borderBottom: "1px solid #e0e0e0",
-          background: "linear-gradient(135deg, #1976d2, #42a5f5)",
-          color: "white",
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12
-        }}
-      >
-        <Typography fontWeight={600}>💬 Comments</Typography>
-      </Box>
+      <Typography fontWeight={600} fontSize={14}>
+        💬 Comments
+      </Typography>
+    </Box>
 
-      {/* CHAT AREA */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: "auto",
-          px: 2,
-          py: 2
-        }}
-      >
-        <Stack spacing={2}>
-          {comments.map((c) => {
-            const mine = isMine(c);
+    {/* CHAT AREA */}
+    <Box
+      sx={{
+        flex: 1,
+        overflowY: 'auto',
+        px: 2,
+        py: 2,
+        backgroundColor: '#f8fafc'
+      }}
+    >
+      <Stack spacing={1.5}>
+        {comments.map((c) => {
+          const mine = isMine(c);
 
-            return (
-              <Box
-                key={c.id}
-                display="flex "
-                justifyContent={mine ? "flex-end" : "flex-start"}
+          return (
+            <Box
+              key={c.id}
+              sx={{
+                display: 'flex',
+                justifyContent: mine ? 'flex-end' : 'flex-start'
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="flex-end"
+                flexDirection={mine ? 'row-reverse' : 'row'}
+                sx={{ maxWidth: '75%' }}
               >
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="flex-end"
-                  flexDirection={mine ? "row-reverse" : "row"}
+                {/* AVATAR */}
+                <Avatar
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    bgcolor: mine ? '#3a6b6d' : '#94a3b8',
+                    fontSize: 13,
+                    fontWeight: 600
+                  }}
                 >
-                  {/* AVATAR */}
-                  <Avatar
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      bgcolor: mine ? "#1976d2" : "#9e9e9e",
-                      fontSize: 14
-                    }}
-                  >
-                    {c.display?.charAt(0)?.toUpperCase()}
-                  </Avatar>
+                  {c.display?.charAt(0)?.toUpperCase()}
+                </Avatar>
 
-                  {/* MESSAGE */}
-                  <Paper
-                    elevation={2}
+                {/* BUBBLE */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    px: 1.5,
+                    py: 1,
+                    borderRadius: 3,
+                    background: mine
+                      ? 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)'
+                      : '#ffffff',
+                    color: mine ? '#fff' : '#0f172a',
+                    border: mine ? 'none' : '1px solid #e2e8f0',
+                    boxShadow: mine
+                      ? '0 6px 16px rgba(42,75,77,0.25)'
+                      : '0 2px 8px rgba(0,0,0,0.04)',
+                    wordBreak: 'break-word'
+                  }}
+                >
+                  {/* META */}
+                  <Box
                     sx={{
-                      px: 2,
-                      gap:3,
-                      py: 1.2,
-                      maxWidth: 280,
-                      borderRadius: 3,
-                      bgcolor: mine ? "#1976d2" : "#ffffff",
-                      color: mine ? "white" : "black",
-                      position: "relative"
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      mb: 0.5,
+                      gap: 1
                     }}
                   >
-                    {/* HEADER */}
-                    <Box
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      mb={0.5}
-                      width={150}
-                    >
-                      <Typography
-                        fontSize={11}
-                        fontWeight={600}
-                        sx={{ opacity: 0.8 }}
-                      >
-                        {c.display}
+                    <Typography fontSize={11} fontWeight={600} sx={{ opacity: 0.85 }}>
+                      {c.display}
+                    </Typography>
+
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Typography fontSize={10} sx={{ opacity: 0.7 }}>
+                        {c.time}
                       </Typography>
 
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography fontSize={10} sx={{ opacity: 0.7 }}>
-                          {c.time}
-                        </Typography>
+                      {mine && (
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleMenuOpen(e, c)}
+                          sx={{
+                            color: 'inherit',
+                            p: 0.3
+                          }}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Stack>
+                  </Box>
 
-                        {mine && (
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleMenuOpen(e, c)}
-                            sx={{ color: "inherit", p: 0.5 }}
-                          >
-                            <MoreVertIcon fontSize="inherit" />
-                          </IconButton>
-                        )}
-                      </Stack>
-                    </Box>
+                  {/* MESSAGE */}
+                  <Typography fontSize={13} lineHeight={1.5}>
+                    {c.text}
+                  </Typography>
+                </Paper>
+              </Stack>
+            </Box>
+          );
+        })}
 
-                    {/* TEXT */}
-                    <Typography fontSize={13} lineHeight={1.4}>
-                      {c.text}
-                    </Typography>
-                  </Paper>
-                </Stack>
-              </Box>
-            );
-          })}
-
-          <div ref={scrollRef} />
-        </Stack>
-      </Box>
-
-      {/* INPUT */}
-      <Box
-        sx={{
-          p: 1.5,
-          borderTop: "1px solid #e0e0e0",
-          backgroundColor: "#fff"
-        }}
-      >
-        <Stack direction="row" spacing={1} alignItems="center">
-          <TextField
-            fullWidth
-            size="small"
-            placeholder={editing ? "Edit comment..." : "Write a comment..."}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3
-              }
-            }}
-          />
-
-          <IconButton
-            onClick={handleSend}
-            sx={{
-              bgcolor: "#1976d2",
-              color: "white",
-              "&:hover": { bgcolor: "#1565c0" }
-            }}
-          >
-            <SendIcon fontSize="small" />
-          </IconButton>
-        </Stack>
-      </Box>
-
-      {/* MENU */}
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={handleEdit}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
-        </MenuItem>
-        <MenuItem onClick={handleDelete}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
-        </MenuItem>
-      </Menu>
+        <div ref={scrollRef} />
+      </Stack>
     </Box>
-  );
+
+    {/* INPUT AREA */}
+    <Box
+      sx={{
+        p: 1.2,
+        borderTop: '1px solid #e2e8f0',
+        backgroundColor: '#fff'
+      }}
+    >
+      <Stack direction="row" spacing={1} alignItems="center">
+        <TextField
+          fullWidth
+          size="small"
+          placeholder={editing ? 'Edit comment...' : 'Write a comment...'}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              backgroundColor: '#f8fafc',
+              fontSize: 13
+            }
+          }}
+        />
+
+        <IconButton
+          onClick={handleSend}
+          sx={{
+            width: 40,
+            height: 40,
+            bgcolor: '#3a6b6d',
+            color: '#fff',
+            borderRadius: 2,
+            boxShadow: '0 6px 14px rgba(42,75,77,0.25)',
+            '&:hover': {
+              bgcolor: '#2a4b4d'
+            }
+          }}
+        >
+          <SendIcon fontSize="small" />
+        </IconButton>
+      </Stack>
+    </Box>
+
+    {/* MENU */}
+    <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+      <MenuItem onClick={handleEdit}>
+        <EditIcon fontSize="small" sx={{ mr: 1 }} />
+        Edit
+      </MenuItem>
+      <MenuItem onClick={handleDelete}>
+        <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+        Delete
+      </MenuItem>
+    </Menu>
+  </Box>
+);
 };
 
 export default CommentSection;
