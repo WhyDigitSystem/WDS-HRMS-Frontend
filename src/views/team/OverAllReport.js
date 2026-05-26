@@ -66,7 +66,7 @@ function OverAllReport() {
   const [dateFilter, setDateFilter] = useState('All');
 
   const [formData, setFormData] = useState({
-    fromDate: dayjs().subtract(30, 'day').format('YYYY-MM-DD'),
+    fromDate: dayjs().format('YYYY-MM-DD'),
     toDate: dayjs().format('YYYY-MM-DD'),
     branch: 'All',
     employeeCode: 'All',
