@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Grid, Stack, Typography, } from '@mui/material';
+import { Card, CardContent, Grid, Stack, Typography, Box } from '@mui/material';
+
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import SavingsRoundedIcon from '@mui/icons-material/SavingsRounded';
+import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
+import CurrencyRupeeRoundedIcon from '@mui/icons-material/CurrencyRupeeRounded';
+
 import Listview from '../pages/lListview';
 import apiCalls from 'apicall';
 
@@ -9,52 +15,46 @@ const TaxDeclarations = () => {
   const employeeCode = localStorage.getItem('employeeCode');
   const orgId = localStorage.getItem('orgId');
   const branchCode = localStorage.getItem('branchCode');
+
   const createdBy = userName;
+
   const [data, setData] = useState({});
   const [getAllData, setGetAllData] = useState([]);
   const [id, setId] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
 
-  
+  const formatNumber = (value) =>
+    Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
-  const formatNumber = (value) => {
-    return Number(value).toLocaleString('en-IN', {
-      maximumFractionDigits: 0
-    });
-  };
   const cards = [
     {
       title: 'Gross Income',
       amount: `₹${formatNumber(data?.grossIncome || 0)}`,
       subtitle: 'Per annum',
-      textColor: 'rgb(30 41 59)',
-      border: '#e2e8f0'
+      icon: <TrendingUpRoundedIcon />,
     },
     {
       title: 'Total Deductions',
       amount: `₹${formatNumber(data?.totalDedcutions || 0)}`,
       subtitle: '80C + 80D + HRA',
-      textColor: 'rgb(5 150 105)',
-      border: '#e2e8f0'
+      icon: <SavingsRoundedIcon />,
     },
     {
       title: 'Taxable Income',
       amount: `₹${formatNumber(data?.taxableIncome || 0)}`,
       subtitle: 'After exemptions',
-      textColor: 'rgb(30 41 59)',
-      border: '#e2e8f0'
+      icon: <AccountBalanceWalletRoundedIcon />,
     },
     {
       title: 'Monthly TDS',
       amount: `₹${formatNumber(data?.yearlyTds || 0)}`,
       subtitle: 'Deducted from salary',
-      textColor: 'rgb(217 119 6)',
-      border: '#e2e8f0'
+      icon: <CurrencyRupeeRoundedIcon />,
     }
   ];
 
   const columns = [
-    { id: 1, Label: 'Section', accessor: 'section' },
+    { id: 1, Label: 'SECTION', accessor: 'section' },
     { id: 2, Label: 'INVESTMENT TYPE', accessor: 'investmentType' },
     { id: 3, Label: 'DECLARED (₹)', accessor: 'declared' },
     { id: 4, Label: 'LIMIT (₹)', accessor: 'limitAmount' },
@@ -69,11 +69,11 @@ const TaxDeclarations = () => {
         'get',
         `investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`
       );
-      if (res.status === true) {
-        setData(res?.paramObjectsMap?.dashBoardDetails[0]);
+      if (res.status) {
+        setData(res?.paramObjectsMap?.dashBoardDetails?.[0] || {});
       }
-    } catch (error) {
-      console.log(error);
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -83,13 +83,14 @@ const TaxDeclarations = () => {
         'get',
         `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${userName}&orgId=${orgId}`
       );
-      if (res.status === true) {
-        setId(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.id);
-        setTotalAmount(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.totalAmount);
-        setGetAllData(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.investmentDeclarationDetailsVO || []);
+      if (res.status) {
+        const main = res?.paramObjectsMap?.investmentDeclarationVO?.[0];
+        setId(main?.id);
+        setTotalAmount(main?.totalAmount);
+        setGetAllData(main?.investmentDeclarationDetailsVO || []);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -100,85 +101,126 @@ const TaxDeclarations = () => {
 
   return (
     <>
-      {/* card */}
-      <div className="container-fluid">
+      {/* SUMMARY CARDS */}
+      <Box sx={{ mb: 1 }}>
         <Grid container spacing={1}>
-          {cards.map((card, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index} sx={{ p: 0 }}>
+          {cards.map((card, i) => (
+            <Grid item xs={12} sm={6} md={3} key={i}>
               <Card
+                elevation={0}
                 sx={{
-                  borderRadius: '18px',
-                  // backgroundColor: card.bg,
+                  borderRadius: '12px',
+                  border: '1px solid rgba(58,107,109,0.15)',
+                  background: '#fff',
+                  position: 'relative',
+                  transition: '0.2s ease',
+                  height: '100%',
 
-                  border: `1px solid ${card.border}`,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
-                  transition: '0.3s',
-                  cursor: 'pointer',
                   '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.12)'
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 14px rgba(42,75,77,0.12)'
+                  },
+
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    height: '3px',
+                    width: '100%',
+                    background:
+                      'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)'
                   }
                 }}
               >
-                <CardContent
-                  sx={{
-                    padding: '17px'
-                  }}
-                >
-                  <Stack spacing={0.2}>
-                    <Typography
-                      sx={{
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        color: '#64748b',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px'
-                      }}
-                    >
-                      {card.title}
-                    </Typography>
+                <CardContent sx={{ px: 1.5, py: 1 }}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    {/* TEXT */}
+                    <Box sx={{ overflow: 'hidden' }}>
+                      <Typography
+                        sx={{
+                          fontSize: '9px',
+                          fontWeight: 700,
+                          color: '#64748b',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.6px'
+                        }}
+                      >
+                        {card.title}
+                      </Typography>
 
-                    <Typography
-                      sx={{
-                        fontSize: '1rem',
-                        fontWeight: 700,
-                        //   color: '#0f172a',
-                        color: card.textColor
-                      }}
-                    >
-                      {card.amount}
-                    </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '0.95rem',
+                          fontWeight: 700,
+                          color: '#2a4b4d',
+                          lineHeight: 1.1,
+                          mt: 0.3
+                        }}
+                      >
+                        {card.amount}
+                      </Typography>
 
-                    <Typography
+                      <Typography
+                        sx={{
+                          fontSize: '10px',
+                          color: '#94a3b8',
+                          mt: 0.2,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {card.subtitle}
+                      </Typography>
+                    </Box>
+
+                    {/* ICON */}
+                    <Box
                       sx={{
-                        fontSize: '0.75rem',
-                        color: 'rgb(148 163 184)'
+                        width: 34,
+                        height: 34,
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background:
+                          'linear-gradient(135deg, rgba(58,107,109,0.12), rgba(42,75,77,0.08))',
+                        border: '1px solid rgba(58,107,109,0.15)',
+                        color: '#3a6b6d',
+
+                        '& svg': {
+                          fontSize: 18
+                        }
                       }}
                     >
-                      {card.subtitle}
-                    </Typography>
+                      {card.icon}
+                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
             </Grid>
           ))}
         </Grid>
-      </div>
-      {/* list view */}
-      <div>
-        <Listview
-          columns={columns}
-          data={getAllData}
-          id={id}
-          branch={branch}
-          branchCode={branchCode}
-          employeeCode={employeeCode}
-          userName={userName}
-          orgId={orgId}
-          createdBy={createdBy}
-          totalDeclared={`₹${formatNumber(totalAmount || 0)}`}
-        />
-      </div>
+      </Box>
+
+      {/* TABLE */}
+      <Listview
+        columns={columns}
+        data={getAllData}
+        id={id}
+        branch={branch}
+        branchCode={branchCode}
+        employeeCode={employeeCode}
+        userName={userName}
+        orgId={orgId}
+        createdBy={createdBy}
+        totalDeclared={`₹${formatNumber(totalAmount || 0)}`}
+      />
     </>
   );
 };

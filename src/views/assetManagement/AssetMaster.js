@@ -204,7 +204,7 @@ const AssetMaster = ({ config }) => {
     setIsLoading(true);
     try {
       const response = await apiCalls('get', `/assetmanagement/getAssetMasterById?id=${assetId}`);
-      
+
 
       if (response.status === true && response.paramObjectsMap?.assetMasterVO) {
         const asset = response.paramObjectsMap.assetMasterVO;
@@ -306,14 +306,14 @@ const AssetMaster = ({ config }) => {
   //   showToast('info', 'Image removed');
   // };
   const handleRemoveImage = (imageId) => {
-  setUploadedImages((prev) => {
-    const img = prev.find((i) => i.id === imageId);
-    if (img?.preview) URL.revokeObjectURL(img.preview);
-    return prev.filter((i) => i.id !== imageId);
-  });
+    setUploadedImages((prev) => {
+      const img = prev.find((i) => i.id === imageId);
+      if (img?.preview) URL.revokeObjectURL(img.preview);
+      return prev.filter((i) => i.id !== imageId);
+    });
 
-  setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
-};
+    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+  };
 
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
@@ -487,13 +487,13 @@ const AssetMaster = ({ config }) => {
       // 2. Add all image files from your state/ref
       // Assuming you have images in state like imageFiles or file inputs
 
-const allImages = [...existingImages, ...uploadedImages];
+      const allImages = [...existingImages, ...uploadedImages];
 
-allImages.forEach((img) => {
-  if (img.file instanceof File) {
-    formDataToSend.append('files', img.file);
-  }
-});
+      allImages.forEach((img) => {
+        if (img.file instanceof File) {
+          formDataToSend.append('files', img.file);
+        }
+      });
 
       // If editing and you want to keep existing images, you might need to handle differently
       // This example assumes you have image files ready to upload
@@ -595,15 +595,15 @@ allImages.forEach((img) => {
     return new File([u8arr], filename, { type: mime });
   };
 
-   const autoGenerateCode = async () => {
+  const autoGenerateCode = async () => {
     try {
       const res = await apiCalls(
         'get',
         `/documenttypecontroller/getDocId?branchCode=${branchCode}&screenCode=AM`
       );
-  
+
       const generatedCode = res?.paramObjectsMap?.generatedDocId;
-  
+
       if (generatedCode) {
         setFormData((prev) => ({
           ...prev,
@@ -612,7 +612,7 @@ allImages.forEach((img) => {
       } else {
         showToast('Code generation failed', 'error');
       }
-  
+
     } catch (error) {
       console.error(error);
       showToast('Something went wrong while generating code', 'error');
@@ -675,7 +675,7 @@ allImages.forEach((img) => {
                 {isEditing && selectedAsset && (
                   <Chip label={`Editing: ${selectedAsset.asset_code}`} color="primary" variant="outlined" size="small" />
                 )}
-              </Box> 
+              </Box>
               <form onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={3}>
@@ -898,10 +898,10 @@ allImages.forEach((img) => {
                           fontSize: '0.85rem',
                           px: 1.8,
                           py: 0.8,
-                        background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+                          background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
                           boxShadow: '0 2px 6px rgba(59, 130, 246, 0.25)',
                           '&:hover': {
-                           background: 'linear-gradient(193deg, #2f5b5d 30%, #203d3f 90%)',
+                            background: 'linear-gradient(193deg, #2f5b5d 30%, #203d3f 90%)',
                             boxShadow: '0 3px 8px rgba(59, 130, 246, 0.35)'
                           },
                           '&:disabled': {
@@ -1059,38 +1059,88 @@ allImages.forEach((img) => {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                        gap: 2,
+                        mt: 4,
+                        pt: 3,
+                        borderTop: '1px solid #e2e8f0',
+                        flexWrap: 'wrap'
+                      }}
+                    >
                       <Button
                         onClick={handleCancel}
                         variant="outlined"
                         startIcon={<Cancel />}
                         disabled={isLoading}
                         sx={{
-                          borderRadius: 2,
-                          px: 4,
-                          textTransform: 'none'
+                          minWidth: 130,
+                          height: 42,
+                          borderRadius: '12px',
+                          px: 3,
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          borderColor: '#cbd5e1',
+                          color: '#475569',
+                          background: '#fff',
+                          transition: 'all 0.25s ease',
+
+                          '&:hover': {
+                            borderColor: '#94a3b8',
+                            background: '#f8fafc',
+                            transform: 'translateY(-1px)',
+                            boxShadow: '0 6px 14px rgba(15,23,42,0.08)'
+                          },
+
+                          '&:disabled': {
+                            background: '#f1f5f9',
+                            color: '#94a3b8'
+                          }
                         }}
                       >
                         Cancel
                       </Button>
+
                       <Button
                         type="submit"
                         variant="contained"
                         startIcon={<Save />}
                         disabled={isLoading}
                         sx={{
-                         background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
-                          borderRadius: 2,
-                          px: 4,
+                          minWidth: 160,
+                          height: 42,
+                          background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                          borderRadius: '12px',
+                          px: 3,
                           textTransform: 'none',
-                          fontWeight: '600',
-                          boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.3)',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          letterSpacing: '0.3px',
+                          boxShadow: '0 10px 24px rgba(42,75,77,0.22)',
+                          transition: 'all 0.25s ease',
+                          border: '1px solid rgba(255,255,255,0.08)',
+
                           '&:hover': {
-                            boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.4)'
+                            background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 14px 28px rgba(42,75,77,0.30)'
+                          },
+
+                          '&:disabled': {
+                            background: '#94a3b8',
+                            color: '#e2e8f0'
                           }
                         }}
                       >
-                        {isLoading ? 'Saving...' : isEditing ? 'Update Asset' : 'Add Asset'}
+                        {isLoading
+                          ? 'Saving...'
+                          : isEditing
+                            ? 'Update Asset'
+                            : 'Add Asset'}
                       </Button>
                     </Box>
                   </Grid>

@@ -388,16 +388,15 @@ const ExitInterviewManagement = () => {
         borderRadius: 3
       }}>
         <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{
-            mb: 3,
-            fontWeight: 700,
-            color: '#1f2937',
-            background: 'linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            display: 'inline-block'
-          }}>
+          <Typography
+            sx={{
+              fontSize: '18px',
+              fontWeight: 700,
+              letterSpacing: '0.3px',
+              color: '#2a4b4d',
+              lineHeight: 1.2
+            }}
+          >
             Exit Interview Management
           </Typography>
 

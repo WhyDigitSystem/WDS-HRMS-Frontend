@@ -319,7 +319,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
             <Box sx={{ p: 2, backgroundColor: '#f8fafc', borderRadius: 2 }}>
                 {/* Employee Info Section */}
                 <Typography sx={{ fontWeight: 700, mb: 1, color: '#1e293b' }}>
-                    👤 Employee Details
+                    Employee Details
                 </Typography>
                 <Grid container spacing={2}>
                     <Grid item xs={12} sm={6} md={4} lg={3}>
@@ -443,7 +443,7 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
 
                 {/* Separation Details */}
                 <Typography sx={{ fontWeight: 700, mt: 2, mb: 1, color: '#1e293b' }}>
-                    🚪 Separation Details
+                    Separation Details
                 </Typography>
 
                 <Grid container spacing={2}>
@@ -731,36 +731,54 @@ const InitiateSeparationForm = ({ onSeparationCreated }) => {
                 {/* Submit */}
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
                     <Button
-                        variant="contained"
-                        startIcon={<SaveIcon />}
-                        sx={{
-                            background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-                            color: "white",
-                            fontWeight: 600,
-                            px: 1,
-                            py: 0.55,
-                            borderRadius: 2,
-                            letterSpacing: "0.5px",
-                            fontSize: "14px",
+    variant="contained"
+    onClick={handleSubmit}
+    // disabled={!formData.employeeId || submitting}
+    sx={{
+        minWidth: 110,
+        height: 36,
+        px: 2,
+        py: 0.6,
+        borderRadius: '10px',
 
-                            "&:hover": {
-                                transform: "scale(1.06)",
-                                background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-                            },
+        background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+        color: '#fff',
 
-                            "&:active": {
-                                transform: "scale(0.97)",
-                            }
-                        }}
-                        onClick={handleSubmit}
-                    // disabled={!formData.employeeId || submitting}
-                    >
-                        {submitting ? (
-                            <CircularProgress size={24} sx={{ color: 'white' }} />
-                        ) : (
-                            'Save'
-                        )}
-                    </Button>
+        fontSize: '13px',
+        fontWeight: 600,
+        letterSpacing: '0.3px',
+        textTransform: 'none',
+
+        boxShadow: '0 4px 10px rgba(42,75,77,0.18)',
+        transition: 'all 0.25s ease',
+
+        '&:hover': {
+            background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 8px 18px rgba(42,75,77,0.22)'
+        },
+
+        '&:active': {
+            transform: 'scale(0.98)'
+        },
+
+        '&.Mui-disabled': {
+            background: '#cbd5e1',
+            color: '#64748b'
+        }
+    }}
+>
+    {submitting ? (
+        <CircularProgress
+            size={18}
+            sx={{
+                color: '#fff'
+            }}
+        />
+    ) : (
+        'Save'
+    )}
+</Button>
                 </Box>
             </Box>
 

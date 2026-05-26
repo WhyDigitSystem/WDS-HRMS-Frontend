@@ -60,9 +60,9 @@ const EmployeeSeparationModule = () => {
 
     useEffect(() => {
         if (funcRef.current === handleSeparationCreated) {
-            console.log("✅ Same function");
+            console.log('✅ Same function');
         } else {
-            console.log("❌ New function created");
+            console.log('❌ New function created');
         }
         funcRef.current = handleSeparationCreated;
     });
@@ -81,18 +81,13 @@ const EmployeeSeparationModule = () => {
             if (result) {
                 const deptHeads = result.paramObjectsMap.departmentHeadVO || [];
 
-                // Extract all employeeCodes from API
-                const apiEmployeeCodes = deptHeads.flatMap(dh =>
-                    dh.reportingHeadVO?.map(rh => rh.employeeCode) || []
+                const apiEmployeeCodes = deptHeads.flatMap(
+                    (dh) => dh.reportingHeadVO?.map((rh) => rh.employeeCode) || []
                 );
 
-                // Check if logged-in user exists
                 const isAllowed = apiEmployeeCodes.includes(employeeCode);
 
                 setHasClearanceAccess(isAllowed);
-
-                // Optional: your existing data set
-                // setData(deptHeads.reverse());
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -121,101 +116,97 @@ const EmployeeSeparationModule = () => {
         setCurrentTab(newValue);
     };
 
-    // const handleSeparationCreated = () => {
-    //     setRefreshStats(prev => prev + 1);
-    // };
-
     const handleSeparationCreated = useCallback(() => {
-        setRefreshStats(prev => prev + 1);
+        setRefreshStats((prev) => prev + 1);
     }, []);
 
     const tabs = [
-        ...(seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Initiate Separation',
-                    icon: <InitiateSeparationIcon sx={{ color: '#ef4444' }} />,
-                    component: InitiateSeparationForm
-                }
-            ]
-            : []),
+    ...(seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Initiate Separation',
+                  icon: <InitiateSeparationIcon sx={{ color: '#ffffff' }} />,
+                  component: InitiateSeparationForm
+              }
+          ]
+        : []),
 
-        {
-            label: 'All Cases',
-            icon: <AllCasesIcon sx={{ color: '#3b82f6' }} />,
-            component: AllCasesSeparation
-        },
-        // {
-        //     label: 'Clearance',
-        //     icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
-        //     component: ClearanceManagement
-        // },
-        ...(hasClearanceAccess
-            ? [
-                {
-                    label: 'Clearance',
-                    icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
-                    component: ClearanceManagement
-                }
-            ]
-            : []),
-        ...(seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Clearance Details',
-                    icon: <ClearanceIcon sx={{ color: '#f59e0b' }} />,
-                    component: HrClearance
-                }
-            ]
-            : []),
-        ...(seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Exit Questions',
-                    icon: <QuestionAnswerIcon sx={{ color: '#8b5cf6' }} />,
-                    component: ExitQuestions
-                }
-            ]
-            : []),
-        ...(!seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Exit Interview',
-                    icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
-                    component: UserInterview
-                }
-            ]
-            : []),
-        ...(seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Interview Feedback',
-                    icon: <ExitInterviewIcon sx={{ color: '#8b5cf6' }} />,
-                    component: ExitInterviewManagement
-                }
-            ]
-            : []),
+    {
+        label: 'All Cases',
+        icon: <AllCasesIcon sx={{ color: '#ffffff' }} />,
+        component: AllCasesSeparation
+    },
 
-        ...(seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Experience Letter',
-                    icon: <ExperienceLetterIcon sx={{ color: '#14b8a6' }} />,
-                    component: ExperienceLetter
-                }
-            ]
-            : []),
+    ...(hasClearanceAccess
+        ? [
+              {
+                  label: 'Clearance',
+                  icon: <ClearanceIcon sx={{ color: '#ffffff' }} />,
+                  component: ClearanceManagement
+              }
+          ]
+        : []),
 
-        ...(seperationDetails.includes(loginUserRole)
-            ? [
-                {
-                    label: 'Relieving Letter',
-                    icon: <RelievingLetterIcon sx={{ color: '#6366f1' }} />,
-                    component: RelievingLetter
-                }
-            ]
-            : []),
-    ];
+    ...(seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Clearance Details',
+                  icon: <ClearanceIcon sx={{ color: '#ffffff' }} />,
+                  component: HrClearance
+              }
+          ]
+        : []),
+
+    ...(seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Exit Questions',
+                  icon: <QuestionAnswerIcon sx={{ color: '#ffffff' }} />,
+                  component: ExitQuestions
+              }
+          ]
+        : []),
+
+    ...(!seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Exit Interview',
+                  icon: <ExitInterviewIcon sx={{ color: '#ffffff' }} />,
+                  component: UserInterview
+              }
+          ]
+        : []),
+
+    ...(seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Interview Feedback',
+                  icon: <ExitInterviewIcon sx={{ color: '#ffffff' }} />,
+                  component: ExitInterviewManagement
+              }
+          ]
+        : []),
+
+    ...(seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Experience Letter',
+                  icon: <ExperienceLetterIcon sx={{ color: '#ffffff' }} />,
+                  component: ExperienceLetter
+              }
+          ]
+        : []),
+
+    ...(seperationDetails.includes(loginUserRole)
+        ? [
+              {
+                  label: 'Relieving Letter',
+                  icon: <RelievingLetterIcon sx={{ color: '#ffffff' }} />,
+                  component: RelievingLetter
+              }
+          ]
+        : [])
+];
 
     return (
         <Container
@@ -224,73 +215,83 @@ const EmployeeSeparationModule = () => {
             sx={{
                 py: 2,
                 px: 1,
+                background: '#f8fafc',
+                minHeight: '100vh'
             }}
         >
-            {/* Stats Cards */}
-            {
-                !seperationDetails.includes(loginUserRole) ?
-                    null :
-                    <StatsCards refreshTrigger={refreshStats} />
-            }
-            {/* <StatsCards refreshTrigger={refreshStats} /> */}
+            {!seperationDetails.includes(loginUserRole) ? null : (
+                <StatsCards refreshTrigger={refreshStats} />
+            )}
 
-            {/* Main Tabs Section */}
             <Paper
                 sx={{
                     width: '100%',
                     mt: 2,
-                    borderRadius: 3,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    borderRadius: '24px',
                     overflow: 'hidden',
+                    border: '1px solid rgba(226,232,240,0.8)',
+                    background: '#ffffff',
+                    boxShadow: '0 10px 30px rgba(15,23,42,0.08)'
                 }}
             >
                 <AppBar
                     position="static"
-                    color="default"
                     elevation={0}
                     sx={{
-                        background: '#f8fafc',
-                        borderBottom: '1px solid #e2e8f0',
+                        background:
+                            'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                        borderBottom: 'none'
                     }}
                 >
                     <Tabs
                         value={currentTab}
                         onChange={handleTabChange}
                         variant="scrollable"
-                        scrollButtons="on" // always show arrows (prevents flicker)
-                        allowScrollButtonsMobile // improves mobile UX
+                        scrollButtons="on"
+                        allowScrollButtonsMobile
                         TabIndicatorProps={{
                             style: {
-                                backgroundColor: '#2563eb',
-                                height: 3,
-                                borderRadius: '2px 2px 0 0',
-                            },
+                                background: '#ffffff',
+                                height: 4,
+                                borderRadius: '8px 8px 0 0'
+                            }
                         }}
                         sx={{
                             px: 1,
+                            py: 0.5,
+
                             '& .MuiTabs-scrollButtons': {
-                                color: '#64748b',
-                                '&.Mui-disabled': { opacity: 0.3 },
+                                color: '#ffffff',
+                                '&.Mui-disabled': {
+                                    opacity: 0.3
+                                }
                             },
+
                             '& .MuiTab-root': {
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                minHeight: 60,
-                                borderRadius: 2,
+                                minHeight: 62,
+                                borderRadius: '14px',
                                 mx: 0.5,
-                                px: 1.5,
-                                transition: 'background-color 0.3s ease, transform 0.2s ease',
-                                // Prevent hover from changing layout
+                                px: 2,
+                                color: 'rgba(255,255,255,0.75)',
+                                transition: 'all 0.25s ease',
                                 transform: 'translateY(0)',
+                                fontSize: '13px'
                             },
+
                             '& .MuiTab-root:hover': {
-                                backgroundColor: '#f1f5f9',
+                                background: 'rgba(255,255,255,0.10)',
+                                color: '#ffffff'
                             },
+
                             '& .Mui-selected': {
-                                backgroundColor: '#e0f2fe',
-                                color: '#0c4a6e !important',
-                                boxShadow: 'inset 0 -2px 0 0 #0ea5e9',
-                            },
+                                background: 'rgba(255,255,255,0.16)',
+                                color: '#ffffff !important',
+                                backdropFilter: 'blur(10px)',
+                                boxShadow:
+                                    'inset 0 0 0 1px rgba(255,255,255,0.08)'
+                            }
                         }}
                     >
                         {tabs.map((tab, index) => (
@@ -304,17 +305,37 @@ const EmployeeSeparationModule = () => {
                     </Tabs>
                 </AppBar>
 
-                {/* Tab Content */}
-                {tabs.map((tab, index) => {
-                    const TabComponent = tab.component;
-                    return (
-                        <TabPanel key={index} value={currentTab} index={index}>
-                            {currentTab === index && TabComponent ? (
-                                <TabComponent onSeparationCreated={handleSeparationCreated} />
-                            ) : null}
-                        </TabPanel>
-                    );
-                })}
+                <Box
+                    sx={{
+                        background: '#f8fafc',
+                        minHeight: '500px',
+                        p: {
+                            xs: 1,
+                            sm: 1.5,
+                            md: 2
+                        }
+                    }}
+                >
+                    {tabs.map((tab, index) => {
+                        const TabComponent = tab.component;
+
+                        return (
+                            <TabPanel
+                                key={index}
+                                value={currentTab}
+                                index={index}
+                            >
+                                {currentTab === index && TabComponent ? (
+                                    <TabComponent
+                                        onSeparationCreated={
+                                            handleSeparationCreated
+                                        }
+                                    />
+                                ) : null}
+                            </TabPanel>
+                        );
+                    })}
+                </Box>
             </Paper>
         </Container>
     );

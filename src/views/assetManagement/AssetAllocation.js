@@ -473,30 +473,40 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                 {!isAllocating && (
                     <Button
                         variant="contained"
-                        startIcon={<Add />}
+                        startIcon={loading ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <Add />}
                         onClick={handleAllocate}
                         disabled={loading}
                         sx={{
-                            backgroundColor: config.primaryColor || '#2563eb',
-                            background: `linear-gradient(135deg, ${config.primaryColor || '#2563eb'} 0%, ${config.successColor || '#059669'} 100%)`,
-                            borderRadius: 2,
-                            px: 1,
-                            py: 0.8,
+                            minWidth: 165,
+                            height: 42,
+                            px: 2.5,
+                            py: 1,
                             mb: 1,
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
+                            borderRadius: '12px',
                             textTransform: 'none',
-                            boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.3)',
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            letterSpacing: '0.3px',
+                            background:
+                                'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                            color: '#fff',
+                            boxShadow: '0 6px 16px rgba(42,75,77,0.28)',
+                            transition: 'all 0.25s ease',
                             '&:hover': {
-                                boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.4)',
+                                background:
+                                    'linear-gradient(135deg, #477d80 0%, #33595b 100%)',
+                                boxShadow: '0 8px 22px rgba(42,75,77,0.38)',
                                 transform: 'translateY(-1px)',
                             },
+                            '&:active': {
+                                transform: 'scale(0.98)',
+                            },
                             '&:disabled': {
-                                background: 'grey.300',
+                                background: '#cbd5e1',
+                                color: '#64748b',
                                 boxShadow: 'none',
                                 transform: 'none',
-                            },
-                            transition: 'all 0.3s ease',
+                            }
                         }}
                     >
                         {loading ? 'Loading...' : 'Allocate Asset'}
@@ -519,45 +529,98 @@ const AssetAllocation = ({ assets, onAllocateAsset, onReturnAsset, config }) => 
                     >
                         {/* Action Buttons at the Top */}
                         <Box sx={{ p: 1, borderBottom: 1, borderColor: 'white' }}>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    gap: 1.5,
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    mt: 2
+                                }}
+                            >
                                 <Button
                                     onClick={handleCancel}
                                     variant="outlined"
                                     startIcon={<Cancel />}
                                     disabled={isSubmitting}
                                     sx={{
-                                        borderRadius: 2,
-                                        px: 4,
-                                        textTransform: 'none'
+                                        minWidth: 130,
+                                        height: 42,
+                                        borderRadius: '12px',
+                                        px: 3,
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        fontSize: '13px',
+                                        borderColor: '#cbd5e1',
+                                        color: '#475569',
+                                        background: '#fff',
+                                        transition: 'all 0.25s ease',
+                                        '&:hover': {
+                                            borderColor: '#94a3b8',
+                                            background: '#f8fafc',
+                                            transform: 'translateY(-1px)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                                        },
+                                        '&:disabled': {
+                                            opacity: 0.7
+                                        }
                                     }}
                                 >
                                     Cancel
                                 </Button>
+
                                 <Button
                                     type="submit"
                                     form="allocation-form"
                                     variant="contained"
-                                    startIcon={isSubmitting ? <CircularProgress size={20} /> : <Save />}
+                                    startIcon={
+                                        isSubmitting ? (
+                                            <CircularProgress
+                                                size={18}
+                                                sx={{ color: '#fff' }}
+                                            />
+                                        ) : (
+                                            <Save />
+                                        )
+                                    }
                                     disabled={isSubmitting}
                                     sx={{
-                                        background: `linear-gradient(135deg, ${config.primaryColor || '#2563eb'} 0%, ${config.successColor || '#059669'} 100%)`,
-                                        borderRadius: 2,
-                                        px: 4,
+                                        minWidth: 180,
+                                        height: 42,
+                                        borderRadius: '12px',
+                                        px: 3,
                                         textTransform: 'none',
-                                        fontWeight: '600',
-                                        boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.3)',
+                                        fontWeight: 700,
+                                        fontSize: '13px',
+                                        letterSpacing: '0.3px',
+                                        background:
+                                            'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                        boxShadow: '0 6px 16px rgba(42,75,77,0.28)',
+                                        transition: 'all 0.25s ease',
                                         '&:hover': {
-                                            boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.4)',
+                                            background:
+                                                'linear-gradient(135deg, #477d80 0%, #33595b 100%)',
+                                            boxShadow: '0 8px 22px rgba(42,75,77,0.38)',
+                                            transform: 'translateY(-1px)'
+                                        },
+                                        '&:active': {
+                                            transform: 'scale(0.98)'
                                         },
                                         '&:disabled': {
-                                            background: 'grey.300',
+                                            background: '#cbd5e1',
+                                            color: '#64748b',
+                                            boxShadow: 'none'
                                         }
                                     }}
                                 >
                                     {isSubmitting
-                                        ? (isEditing ? 'Updating...' : 'Allocating...')
-                                        : (isEditing ? 'Update Allocation' : 'Allocate Asset')
-                                    }
+                                        ? isEditing
+                                            ? 'Updating...'
+                                            : 'Allocating...'
+                                        : isEditing
+                                            ? 'Update Allocation'
+                                            : 'Allocate Asset'}
                                 </Button>
                             </Box>
                         </Box>

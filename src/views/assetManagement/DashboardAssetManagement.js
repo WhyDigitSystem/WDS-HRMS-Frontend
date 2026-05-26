@@ -221,141 +221,168 @@ const AssetManagement = ({ onReturnAsset, onShowAllocation }) => {
       title: 'Total Assets',
       value: assetCounts.totalAssets,
       subtitle: `Allocated: ${assetCounts.allocatedAssets}`,
-      icon: <BusinessCenter sx={{ fontSize: 32, color: 'white' }} />,
-      gradientStart: '#667eea',
-      gradientEnd: '#764ba2'
+      icon: <BusinessCenter sx={{ fontSize: 26, color: '#fff' }} />,
+      gradient: 'linear-gradient(135deg, #3a6b6d 0%, #2f5b5d 45%, #244446 100%)',
+      shadow: '0 10px 24px rgba(58,107,109,0.25)'
     },
     {
       title: 'Allocated',
       value: assetCounts.allocatedAssets,
-      subtitle: 'Assets in use',
-      icon: <CheckCircle sx={{ fontSize: 32, color: 'white' }} />,
-      gradientStart: '#43cea2',
-      gradientEnd: '#185a9d'
+      subtitle: 'Assets currently in use',
+      icon: <CheckCircle sx={{ fontSize: 26, color: '#fff' }} />,
+      gradient: 'linear-gradient(135deg, #3a6b6d 0%, #2f5b5d 45%, #244446 100%)',
+      shadow: '0 10px 24px rgba(58,107,109,0.25)'
     },
     {
       title: 'Available',
       value: assetCounts.availableAssets,
       subtitle: 'Ready for allocation',
-      icon: <TrendingUp sx={{ fontSize: 32, color: 'white' }} />,
-      gradientStart: '#a8c0ff',
-      gradientEnd: '#3f2b96'
+      icon: <TrendingUp sx={{ fontSize: 26, color: '#fff' }} />,
+      gradient: 'linear-gradient(135deg, #3a6b6d 0%, #2f5b5d 45%, #244446 100%)',
+      shadow: '0 10px 24px rgba(58,107,109,0.25)'
     }
   ];
 
   return (
     <Box sx={{ p: 0 }}>
       {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {summaryCards.map((card, index) => (
-          <Grid item xs={12} sm={6} lg={4} key={index}>
-            <Card
-              elevation={0}
+      <Grid container spacing={2} sx={{ mb: 2 }}>
+  {summaryCards.map((card, index) => (
+    <Grid item xs={12} sm={4} md={4} key={index}>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: '16px',
+          position: 'relative',
+          overflow: 'hidden',
+          background: card.gradient,
+          color: '#fff',
+          boxShadow: card.shadow,
+          height: '88px',
+          display: 'flex',
+          alignItems: 'center',
+          px: 1.8,
+          transition: 'all 0.2s ease',
+
+          '&:hover': {
+            transform: 'translateY(-2px)'
+          },
+
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '-22px',
+            right: '-18px',
+            width: '75px',
+            height: '75px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.07)'
+          }
+        }}
+      >
+        {loading ? (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <CircularProgress
+              size={20}
+              sx={{ color: '#fff' }}
+            />
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1.5,
+              position: 'relative',
+              zIndex: 2
+            }}
+          >
+            {/* LEFT CONTENT */}
+            <Box
               sx={{
-                borderRadius: 4,
-                background: `linear-gradient(135deg, ${card.gradientStart}, ${card.gradientEnd})`,
-                color: '#fff',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'all 0.35s ease',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-                '&:hover': {
-                  transform: 'translateY(-6px) scale(1.01)',
-                  boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)',
-                },
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
               }}
             >
-              <CardContent sx={{ p: 3.5, position: 'relative', zIndex: 2 }}>
-                {loading ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '100px',
-                    }}
-                  >
-                    <CircularProgress size={40} sx={{ color: 'white' }} />
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <Box sx={{ flex: 1 }}>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          mb: 1,
-                          letterSpacing: 0.5,
-                          opacity: 0.9,
-                          fontWeight: 500,
-                          color: 'rgba(255, 255, 255, 0.9)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {card.title}
-                      </Typography>
+              <Typography
+                sx={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  color: 'rgba(255,255,255,0.82)',
+                  lineHeight: 1.1,
+                  mb: 0.5
+                }}
+              >
+                {card.title}
+              </Typography>
 
-                      <Typography
-                        variant="h4"
-                        component="div"
-                        fontWeight="700"
-                        sx={{
-                          mb: 1,
-                          lineHeight: 1.2,
-                          color: '#fff',
-                          textShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                        }}
-                      >
-                        {card.value}
-                      </Typography>
+              <Typography
+                sx={{
+                  fontSize: '1.45rem',
+                  fontWeight: 700,
+                  color: '#fff',
+                  lineHeight: 1.1,
+                  mb: 0.3
+                }}
+              >
+                {card.value}
+              </Typography>
 
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          opacity: 0.9,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {card.title === 'Allocation Rate' && <TrendingUp sx={{ fontSize: 18 }} />}
-                        {card.subtitle}
-                      </Typography>
-                    </Box>
+              <Typography
+                sx={{
+                  fontSize: '10px',
+                  color: 'rgba(255,255,255,0.78)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1.2
+                }}
+              >
+                {card.subtitle}
+              </Typography>
+            </Box>
 
-                    <Box
-                      sx={{
-                        width: 54,
-                        height: 54,
-                        borderRadius: '16px',
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        backdropFilter: 'blur(12px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: '0.3s ease',
-                        '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.35)',
-                          transform: 'rotate(8deg)',
-                        },
-                      }}
-                    >
-                      {card.icon}
-                    </Box>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+            {/* RIGHT ICON */}
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '12px',
+                background: 'rgba(255,255,255,0.14)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(8px)',
+                flexShrink: 0
+              }}
+            >
+              {React.cloneElement(card.icon, {
+                sx: {
+                  fontSize: 18,
+                  color: '#fff'
+                }
+              })}
+            </Box>
+          </Box>
+        )}
+      </Card>
+    </Grid>
+  ))}
+</Grid>
 
       {/* Header with Refresh Button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>

@@ -101,7 +101,7 @@ const AssetManagementSystem = ({ config = {} }) => {
             onReturnAsset={handleReturnAsset}
             config={mergedConfig}
         />,
-         <ReturnAsset
+        <ReturnAsset
             key="return"
             assets={assets}
             // onAllocateAsset={handleAllocateAsset}
@@ -122,29 +122,29 @@ const AssetManagementSystem = ({ config = {} }) => {
         {
             label: "Asset Master",
             icon: <Inventory2 />,
-            iconColor: "#2563eb", // Blue
-            gradient: "linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)",
+            iconColor: "#0f766e",
+            gradient: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)",
             description: "Manage inventory"
         },
         {
             label: "Asset Allocation",
             icon: <AssignmentInd />,
-            iconColor: "#059669", // Green
-            gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
+            iconColor: "#0d9488",
+            gradient: "linear-gradient(135deg, #2f7a7c 0%, #24585a 100%)",
             description: "Assign assets"
         },
         {
-    label: "Return Asset",
-    icon: <AssignmentReturn />,
-    iconColor: "#0284c7", // Blue
-    gradient: "linear-gradient(135deg, #0284c7 0%, #3b82f6 100%)",
-    description: "Return assigned assets"
-},
+            label: "Return Asset",
+            icon: <AssignmentReturn />,
+            iconColor: "#0f766e",
+            gradient: "linear-gradient(135deg, #356d70 0%, #234547 100%)",
+            description: "Return assigned assets"
+        },
         {
             label: "Dashboard",
             icon: <Dashboard />,
-            iconColor: "#7c3aed", // Purple
-            gradient: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)",
+            iconColor: "#134e4a",
+            gradient: "linear-gradient(135deg, #3f7c7e 0%, #2d5658 100%)",
             description: "Analytics & insights"
         }
     ];
@@ -154,35 +154,63 @@ const AssetManagementSystem = ({ config = {} }) => {
             <CssBaseline />
 
             {/* Enhanced Navigation Tabs */}
-            <Box sx={{
-                borderBottom: 1,
-                borderColor: 'divider',
-                backgroundColor: 'white',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-            }}>
-                <Container maxWidth="xl">
+            <Box
+                sx={{
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    backgroundColor: 'white',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
+                }}
+            >
+                <Container
+                    maxWidth="xl"
+                    sx={{
+                        px: { xs: 0.5, sm: 2 }
+                    }}
+                >
                     <Tabs
                         value={activeTab}
                         onChange={(e, newValue) => setActiveTab(newValue)}
+                        variant="scrollable"
+                        scrollButtons="auto"
+                        allowScrollButtonsMobile
                         sx={{
+                            minHeight: { xs: 56, sm: 'auto' },
+
+                            '& .MuiTabs-flexContainer': {
+                                flexWrap: {
+                                    xs: 'nowrap',
+                                    md: 'nowrap'
+                                }
+                            },
+
                             '& .MuiTab-root': {
-                                minHeight: 30,
-                                fontSize: '0.95rem',
+                                minHeight: { xs: 56, sm: 30 },
+                                minWidth: 'fit-content',
+                                fontSize: {
+                                    xs: '0.78rem',
+                                    sm: '0.95rem'
+                                },
                                 fontWeight: 600,
                                 textTransform: 'none',
-                                color: 'text.secondary',
-                                '&.Mui-selected': {
-                                    color: 'primary.main',
-                                },
-                                '&:hover': {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                                },
+                                color: '#64748b',
                                 transition: 'all 0.3s ease',
-                                py: 2,
-                                px: 3
+                                py: { xs: 1, sm: 2 },
+                                px: { xs: 1.5, sm: 3 },
+                                flexShrink: 0,
+
+                                '&:hover': {
+                                    background: 'rgba(58, 107, 109, 0.06)'
+                                },
+
+                                '&.Mui-selected': {
+                                    color: '#2a4b4d'
+                                }
                             },
+
                             '& .MuiTabs-indicator': {
-                                backgroundColor: mergedConfig.primaryColor,
+                                background:
+                                    'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
                                 height: 3,
                                 borderRadius: '3px 3px 0 0'
                             }
@@ -197,20 +225,39 @@ const AssetManagementSystem = ({ config = {} }) => {
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            width: 25,
-                                            height: 25,
+                                            width: { xs: 22, sm: 25 },
+                                            height: { xs: 22, sm: 25 },
                                             borderRadius: '12px',
-                                            background: activeTab === index ? tab.gradient : 'rgba(0, 0, 0, 0.04)',
-                                            color: activeTab === index ? 'white' : tab.iconColor,
+                                            background:
+                                                activeTab === index
+                                                    ? 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)'
+                                                    : 'rgba(58, 107, 109, 0.08)',
+
+                                            color:
+                                                activeTab === index
+                                                    ? '#fff'
+                                                    : '#3a6b6d',
+
                                             transition: 'all 0.3s ease',
-                                            transform: activeTab === index ? 'scale(1.1)' : 'scale(1)',
-                                            boxShadow: activeTab === index ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
-                                            mr: 1.5
+                                            transform:
+                                                activeTab === index
+                                                    ? 'scale(1.1)'
+                                                    : 'scale(1)',
+
+                                            boxShadow:
+                                                activeTab === index
+                                                    ? '0 6px 14px rgba(42,75,77,0.18)'
+                                                    : 'none',
+
+                                            mr: { xs: 0.8, sm: 1.5 }
                                         }}
                                     >
                                         {React.cloneElement(tab.icon, {
                                             sx: {
-                                                fontSize: 20,
+                                                fontSize: {
+                                                    xs: 16,
+                                                    sm: 20
+                                                },
                                                 transition: 'all 0.3s ease'
                                             }
                                         })}
@@ -222,8 +269,15 @@ const AssetManagementSystem = ({ config = {} }) => {
                                             variant="body1"
                                             fontWeight={600}
                                             sx={{
-                                                fontSize: '0.95rem',
-                                                color: activeTab === index ? mergedConfig.primaryColor : 'text.primary'
+                                                fontSize: {
+                                                    xs: '0.72rem',
+                                                    sm: '0.95rem'
+                                                },
+                                                whiteSpace: 'nowrap',
+                                                color:
+                                                    activeTab === index
+                                                        ? '#2a4b4d'
+                                                        : '#334155'
                                             }}
                                         >
                                             {tab.label}
@@ -233,9 +287,11 @@ const AssetManagementSystem = ({ config = {} }) => {
                                 iconPosition="start"
                                 sx={{
                                     borderRadius: 2,
-                                    mx: 0.5,
+                                    mx: { xs: 0.2, sm: 0.5 },
+
                                     '&.Mui-selected': {
-                                        backgroundColor: 'rgba(37, 99, 235, 0.04)',
+                                        background:
+                                            'rgba(58, 107, 109, 0.08)'
                                     }
                                 }}
                             />
@@ -245,10 +301,15 @@ const AssetManagementSystem = ({ config = {} }) => {
             </Box>
 
             {/* Main Content */}
-            <Container maxWidth="xl" sx={{ py: 2 }}>
+            <Container
+                maxWidth="xl"
+                sx={{
+                    py: { xs: 1, sm: 2 },
+                    px: { xs: 1, sm: 2 }
+                }}
+            >
                 {tabComponents[activeTab]}
             </Container>
-
         </Box>
     );
 };
