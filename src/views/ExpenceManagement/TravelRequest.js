@@ -366,21 +366,21 @@ const TravelRequest = () => {
     //     }
     // };
     const getStatusColor = (status, theme) => {
-      switch (status?.toUpperCase()) {
-        case 'APPROVED': return theme.palette.success.main;
-        case 'PENDING': return theme.palette.warning.main;
-        case 'REJECTED': return theme.palette.error.main;
-        default: return theme.palette.info.main;
-      }
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return theme.palette.success.main;
+            case 'PENDING': return theme.palette.warning.main;
+            case 'REJECTED': return theme.palette.error.main;
+            default: return theme.palette.info.main;
+        }
     };
-    
+
     const getStatusIcon = (status) => {
-      switch (status?.toUpperCase()) {
-        case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
-        case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
-        case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
-        default: return null;
-      }
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+            case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
+            case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
+            default: return null;
+        }
     };
     const handleDateChange = (field, date) => {
         const formattedDate = dayjs(date).format('YYYY-MM-DD') || null;
@@ -419,30 +419,45 @@ const TravelRequest = () => {
                 {!isAdding && (
                     <Button
                         variant="contained"
-                        startIcon={<Add />}
+                        startIcon={<Add sx={{ fontSize: 16 }} />}
                         onClick={handleAdd}
                         disabled={isLoading || isFetching}
-                                               sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    py: 0.55,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
+                        sx={{
+                            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                            color: '#fff',
+                            fontWeight: 600,
+                            px: 1.5,
+                            py: 0.45,
+                            minWidth: 120,
+                            borderRadius: '10px',
+                            letterSpacing: '0.3px',
+                            fontSize: '12px',
+                            textTransform: 'none',
+                            boxShadow: '0 4px 10px rgba(58,107,109,0.25)',
+                            transition: 'all 0.2s ease',
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+                            '& .MuiButton-startIcon': {
+                                marginRight: '4px'
+                            },
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
+                            '&:hover': {
+                                background:
+                                    'linear-gradient(135deg, #446f71 0%, #33585a 100%)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 6px 14px rgba(58,107,109,0.35)'
+                            },
+
+                            '&:active': {
+                                transform: 'scale(0.98)'
+                            },
+
+                            '&:disabled': {
+                                background: '#b0bec5',
+                                color: '#fff'
+                            }
+                        }}
                     >
-                        {isLoading ? 'Adding...' : 'Add New '}
+                        {isLoading ? 'Adding...' : 'Add New'}
                     </Button>
                 )}
             </Box>
@@ -538,7 +553,7 @@ const TravelRequest = () => {
                                                     value={formData.returnDate ? dayjs(formData.returnDate, 'YYYY-MM-DD') : null}
                                                     onChange={(date) => handleDateChange('returnDate', date)}
                                                     slotProps={{
-                                                        textField: { size: 'small', clearable: true}
+                                                        textField: { size: 'small', clearable: true }
                                                     }}
                                                     format="DD-MM-YYYY"
                                                 />
@@ -649,47 +664,83 @@ const TravelRequest = () => {
                                     </Grid>
 
                                     <Grid item xs={12}>
-                                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                gap: 1,
+                                                justifyContent: 'flex-end',
+                                                mt: 1.5
+                                            }}
+                                        >
                                             <Button
                                                 onClick={handleCancel}
                                                 variant="outlined"
-                                                startIcon={<Cancel />}
+
                                                 disabled={isLoading}
                                                 sx={{
-                                                    borderRadius: 2,
-                                                    px: 1,
-                                                    py: 0.5,
-                                                    textTransform: 'none'
+                                                    borderRadius: '10px',
+                                                    px: 1.5,
+                                                    py: 0.45,
+                                                    minWidth: 95,
+                                                    textTransform: 'none',
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    borderColor: '#90a4ae',
+                                                    color: '#455a64',
+                                                    transition: 'all 0.2s ease',
+
+                                                    '&:hover': {
+                                                        borderColor: '#3a6b6d',
+                                                        backgroundColor: 'rgba(58,107,109,0.06)',
+                                                        color: '#2a4b4d'
+                                                    }
                                                 }}
                                             >
                                                 Cancel
                                             </Button>
+
                                             <Button
                                                 type="submit"
                                                 variant="contained"
-                                                startIcon={<Save />}
+
                                                 disabled={isLoading}
-                                                                                            sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    py: 0.30,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
+                                                sx={{
+                                                    background:
+                                                        'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                                    color: '#fff',
+                                                    fontWeight: 600,
+                                                    px: 1.8,
+                                                    py: 0.45,
+                                                    minWidth: 100,
+                                                    borderRadius: '10px',
+                                                    letterSpacing: '0.3px',
+                                                    fontSize: '12px',
+                                                    textTransform: 'none',
+                                                    boxShadow: '0 4px 10px rgba(58,107,109,0.25)',
+                                                    transition: 'all 0.2s ease',
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+                                                    '& .MuiButton-startIcon': {
+                                                        marginRight: '4px'
+                                                    },
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
+                                                    '&:hover': {
+                                                        background:
+                                                            'linear-gradient(135deg, #446f71 0%, #33585a 100%)',
+                                                        transform: 'translateY(-1px)',
+                                                        boxShadow: '0 6px 14px rgba(58,107,109,0.35)'
+                                                    },
+
+                                                    '&:active': {
+                                                        transform: 'scale(0.98)'
+                                                    },
+
+                                                    '&:disabled': {
+                                                        background: '#b0bec5',
+                                                        color: '#fff'
+                                                    }
+                                                }}
                                             >
-                                                {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
+                                                {isLoading ? 'Saving...' : isEditing ? 'Update' : 'Save'}
                                             </Button>
                                         </Box>
                                     </Grid>
@@ -701,117 +752,211 @@ const TravelRequest = () => {
                     <>
                         <TableContainer
                             component={Paper}
-                           
                             sx={{
-    borderRadius: 3,
-    boxShadow: 3,
-    // overflow: "hidden",
-    maxHeight: 400,        
-    overflowY: "auto",
-  }}
+                                borderRadius: '14px',
+                                boxShadow: '0 6px 18px rgba(58,107,109,0.12)',
+                                maxHeight: 400,
+                                overflowY: 'auto',
+                                border: '1px solid rgba(58,107,109,0.08)',
+
+                                '&::-webkit-scrollbar': {
+                                    width: '6px',
+                                    height: '6px'
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    background: '#3a6b6d',
+                                    borderRadius: '10px'
+                                },
+                                '&::-webkit-scrollbar-track': {
+                                    background: '#f5f5f5'
+                                }
+                            }}
                         >
-                            <Table size='small'>
+                            <Table size="small">
                                 <TableHead>
-                                    <TableRow sx={{
-          background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
-          "& .MuiTableCell-root": {
-            color: "white !important",
-            fontWeight: "700",
-            fontSize: "13px",
-          },
-        }}>
-                                        <TableCell align='center'>Actions</TableCell>
-                                        <TableCell align='center'>Travel Details</TableCell>
-                                        {/* <TableCell sx={{ fontWeight: '600', py: 1 }}>Employee</TableCell> */}
-                                        <TableCell align='center'>Dates</TableCell>
-                                        <TableCell align='center'>Route</TableCell>
-                                        <TableCell align='center'>Status</TableCell>
+                                    <TableRow
+                                        sx={{
+                                            background:
+                                                'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                            '& .MuiTableCell-root': {
+                                                color: '#fff',
+                                                fontWeight: 700,
+                                                fontSize: '12px',
+                                                py: 1.2,
+                                                borderBottom: 'none',
+                                                whiteSpace: 'nowrap'
+                                            }
+                                        }}
+                                    >
+                                        <TableCell align="center">Actions</TableCell>
+                                        <TableCell align="center">Travel Details</TableCell>
+                                        <TableCell align="center">Dates</TableCell>
+                                        <TableCell align="center">Route</TableCell>
+                                        <TableCell align="center">Status</TableCell>
                                     </TableRow>
                                 </TableHead>
+
                                 <TableBody>
                                     {currentRequest.length === 0 ? (
                                         <TableRow>
-                                            <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                                            <TableCell colSpan={5} align="center" sx={{ py: 5 }}>
                                                 <Box sx={{ textAlign: 'center' }}>
-                                                    <Inventory2 sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
-                                                    <Typography variant="h6" color="textSecondary" gutterBottom>
-                                                         Travel requests data not found
+                                                    <Inventory2
+                                                        sx={{
+                                                            fontSize: 44,
+                                                            color: '#90a4ae',
+                                                            mb: 1
+                                                        }}
+                                                    />
+
+                                                    <Typography
+                                                        variant="subtitle1"
+                                                        sx={{
+                                                            fontWeight: 600,
+                                                            color: '#546e7a'
+                                                        }}
+                                                    >
+                                                        Travel requests data not found
                                                     </Typography>
-                                                    {/* <Typography variant="body2" color="textSecondary">
-                                                        Get started by adding your first Travel Request to the system
-                                                    </Typography> */}
                                                 </Box>
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        currentRequest.map((request) => (
+                                        currentRequest.map((request, index) => (
                                             <TableRow
                                                 key={request.id}
                                                 sx={{
+                                                    backgroundColor:
+                                                        index % 2 === 0 ? '#ffffff' : '#f8fbfb',
+
+                                                    transition: 'all 0.2s ease',
+
                                                     '&:hover': {
-                                                        backgroundColor: 'grey.50',
-                                                        transition: 'background-color 0.2s ease'
+                                                        backgroundColor: '#eef5f5',
+                                                        transform: 'scale(1.001)'
+                                                    },
+
+                                                    '& .MuiTableCell-root': {
+                                                        borderBottom:
+                                                            '1px solid rgba(58,107,109,0.08)',
+                                                        py: 0.8,
+                                                        fontSize: '12px'
                                                     }
                                                 }}
                                             >
-                                                <TableCell align="center" sx={{ py: 0.5 }}>
-                                                    {/* <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5 }}> */}
-                                                        <Tooltip title="Edit Request">
+                                                <TableCell align="center">
+                                                    <Tooltip title="Edit Request">
+                                                        <span>
                                                             <IconButton
                                                                 size="small"
-                                                                color="info"
-                                                                onClick={() => handleEditRequest(request.id)}
-                                                                disabled={request.approveStatus === "APPROVED" || request.approveStatus === "REJECTED"}
-                                                                
+                                                                color="primary"
+                                                                onClick={() =>
+                                                                    handleEditRequest(request.id)
+                                                                }
+                                                                disabled={
+                                                                    request.approveStatus ===
+                                                                    'APPROVED' ||
+                                                                    request.approveStatus ===
+                                                                    'REJECTED'
+                                                                }
+                                                                sx={{
+                                                                    width: 28,
+                                                                    height: 28,
+                                                                    backgroundColor:
+                                                                        'rgba(58,107,109,0.10)',
+
+                                                                    '&:hover': {
+                                                                        backgroundColor:
+                                                                            'rgba(58,107,109,0.18)'
+                                                                    }
+                                                                }}
                                                             >
-                                                                <Edit fontSize="small" />
+                                                                <Edit
+                                                                    sx={{
+                                                                        fontSize: 15,
+                                                                        color: '#3a6b6d'
+                                                                    }}
+                                                                />
                                                             </IconButton>
-                                                        </Tooltip>
-                                                    {/* </Box> */}
+                                                        </span>
+                                                    </Tooltip>
                                                 </TableCell>
-                                                <TableCell align="center" sx={{ py: 0.5 }}>
-                                                    <Box>
-                                                        <Typography variant="body2" fontWeight="500">
-                                                            {request.travelTitle}
-                                                        </Typography>
-                                                    </Box>
-                                                </TableCell>
-                                                <TableCell align="center"  sx={{ py: 0.5 }}>
-                                                    <Typography variant="body2" fontWeight="500">
-                                                        {request.departureDate ? dayjs(request.departureDate).format("DD-MM-YYYY") : ""} to {request.returnDate ? dayjs(request.returnDate).format("DD-MM-YYYY") : ""}
+
+                                                <TableCell align="center">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            fontWeight: 600,
+                                                            color: '#263238',
+                                                            fontSize: '12px'
+                                                        }}
+                                                    >
+                                                        {request.travelTitle}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell align="center"  sx={{ py: 0.5 }}>
-                                                    <Typography variant="body2" fontWeight="500">
+
+                                                <TableCell align="center">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: '#455a64',
+                                                            fontSize: '11.5px',
+                                                            fontWeight: 500
+                                                        }}
+                                                    >
+                                                        {request.departureDate
+                                                            ? dayjs(request.departureDate).format(
+                                                                'DD-MM-YYYY'
+                                                            )
+                                                            : ''}{' '}
+                                                        to{' '}
+                                                        {request.returnDate
+                                                            ? dayjs(request.returnDate).format(
+                                                                'DD-MM-YYYY'
+                                                            )
+                                                            : ''}
+                                                    </Typography>
+                                                </TableCell>
+
+                                                <TableCell align="center">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: '#455a64',
+                                                            fontWeight: 500,
+                                                            fontSize: '11.5px'
+                                                        }}
+                                                    >
                                                         {request.from} - {request.to}
                                                     </Typography>
                                                 </TableCell>
-                                                <TableCell sx={{ py: 0.5, textAlign: 'center' }}>
-                                                    {/* <Chip
-                                                        label={request.approveStatus}
-                                                        color={getStatusColor(request.approveStatus)}
-                                                        size="small"
+
+                                                <TableCell align="center">
+                                                    <Box
                                                         sx={{
-                                                            fontWeight: '600',
-                                                            minWidth: 100,
-                                                            height: '24px',
-                                                            fontSize: '0.75rem'
+                                                            width: 24,
+                                                            height: 24,
+                                                            borderRadius: '50%',
+                                                            backgroundColor: (theme) =>
+                                                                getStatusColor(
+                                                                    request.approveStatus,
+                                                                    theme
+                                                                ),
+                                                            display: 'flex',
+                                                            justifyContent: 'center',
+                                                            alignItems: 'center',
+                                                            mx: 'auto',
+                                                            boxShadow:
+                                                                '0 2px 8px rgba(0,0,0,0.15)',
+
+                                                            '& svg': {
+                                                                color: '#fff',
+                                                                fontSize: 14
+                                                            }
                                                         }}
-                                                    /> */}
-                                                     <Box
-                                                        sx={{
-                                                          width: 28,
-                                                          height: 28,
-                                                          borderRadius: '50%',
-                                                          backgroundColor: (theme) => getStatusColor(request.approveStatus, theme),
-                                                          display: 'flex',
-                                                          justifyContent: 'center',
-                                                          alignItems: 'center',
-                                                          mx: 'auto',
-                                                        }}
-                                                      >
+                                                    >
                                                         {getStatusIcon(request.approveStatus)}
-                                                      </Box>
+                                                    </Box>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -876,7 +1021,7 @@ const TravelRequest = () => {
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">To</Typography>
                                 <Typography variant="body1" gutterBottom>{selectedRequest.to}</Typography>
-                            </Grid> 
+                            </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">Departure Date</Typography>
                                 <Typography variant="body1" gutterBottom>{formatDate(selectedRequest.departureDate)}</Typography>

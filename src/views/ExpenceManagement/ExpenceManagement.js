@@ -25,26 +25,26 @@ const ExpenceManagement = ({ config = {} }) => {
     const [userRole, setUserRole] = useState('');
     const roles = localStorage.getItem("ROLES");
     useEffect(() => {
-          if (roles) {
-  const parsedRoles = JSON.parse(roles);
-  const userRole = parsedRoles[0].role;
+        if (roles) {
+            const parsedRoles = JSON.parse(roles);
+            const userRole = parsedRoles[0].role;
 
-   setUserRole(userRole); 
-}
-    },[])
- 
-console.log(userRole);
-// 
+            setUserRole(userRole);
+        }
+    }, [])
+
+    console.log(userRole);
+    // 
 
     const defaultConfig = {
         systemTitle: "Expense Management System",
         companyName: "Your Company Name",
         footerText: "© 2025 All Rights Reserved",
-        primaryColor: "#2563eb",
+        primaryColor: "#3a6b6d",
         surfaceColor: "#ffffff",
         textColor: "#1f2937",
-        successColor: "#059669",
-        secondaryColor: "#6b7280"
+        successColor: "#2a4b4d",
+        secondaryColor: "#64748b"
     };
 
     const mergedConfig = { ...defaultConfig, ...config };
@@ -54,49 +54,45 @@ console.log(userRole);
     }, []);
 
     const tabComponents = [
-         <ExpenceTracking key="exp" assets={assets} config={mergedConfig} />,
+        <ExpenceTracking key="exp" assets={assets} config={mergedConfig} />,
         <TravelRequest key="travel" assets={assets} config={mergedConfig} />,
         ...(userRole === "ADMIN"
-    ? [
-        <Approvals key="approval" assets={assets} config={mergedConfig} />,
-        <DashboardExpenseTravel key="dash" assets={assets} config={mergedConfig} />,
-      ]: [])
-       
+            ? [
+                <Approvals key="approval" assets={assets} config={mergedConfig} />,
+                <DashboardExpenseTravel key="dash" assets={assets} config={mergedConfig} />,
+            ] : [])
+
     ];
 
     const tabs = [
         {
             label: "Expense Claims",
             icon: <ReceiptLong />,
-            color: "#2563eb",
-            gradient: "linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)"
+            color: "#3a6b6d",
+            gradient: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)"
         },
         {
             label: "Travel Requests",
             icon: <FlightTakeoff />,
-            color: "#059669",
-            gradient: "linear-gradient(135deg, #059669 0%, #10b981 100%)"
+            color: "#3a6b6d",
+            gradient: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)"
         },
         ...(userRole === 'ADMIN'
-    ? [
-       
-        {
-            label: "Approvals",
-            icon: <CheckCircleOutline />,
-            color: "#f59e0b",
-            gradient: "linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
-        },
-        {
-            label: "Dashboard",
-            icon: <DashboardIcon />,
-            color: "#7c3aed",
-            gradient: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)"
-        }
-           ]
-    : [])
- 
-     
-  
+            ? [
+                {
+                    label: "Approvals",
+                    icon: <CheckCircleOutline />,
+                    color: "#3a6b6d",
+                    gradient: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)"
+                },
+                {
+                    label: "Dashboard",
+                    icon: <DashboardIcon />,
+                    color: "#3a6b6d",
+                    gradient: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)"
+                }
+            ]
+            : [])
     ];
 
     return (
@@ -106,14 +102,14 @@ console.log(userRole);
             {/* Navigation Tabs */}
             <Box
                 sx={{
-                    borderBottom: 1,
-                    borderColor: 'divider',
-                    backgroundColor: 'white',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+                    borderBottom: '1px solid #e2e8f0',
+                    background: 'rgba(255,255,255,0.95)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 4px 18px rgba(15,23,42,0.06)',
                     position: 'sticky',
                     top: 0,
                     zIndex: 10,
-                   
+                    borderRadius: '0 0 18px 18px'
                 }}
             >
                 <Container maxWidth="xl">
@@ -129,25 +125,30 @@ console.log(userRole);
                             },
                             '& .MuiTab-root': {
                                 textTransform: 'none',
-                                fontSize: '1rem',
+                                fontSize: '0.95rem',
                                 fontWeight: 600,
-                                // borderRadius: 20,
-                                minHeight: 40,
-                                px: 3,
-                                py: 0,
-                                color: '#374151',
-                                transition: 'all 0.3s ease',
+                                minHeight: 55,
+                                px: 2.5,
+                                py: 1,
+                                color: '#475569',
+                                borderRadius: '14px 14px 0 0',
+                                marginRight: '6px',
+                                transition: 'all 0.25s ease',
+
                                 '&:hover': {
-                                    backgroundColor: 'rgba(0,0,0,0.04)'
+                                    background: 'rgba(58,107,109,0.08)',
+                                    color: '#2a4b4d'
                                 },
+
                                 '&.Mui-selected': {
-                                    color: mergedConfig.primaryColor
+                                    color: '#2a4b4d',
+                                    background: 'rgba(58,107,109,0.08)'
                                 }
                             },
                             '& .MuiTabs-indicator': {
-                                backgroundColor: mergedConfig.primaryColor,
-                                height: 3,
-                                borderRadius: '3px 3px 0 0'
+                                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                height: 4,
+                                borderRadius: '10px 10px 0 0'
                             }
                         }}
                     >

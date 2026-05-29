@@ -369,23 +369,23 @@ const ExpenceTracking = () => {
     //     }
     // }; 
 
-const getStatusColor = (status, theme) => {
-  switch (status?.toUpperCase()) {
-    case 'APPROVED': return theme.palette.success.main;
-    case 'PENDING': return theme.palette.warning.main;
-    case 'REJECTED': return theme.palette.error.main;
-    default: return theme.palette.info.main;
-  }
-};
+    const getStatusColor = (status, theme) => {
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return theme.palette.success.main;
+            case 'PENDING': return theme.palette.warning.main;
+            case 'REJECTED': return theme.palette.error.main;
+            default: return theme.palette.info.main;
+        }
+    };
 
-const getStatusIcon = (status) => {
-  switch (status?.toUpperCase()) {
-    case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
-    case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
-    case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
-    default: return null;
-  }
-};
+    const getStatusIcon = (status) => {
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+            case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
+            case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
+            default: return null;
+        }
+    };
     const handleDateChange = (field, date) => {
         const formattedDate = dayjs(date).format('YYYY-MM-DD') || null;
         setFormData((prevData) => ({ ...prevData, [field]: formattedDate }));
@@ -455,28 +455,43 @@ const getStatusIcon = (status) => {
                 {!isAdding && (
                     <Button
                         variant="contained"
-                        startIcon={<Add />}
+                        startIcon={<Add sx={{ fontSize: 15 }} />}
                         onClick={handleAdd}
                         disabled={isLoading || isFetching}
-                          sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    py: 0.55,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
+                        sx={{
+                            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                            color: '#fff',
+                            fontWeight: 600,
+                            px: 1.4,
+                            py: 0.42,
+                            minHeight: 32,
+                            borderRadius: '10px',
+                            letterSpacing: '0.3px',
+                            fontSize: '12px',
+                            textTransform: 'none',
+                            boxShadow: '0 4px 10px rgba(58,107,109,0.22)',
+                            transition: 'all 0.2s ease',
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+                            '& .MuiButton-startIcon': {
+                                marginRight: '4px'
+                            },
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
+                            '&:hover': {
+                                background:
+                                    'linear-gradient(135deg, #446f71 0%, #33585a 100%)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 6px 14px rgba(58,107,109,0.32)'
+                            },
+
+                            '&:active': {
+                                transform: 'scale(0.98)'
+                            },
+
+                            '&:disabled': {
+                                background: '#b0bec5',
+                                color: '#fff'
+                            }
+                        }}
                     >
                         {isLoading ? 'Adding...' : 'Add New'}
                     </Button>
@@ -659,28 +674,43 @@ const getStatusIcon = (status) => {
                                             }}
                                         >
                                             <Button
-                                                variant="contained"
-                                                component="label"
-                                                startIcon={<CloudUploadIcon sx={{ color: 'white' }} />}
-                                                sx={{
-                                                    // backgroundColor: 'white',
-                                                    color: 'white',
-                                                    borderRadius: '20px',
-                                                    fontWeight: 600,
-                                                    textTransform: 'none',
-                                                    fontSize: '0.7rem',
-                                                    px: 2.5,
-                                                    py: 0.8,
-                                                    boxShadow: 'none',
-                                                    '&:hover': {
-                                                        // backgroundColor: '#f3f4f6',
-                                                        boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                                                    },
-                                                }}
-                                            >
-                                                {logo ? (typeof logo === 'object' && logo.name ? logo.name : 'Attachment') : 'Attachment'}
-                                                <input type="file" hidden accept="image/png, image/jpeg" onChange={handleLogoChange} />
-                                            </Button>
+    variant="contained"
+    component="label"
+    startIcon={<CloudUploadIcon sx={{ color: 'white', fontSize: 18 }} />}
+    sx={{
+        background: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)",
+        color: 'white',
+        borderRadius: '10px',
+        fontWeight: 600,
+        textTransform: 'none',
+        fontSize: '12px',
+        px: 1.8,
+        py: 0.5,
+        minHeight: 34,
+        boxShadow: '0 3px 10px rgba(58,107,109,0.25)',
+
+        '&:hover': {
+            background: "linear-gradient(135deg, #2a4b4d 0%, #3a6b6d 100%)",
+            boxShadow: '0 5px 14px rgba(58,107,109,0.35)',
+            transform: 'translateY(-1px)',
+        },
+
+        '&:active': {
+            transform: 'scale(0.98)',
+        },
+    }}
+>
+    {logo
+        ? (typeof logo === 'object' && logo.name ? logo.name : 'Attachment')
+        : 'Attachment'}
+
+    <input
+        type="file"
+        hidden
+        accept="image/png, image/jpeg"
+        onChange={handleLogoChange}
+    />
+</Button>
                                             {logo && (
                                                 <IconButton
                                                     variant="contained"
@@ -802,202 +832,294 @@ const getStatusIcon = (status) => {
                                         </Dialog>
                                     </Grid>
                                     <Grid item xs={12}>
-                                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
-                                            <Button
-                                                onClick={handleCancel}
-                                                variant="outlined"
-                                                startIcon={<Cancel />}
-                                                disabled={isLoading}
-                                                sx={{
-                                                    borderRadius: 2,
-                                                    px: 1,
-                                                    py: 0.5,
-                                                    textTransform: 'none'
-                                                }}
-                                            >
-                                                Cancel
-                                            </Button>
-                                            <Button
-                                                type="submit"
-                                                variant="contained"
-                                                startIcon={<Save />}
-                                                disabled={isLoading}
-                                                 sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    py: 0.30,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
+    <Box
+        sx={{
+            display: 'flex',
+            gap: 1,
+            justifyContent: 'flex-end',
+            mt: 1.5
+        }}
+    >
+        <Button
+            onClick={handleCancel}
+            variant="outlined"
+            
+            disabled={isLoading}
+            sx={{
+                borderRadius: 2,
+                px: 1.5,
+                py: 0.45,
+                minWidth: 90,
+                fontSize: '12px',
+                fontWeight: 600,
+                textTransform: 'none',
+                borderColor: '#3a6b6d',
+                color: '#3a6b6d',
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+                "&:hover": {
+                    borderColor: '#2a4b4d',
+                    backgroundColor: 'rgba(58,107,109,0.08)',
+                }
+            }}
+        >
+            Cancel
+        </Button>
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
-                                            >
-                                                {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
-                                            </Button>
-                                        </Box>
-                                    </Grid>
+        <Button
+            type="submit"
+            variant="contained"
+            
+            disabled={isLoading}
+            sx={{
+                background: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)",
+                color: "white",
+                fontWeight: 600,
+                px: 1.8,
+                py: 0.45,
+                minWidth: 100,
+                borderRadius: 2,
+                letterSpacing: "0.3px",
+                fontSize: "12px",
+                textTransform: 'none',
+                boxShadow: '0 3px 10px rgba(58,107,109,0.25)',
+
+                "&:hover": {
+                    transform: "translateY(-1px)",
+                    background: "linear-gradient(135deg, #2a4b4d 0%, #3a6b6d 100%)",
+                    boxShadow: '0 5px 14px rgba(58,107,109,0.35)',
+                },
+
+                "&:active": {
+                    transform: "scale(0.98)",
+                }
+            }}
+        >
+            {isLoading ? 'Saving...' : (isEditing ? 'Update' : 'Save')}
+        </Button>
+    </Box>
+</Grid>
                                 </Grid>
                             </form>
                         </CardContent>
                     </Card>
                 ) : (
                     <>
-                        
-<TableContainer
-  component={Paper} 
-  sx={{
-    borderRadius: 3,
-    boxShadow: 3,
-    // overflow: "hidden",
-    maxHeight: 400,
-            
-    overflowY: "auto",
-    
-  }}
->
-    <Table size='small' >
 
-    <TableHead>
-      <TableRow
-        sx={{
-          background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
-          "& .MuiTableCell-root": {
-            color: "white !important",
-            fontWeight: "700",
-            fontSize: "13px",
-          },
-        }}
-      >
+                        <TableContainer
+                            component={Paper}
+                            sx={{
+                                borderRadius: 2.5,
+                                boxShadow: '0 6px 18px rgba(58,107,109,0.12)',
+                                border: '1px solid rgba(58,107,109,0.08)',
+                                maxHeight: 400,
+                                overflowY: "auto",
 
-        <TableCell align="center">Actions</TableCell>       
-        <TableCell align="center">Claim Details</TableCell>
-        <TableCell align="center">Date</TableCell>
-        {/* <TableCell>Employee</TableCell> */}
-        <TableCell align="center">Amount</TableCell>
-        <TableCell align="center">Category</TableCell>
-        <TableCell align="center">Status</TableCell>
-      </TableRow>
-    </TableHead>
+                                "&::-webkit-scrollbar": {
+                                    width: "6px",
+                                    height: "6px",
+                                },
+                                "&::-webkit-scrollbar-thumb": {
+                                    background: "#3a6b6d",
+                                    borderRadius: "10px",
+                                },
+                                "&::-webkit-scrollbar-track": {
+                                    background: "#f4f7f7",
+                                },
+                            }}
+                        >
+                            <Table size="small">
 
-    <TableBody>
-      {currentExpense.length === 0 ? (
-        <TableRow>
-          <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-            <Box sx={{ textAlign: "center" }}>
-              <Inventory2 sx={{ fontSize: 48, color: "grey.300", mb: 1 }} />
-              <Typography variant="h6" color="textSecondary" gutterBottom>
-                 Expense data not found
-              </Typography>
-              {/* <Typography variant="body2" color="textSecondary">
-                Get started by adding your first Expense to the system
-              </Typography> */}
-            </Box>
-          </TableCell>
-        </TableRow>
-      ) : (
-        currentExpense.map((expense) => (
-          <TableRow
-            key={expense.id}
-            sx={{
-              "&:hover": {
-                backgroundColor: "grey.50",
-                transition: "0.2s ease",
-              },
-            }}
-          >
-     
-        <TableCell align="center" sx={{ py: 0.5 }}>
-              <Tooltip title="Edit Expense">
-                <IconButton
-                  size="small"
-                  color="info"
-                  onClick={() => handleEditExpense(expense.id)}
-                  disabled={expense.approveStatus === "APPROVED" || expense.approveStatus === "REJECTED"}
-                >
-                  <Edit fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </TableCell>
-         
-            <TableCell align="center" sx={{ py: 0.5 }}>
-              <Typography variant="body2" fontWeight="500">
-                {expense.expenseTitle}
-              </Typography>
-            </TableCell>
+                                <TableHead>
+                                    <TableRow
+                                        sx={{
+                                            background: "linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)",
 
-            <TableCell align="center" sx={{ py: 0.5 }}>
-              <Typography variant="body2" color="text.secondary">
-                {expense.expenseDate
-                  ? dayjs(expense.expenseDate).format("DD/MM/YYYY")
-                  : ""}
-              </Typography>
-            </TableCell>
+                                            "& .MuiTableCell-root": {
+                                                color: "#fff !important",
+                                                fontWeight: 700,
+                                                fontSize: "12px",
+                                                py: 1.1,
+                                                borderBottom: "none",
+                                                letterSpacing: "0.4px",
+                                            },
+                                        }}
+                                    >
+                                        <TableCell align="center">Actions</TableCell>
+                                        <TableCell align="center">Claim Details</TableCell>
+                                        <TableCell align="center">Date</TableCell>
+                                        <TableCell align="center">Amount</TableCell>
+                                        <TableCell align="center">Category</TableCell>
+                                        <TableCell align="center">Status</TableCell>
+                                    </TableRow>
+                                </TableHead>
 
-            <TableCell align="center" sx={{ py: 0.5 }}>
-              <Typography variant="body2" fontWeight="500">
-                {expense.amount
-                  ? Number(expense.amount).toLocaleString("en-IN", {
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 2,
-                    })
-                  : "0"}
-              </Typography>
-            </TableCell>
+                                <TableBody>
+                                    {currentExpense.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                                                <Box sx={{ textAlign: "center" }}>
+                                                    <Inventory2
+                                                        sx={{
+                                                            fontSize: 44,
+                                                            color: "#b0bec5",
+                                                            mb: 1,
+                                                        }}
+                                                    />
 
-            <TableCell align="center" sx={{ py: 0.5 }}>
-              <Typography variant="body2" fontWeight="500">
-                {expense.category}
-              </Typography>
-            </TableCell>
+                                                    <Typography
+                                                        variant="subtitle1"
+                                                        sx={{
+                                                            color: "#607d8b",
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        Expense data not found
+                                                    </Typography>
+                                                </Box>
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        currentExpense.map((expense, index) => (
+                                            <TableRow
+                                                key={expense.id}
+                                                sx={{
+                                                    backgroundColor: index % 2 === 0 ? "#ffffff" : "#f8fbfb",
 
-            {/* <TableCell sx={{ py: 0.5 }}>
-              <Chip
-                label={expense.approveStatus}
-                color={getStatusColor(expense.approveStatus)}
-                size="small"
-                sx={{
-                  fontWeight: "600",
-                  minWidth: 100,
-                  height: "24px",
-                  fontSize: "0.75rem",
-                }}
-                      
-              />
-            </TableCell> */}
+                                                    "&:hover": {
+                                                        backgroundColor: "#eef5f5",
+                                                        transition: "all 0.2s ease",
+                                                    },
 
-<TableCell align="center" sx={{ py: 0.5 }}>
-  <Box
-    sx={{
-      width: 28,
-      height: 28,
-      borderRadius: '50%',
-      backgroundColor: (theme) => getStatusColor(expense.approveStatus, theme),
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      mx: 'auto',
-    }}
-  >
-    {getStatusIcon(expense.approveStatus)}
-  </Box>
-</TableCell>
-  
-          </TableRow>
-        ))
-      )}
-    </TableBody>
-  </Table>
-</TableContainer>
+                                                    "& .MuiTableCell-root": {
+                                                        borderBottom: "1px solid rgba(58,107,109,0.08)",
+                                                        fontSize: "12px",
+                                                        py: 0.8,
+                                                    },
+                                                }}
+                                            >
+
+                                                {/* ACTION */}
+                                                <TableCell align="center">
+                                                    <Tooltip title="Edit Expense">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleEditExpense(expense.id)}
+                                                            disabled={
+                                                                expense.approveStatus === "APPROVED" ||
+                                                                expense.approveStatus === "REJECTED"
+                                                            }
+                                                            sx={{
+                                                                background: "rgba(58,107,109,0.10)",
+                                                                color: "#3a6b6d",
+
+                                                                "&:hover": {
+                                                                    background: "#3a6b6d",
+                                                                    color: "#fff",
+                                                                    transform: "scale(1.05)",
+                                                                },
+
+                                                                "&.Mui-disabled": {
+                                                                    background: "#eceff1",
+                                                                },
+                                                            }}
+                                                        >
+                                                            <Edit sx={{ fontSize: 16 }} />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </TableCell>
+
+                                                {/* TITLE */}
+                                                <TableCell align="center">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            fontWeight: 600,
+                                                            color: "#263238",
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        {expense.expenseTitle}
+                                                    </Typography>
+                                                </TableCell>
+
+                                                {/* DATE */}
+                                                <TableCell align="center">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            color: "#607d8b",
+                                                            fontSize: "12px",
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        {expense.expenseDate
+                                                            ? dayjs(expense.expenseDate).format("DD/MM/YYYY")
+                                                            : ""}
+                                                    </Typography>
+                                                </TableCell>
+
+                                                {/* AMOUNT */}
+                                                <TableCell align="center">
+                                                    <Typography
+                                                        variant="body2"
+                                                        sx={{
+                                                            fontWeight: 700,
+                                                            color: "#2e7d32",
+                                                            fontSize: "12px",
+                                                        }}
+                                                    >
+                                                        ₹
+                                                        {expense.amount
+                                                            ? Number(expense.amount).toLocaleString("en-IN", {
+                                                                minimumFractionDigits: 0,
+                                                                maximumFractionDigits: 2,
+                                                            })
+                                                            : "0"}
+                                                    </Typography>
+                                                </TableCell>
+
+                                                {/* CATEGORY */}
+                                                <TableCell align="center">
+                                                    <Chip
+                                                        label={expense.category}
+                                                        size="small"
+                                                        sx={{
+                                                            height: 22,
+                                                            fontSize: "11px",
+                                                            fontWeight: 600,
+                                                            borderRadius: "6px",
+                                                            backgroundColor: "rgba(58,107,109,0.10)",
+                                                            color: "#3a6b6d",
+                                                        }}
+                                                    />
+                                                </TableCell>
+
+                                                {/* STATUS */}
+                                                <TableCell align="center">
+                                                    <Box
+                                                        sx={{
+                                                            width: 26,
+                                                            height: 26,
+                                                            borderRadius: "50%",
+                                                            backgroundColor: (theme) =>
+                                                                getStatusColor(expense.approveStatus, theme),
+                                                            display: "flex",
+                                                            justifyContent: "center",
+                                                            alignItems: "center",
+                                                            mx: "auto",
+                                                            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                                                        }}
+                                                    >
+                                                        {getStatusIcon(expense.approveStatus)}
+                                                    </Box>
+                                                </TableCell>
+
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                         {/*  */}
 
                         {/* Pagination */}

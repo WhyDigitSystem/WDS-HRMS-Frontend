@@ -155,21 +155,21 @@ const Approvals = () => {
     //     }
     // };
     const getStatusColor = (status, theme) => {
-  switch (status?.toUpperCase()) {
-    case 'APPROVED': return theme.palette.success.main;
-    case 'PENDING': return theme.palette.warning.main;
-    case 'REJECTED': return theme.palette.error.main;
-    default: return theme.palette.info.main;
-  }
-};
-const getStatusIcon = (status) => {
-  switch (status?.toUpperCase()) {
-    case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
-    case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
-    case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
-    default: return null;
-  }
-};
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return theme.palette.success.main;
+            case 'PENDING': return theme.palette.warning.main;
+            case 'REJECTED': return theme.palette.error.main;
+            default: return theme.palette.info.main;
+        }
+    };
+    const getStatusIcon = (status) => {
+        switch (status?.toUpperCase()) {
+            case 'APPROVED': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+            case 'PENDING': return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
+            case 'REJECTED': return <CancelIcon sx={{ fontSize: 16 }} />;
+            default: return null;
+        }
+    };
     const formatDate = (dateString) => {
         if (!dateString) return ''; // handle null or undefined
         const parsedDate = dayjs(dateString, [
@@ -226,34 +226,45 @@ const getStatusIcon = (status) => {
         <>
             <TableContainer
                 component={Paper}
-                // variant="outlined"
-               sx={{
-    borderRadius: 3,
-    boxShadow: 3,
-    maxHeight: 400,       
-    overflowY: "auto",
-  }}
+                sx={{
+                    borderRadius: 3,
+                    boxShadow: '0 4px 14px rgba(58,107,109,0.12)',
+                    maxHeight: 400,
+                    overflowY: 'auto',
+                    border: '1px solid rgba(58,107,109,0.12)',
+                    '&::-webkit-scrollbar': {
+                        width: 6
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                        background: '#3a6b6d',
+                        borderRadius: 10
+                    }
+                }}
             >
-                {/* <Table stickyHeader> */}
-                    <Table size='small'>
+                <Table size="small">
                     <TableHead>
-                        <TableRow  sx={{
-          background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
-          "& .MuiTableCell-root": {
-            color: "white !important",
-            fontWeight: "700",
-            fontSize: "13px",
-          },
-        }}>
-                            <TableCell align='center'>Type</TableCell>
-                            <TableCell align='center'>Title</TableCell>
-                            <TableCell align='center'>Emp</TableCell>
-                            <TableCell align='center'>Limit</TableCell>
-                            <TableCell align='center'>Amount</TableCell>
-                            <TableCell align='center'>Submitted</TableCell>
-                            <TableCell align='center'>Status</TableCell>
-                            <TableCell align='center'>Attachment</TableCell>
-                            <TableCell align='center'>Actions</TableCell>
+                        <TableRow
+                            sx={{
+                                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                                '& .MuiTableCell-root': {
+                                    color: '#fff !important',
+                                    fontWeight: 700,
+                                    fontSize: '12px',
+                                    py: 1.2,
+                                    borderBottom: 'none',
+                                    whiteSpace: 'nowrap'
+                                }
+                            }}
+                        >
+                            <TableCell align="center">Type</TableCell>
+                            <TableCell align="center">Title</TableCell>
+                            <TableCell align="center">Emp</TableCell>
+                            <TableCell align="center">Limit</TableCell>
+                            <TableCell align="center">Amount</TableCell>
+                            <TableCell align="center">Submitted</TableCell>
+                            <TableCell align="center">Status</TableCell>
+                            <TableCell align="center">Attachment</TableCell>
+                            <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
 
@@ -262,232 +273,293 @@ const getStatusIcon = (status) => {
                             <TableRow>
                                 <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                                     <Box sx={{ textAlign: 'center' }}>
-                                        <Inventory2 sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
-                                        <Typography variant="h6" color="textSecondary" gutterBottom>
-                                             Approval data not found
+                                        <Inventory2 sx={{ fontSize: 46, color: '#b0bec5', mb: 1 }} />
+                                        <Typography
+                                            variant="subtitle1"
+                                            sx={{ color: '#3a6b6d', fontWeight: 600 }}
+                                        >
+                                            Approval data not found
                                         </Typography>
-                                        {/* <Typography variant="body2" color="textSecondary">
-                                            Get started by adding your first approval request
-                                        </Typography> */}
                                     </Box>
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            currentAssets.map((asset) => {
-                                const isExceeding = Number(asset.amount) > Number(asset.expenseLimit);
+                            currentAssets.map((asset, index) => {
+                                const isExceeding =
+                                    Number(asset.amount) > Number(asset.expenseLimit);
 
                                 return (
                                     <TableRow
                                         key={asset.id}
                                         sx={{
+                                            backgroundColor:
+                                                index % 2 === 0
+                                                    ? 'rgba(58,107,109,0.02)'
+                                                    : '#fff',
+                                            transition: '0.2s ease',
                                             '&:hover': {
-                                                backgroundColor: 'grey.50',
-                                                transition: '0.2s ease'
+                                                backgroundColor: 'rgba(58,107,109,0.08)'
+                                            },
+                                            '& .MuiTableCell-root': {
+                                                borderBottom:
+                                                    '1px solid rgba(58,107,109,0.08)'
                                             }
                                         }}
                                     >
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
-                                            {/* <Typography variant="body2" fontWeight={500}>{asset.type}</Typography> */}
-                                            <Typography variant="body2" fontWeight={500}>{asset.type?.split(" ")[0]}</Typography>
-
-                                        </TableCell>
-
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
-                                            <Typography variant="body2" color="text.secondary">{asset.title}</Typography>
-                                        </TableCell>
-
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
-                                            <Typography variant="body2" fontWeight={500}>{asset.employeeName}</Typography>
-                                        </TableCell>
-
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
-                                            <Typography variant="body2" fontWeight="500">
-                                                {asset.expenseLimit
-                                                    ? Number(asset.expenseLimit).toLocaleString("en-IN", {
-                                                        minimumFractionDigits: 0,
-                                                        maximumFractionDigits: 2
-                                                    })
-                                                    : "0"}
-                                            </Typography>
-                                        </TableCell>
-
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
-                                            <Typography variant="body2" fontWeight="600"
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Typography
+                                                variant="body2"
                                                 sx={{
-                                                    color: isExceeding ? 'error.main' : 'text.primary',
-                                                    // backgroundColor: isExceeding ? 'rgba(255,0,0,0.08)' : 'transparent',
-                                                    px: 1,
-                                                    borderRadius: 1,
-                                                   
-                                                }}>
-                                                {asset.amount
-                                                    ? Number(asset.amount).toLocaleString("en-IN", {
-                                                        minimumFractionDigits: 0,
-                                                        maximumFractionDigits: 2
-                                                    })
-                                                    : "0"}
-                                            </Typography>
-                                        </TableCell>
-
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
-                                            <Typography variant="body2" fontWeight={500}>{formatDate(asset.submitted)}</Typography>
-                                        </TableCell>
-
-                                        {/* <TableCell sx={{ py: 0.5 }}>
-                                            <Chip
-                                                label={asset.status}
-                                                color={getStatusColor(asset.status)}
-                                                size="small"
-                                                sx={{
+                                                    fontSize: '12px',
                                                     fontWeight: 600,
-                                                    minWidth: 100,
-                                                    height: '24px',
-                                                    fontSize: '0.75rem',
-                                                    textTransform: 'capitalize'
+                                                    color: '#2a4b4d'
                                                 }}
-                                            />
-                                        </TableCell> */}
-                                        <TableCell sx={{ textAlign: 'center', py: 0.5 }}>
-                                          <Box
-                                            sx={{
-                                              width: 28,
-                                              height: 28,
-                                              borderRadius: '50%',
-                                              backgroundColor: (theme) => getStatusColor(asset.status, theme),
-                                              display: 'flex',
-                                              justifyContent: 'center',
-                                              alignItems: 'center',
-                                              mx: 'auto',
-                                            }}
-                                          >
-                                            {getStatusIcon(asset.status)}
-                                          </Box>
+                                            >
+                                                {asset.type?.split(' ')[0]}
+                                            </Typography>
                                         </TableCell>
-                                        <TableCell align='center' sx={{ py: 0.5 }}>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    color: '#546e7a'
+                                                }}
+                                            >
+                                                {asset.title}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    color: '#37474f'
+                                                }}
+                                            >
+                                                {asset.employeeName}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 600,
+                                                    color: '#455a64'
+                                                }}
+                                            >
+                                                {asset.expenseLimit
+                                                    ? Number(asset.expenseLimit).toLocaleString(
+                                                        'en-IN',
+                                                        {
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 2
+                                                        }
+                                                    )
+                                                    : '0'}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 700,
+                                                    color: isExceeding
+                                                        ? '#d32f2f'
+                                                        : '#2a4b4d',
+                                                    backgroundColor: isExceeding
+                                                        ? 'rgba(211,47,47,0.08)'
+                                                        : 'rgba(58,107,109,0.08)',
+                                                    px: 1,
+                                                    py: 0.3,
+                                                    borderRadius: 2,
+                                                    display: 'inline-flex'
+                                                }}
+                                            >
+                                                {asset.amount
+                                                    ? Number(asset.amount).toLocaleString(
+                                                        'en-IN',
+                                                        {
+                                                            minimumFractionDigits: 0,
+                                                            maximumFractionDigits: 2
+                                                        }
+                                                    )
+                                                    : '0'}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Typography
+                                                variant="body2"
+                                                sx={{
+                                                    fontSize: '12px',
+                                                    fontWeight: 500,
+                                                    color: '#546e7a'
+                                                }}
+                                            >
+                                                {formatDate(asset.submitted)}
+                                            </Typography>
+                                        </TableCell>
+
+                                        <TableCell
+                                            sx={{
+                                                textAlign: 'center',
+                                                py: 0.7
+                                            }}
+                                        >
+                                            <Box
+                                                sx={{
+                                                    px: 1,
+                                                    py: 0.3,
+                                                    borderRadius: 5,
+                                                    backgroundColor: (theme) =>
+                                                        `${getStatusColor(asset.status, theme)}20`,
+                                                    color: (theme) =>
+                                                        getStatusColor(asset.status, theme),
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: 0.5,
+                                                    fontSize: '11px',
+                                                    fontWeight: 700,
+                                                    mx: 'auto'
+                                                }}
+                                            >
+                                                {React.cloneElement(getStatusIcon(asset.status), {
+                                                    sx: { fontSize: 12 }
+                                                })}
+                                            </Box>
+                                        </TableCell>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
                                             {asset.attachment ? (
                                                 <Tooltip title="View Attachment">
                                                     <IconButton
                                                         size="small"
                                                         color="primary"
-                                                        onClick={() => handleOpenAttachment(asset.attachment)}
+                                                        onClick={() =>
+                                                            handleOpenAttachment(
+                                                                asset.attachment
+                                                            )
+                                                        }
                                                         sx={{
-                                                            transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                                                            "&:hover": {
-                                                                transform: "scale(1.1)",
-                                                                boxShadow: 1,
-                                                            },
+                                                            width: 28,
+                                                            height: 28,
+                                                            background:
+                                                                'rgba(58,107,109,0.08)',
+                                                            color: '#3a6b6d',
+                                                            transition: '0.2s ease',
+                                                            '&:hover': {
+                                                                transform: 'scale(1.08)',
+                                                                background:
+                                                                    'rgba(58,107,109,0.18)'
+                                                            }
                                                         }}
                                                     >
-                                                        <ImageIcon />
+                                                        <ImageIcon sx={{ fontSize: 17 }} />
                                                     </IconButton>
                                                 </Tooltip>
                                             ) : (
-                                                <Typography variant="body2" color="text.secondary">
-                                                    
+                                                <Typography variant="body2">
+
                                                 </Typography>
                                             )}
                                         </TableCell>
-                                      <TableCell align='center' sx={{ py: 0.5 }}>
-                                            <Box sx={{ display: 'flex', gap: 1,mx:'auto' }}>
-                                               <Button
-  variant="contained"
-  color="success"
-  disabled={isLoading || asset.status !== 'PENDING'}
-  onClick={() => handleOpenDialog(asset)}
-  sx={{
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    borderRadius: '50%',
-    minWidth: 28,
-    minHeight: 28,
-    width: 28,
-    height: 28,
-    padding: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    '&:hover': {
-      transform: 'scale(1.1)',
-      boxShadow: 3
-    }
-  }}
->
-  <CheckCircleIcon sx={{ fontSize: 16,color:'black' }} />
-</Button>
+
+                                        <TableCell align="center" sx={{ py: 0.7 }}>
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    gap: 0.8,
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <Button
+                                                    variant="contained"
+                                                    disabled={
+                                                        isLoading ||
+                                                        asset.status !== 'PENDING'
+                                                    }
+                                                    onClick={() =>
+                                                        handleOpenDialog(asset)
+                                                    }
+                                                    sx={{
+                                                        minWidth: 28,
+                                                        width: 28,
+                                                        height: 28,
+                                                        borderRadius: '50%',
+                                                        p: 0,
+                                                        background:
+                                                            'linear-gradient(135deg, #66bb6a 0%, #43a047 100%)',
+                                                        boxShadow:
+                                                            '0 2px 8px rgba(67,160,71,0.3)',
+                                                        '&:hover': {
+                                                            transform: 'scale(1.08)',
+                                                            background:
+                                                                'linear-gradient(135deg, #43a047 0%, #2e7d32 100%)'
+                                                        }
+                                                    }}
+                                                >
+                                                    <CheckCircleIcon
+                                                        sx={{
+                                                            fontSize: 16,
+                                                            color: '#fff'
+                                                        }}
+                                                    />
+                                                </Button>
 
                                                 <Button
                                                     variant="contained"
-                                                    color="error"
-                                                    size="small"
-                                                    disabled={isLoading || asset.status !== 'PENDING'}
-                                                    onClick={() => handleApproveReject(asset, 'REJECTED', asset.amount)}
-                                                     sx={{
-    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-    borderRadius: '50%',
-    minWidth: 28,
-    minHeight: 28,
-    width: 28,
-    height: 28,
-    padding: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    '&:hover': {
-      transform: 'scale(1.1)',
-      boxShadow: 3
-    }
-  }}
+                                                    disabled={
+                                                        isLoading ||
+                                                        asset.status !== 'PENDING'
+                                                    }
+                                                    onClick={() =>
+                                                        handleApproveReject(
+                                                            asset,
+                                                            'REJECTED',
+                                                            asset.amount
+                                                        )
+                                                    }
+                                                    sx={{
+                                                        minWidth: 28,
+                                                        width: 28,
+                                                        height: 28,
+                                                        borderRadius: '50%',
+                                                        p: 0,
+                                                        background:
+                                                            'linear-gradient(135deg, #ef5350 0%, #d32f2f 100%)',
+                                                        boxShadow:
+                                                            '0 2px 8px rgba(211,47,47,0.3)',
+                                                        '&:hover': {
+                                                            transform: 'scale(1.08)',
+                                                            background:
+                                                                'linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)'
+                                                        }
+                                                    }}
                                                 >
-                                                    <CancelIcon sx={{ fontSize: 16 ,color:'black'}} />
-                                                    {/* Reject */}
+                                                    <CancelIcon
+                                                        sx={{
+                                                            fontSize: 16,
+                                                            color: '#fff'
+                                                        }}
+                                                    />
                                                 </Button>
                                             </Box>
-                                    </TableCell>  
+                                        </TableCell>
                                     </TableRow>
                                 );
                             })
                         )}
                     </TableBody>
                 </Table>
-                <Dialog
-                    open={openAttachment}
-                    onClose={handleCloseAttachment}
-                    maxWidth="sm"
-                    fullWidth
-                >
-                    <DialogTitle sx={{ fontWeight: 700, textAlign: "center" }}>
-                        Attachment Preview
-                    </DialogTitle>
-                    <DialogContent
-                        sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            flexDirection: "column",
-                            gap: 2,
-                        }}
-                    >
-                        {selectedImage ? (
-                            <img
-                                src={
-                                    selectedImage.startsWith("data:")
-                                        ? selectedImage // Already has prefix
-                                        : `data:image/${selectedImage.startsWith("/") ? "png" : "jpeg"};base64,${selectedImage}`
-                                }
-                                alt="Attachment Preview"
-                                style={{
-                                    maxWidth: "100%",
-                                    maxHeight: "70vh",
-                                    borderRadius: "10px",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                                }}
-                            />
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">
-                                No Image Available
-                            </Typography>
-                        )}
-                    </DialogContent>
-                </Dialog>
             </TableContainer>
 
             {/* Pagination */}
@@ -511,7 +583,7 @@ const getStatusIcon = (status) => {
             {assetsData.length > 0 && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                     <Typography variant="body2" color="textSecondary">
-                        Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, assetsData.length)} of {assetsData.length} Approvals
+                        Showingg {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, assetsData.length)} of {assetsData.length} Approvals
                     </Typography>
                 </Box>
             )}

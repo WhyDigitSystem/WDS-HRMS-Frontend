@@ -26,6 +26,9 @@ import { useEffect, useState } from 'react';
 import { ToastContainer } from 'react-toastify';
 import { showToast } from 'utils/toast-component';
 import CommonListView from '../../utils/AssetCommonListViewTable';
+import UploadIcon from '@mui/icons-material/Upload';
+import handleSampleFileAssetForm from '../../../src/assets/sample-files/assetMaster.xlsx';
+import CommonBulkUpload from 'utils/CommonBulkUpload';
 
 const AssetMaster = ({ config }) => {
   const [isAdding, setIsAdding] = useState(false);
@@ -57,6 +60,9 @@ const AssetMaster = ({ config }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
 
+  // excel
+  const [uploadFileExcel, setUploadFileExcel] = useState('');
+  const [uploadOpenExcel, setUploadOpenExcel] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,9 +74,6 @@ const AssetMaster = ({ config }) => {
   useEffect(() => {
     getAllAssets();
   }, []);
-
-
-
 
   // Table columns configuration
   const tableColumns = [
@@ -204,7 +207,6 @@ const AssetMaster = ({ config }) => {
     setIsLoading(true);
     try {
       const response = await apiCalls('get', `/assetmanagement/getAssetMasterById?id=${assetId}`);
-
 
       if (response.status === true && response.paramObjectsMap?.assetMasterVO) {
         const asset = response.paramObjectsMap.assetMasterVO;
@@ -597,10 +599,7 @@ const AssetMaster = ({ config }) => {
 
   const autoGenerateCode = async () => {
     try {
-      const res = await apiCalls(
-        'get',
-        `/documenttypecontroller/getDocId?branchCode=${branchCode}&screenCode=AM`
-      );
+      const res = await apiCalls('get', `/documenttypecontroller/getDocId?branchCode=${branchCode}&screenCode=AM`);
 
       const generatedCode = res?.paramObjectsMap?.generatedDocId;
 
@@ -612,13 +611,24 @@ const AssetMaster = ({ config }) => {
       } else {
         showToast('Code generation failed', 'error');
       }
-
     } catch (error) {
       console.error(error);
       showToast('Something went wrong while generating code', 'error');
     }
   };
+  // 
+  // excel upload
+   const handleBulkUploadClose = () => {
+    setUploadOpenExcel(false);
+  };
 
+  const handleSubmitExcel = async () => {
+    console.log('Submit clicked');
+    handleBulkUploadClose();
+  }
+  const handleFileUploadExcel = (event) => {
+    console.log(event.target.files[0]);
+  };
   return (
     <>
       <ToastContainer />
@@ -883,43 +893,95 @@ const AssetMaster = ({ config }) => {
                         )}
                       </Typography>
 
-                      {/* Upload Button */}
-                      <Button
-                        component="label"
-                        variant="contained"
-                        startIcon={<CloudUpload />}
-                        disabled={isLoading || !canUploadMoreImages()}
-                        size="small"
+                      <Box
                         sx={{
-                          mb: 2,
-                          borderRadius: 1.5,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          fontSize: '0.85rem',
-                          px: 1.8,
-                          py: 0.8,
-                          background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
-                          boxShadow: '0 2px 6px rgba(59, 130, 246, 0.25)',
-                          '&:hover': {
-                            background: 'linear-gradient(193deg, #2f5b5d 30%, #203d3f 90%)',
-                            boxShadow: '0 3px 8px rgba(59, 130, 246, 0.35)'
-                          },
-                          '&:disabled': {
-                            background: '#9ca3af',
-                            color: '#6b7280'
-                          }
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 2,
+                          p: 2,
+                          borderRadius: 3,
+                          background: 'linear-gradient(145deg, #f8fafc, #eef2f7)',
+                          border: '1px solid #e5e7eb',
+                          boxShadow: '0 4px 14px rgba(15, 23, 42, 0.08)'
                         }}
                       >
-                        {canUploadMoreImages() ? `Upload Images` : 'Maximum 4 images reached'}
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          style={{ display: 'none' }}
-                          disabled={!canUploadMoreImages()}
-                        />
-                      </Button>
+                        {/* Upload Button */}
+                        <Button
+                          component="label"
+                          variant="contained"
+                          startIcon={<CloudUpload />}
+                          disabled={isLoading || !canUploadMoreImages()}
+                          size="small"
+                          sx={{
+                            mb: 2,
+                            borderRadius: 1.5,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            px: 1.8,
+                            py: 0.8,
+                            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+                            boxShadow: '0 2px 6px rgba(59, 130, 246, 0.25)',
+                            '&:hover': {
+                              background: 'linear-gradient(193deg, #2f5b5d 30%, #203d3f 90%)',
+                              boxShadow: '0 3px 8px rgba(59, 130, 246, 0.35)'
+                            },
+                            '&:disabled': {
+                              background: '#9ca3af',
+                              color: '#6b7280'
+                            }
+                          }}
+                        >
+                          {canUploadMoreImages() ? `Upload Images` : 'Maximum 4 images reached'}
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            style={{ display: 'none' }}
+                            disabled={!canUploadMoreImages()}
+                          />
+                        </Button>
+                        {/* excel upload */}
+                        <Button
+                          startIcon={<UploadIcon />}
+                          isLoading={isLoading}
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            mb: 2,
+                            borderRadius: 1.5,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            px: 1.8,
+                            py: 0.8,
+                            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+                            boxShadow: '0 2px 6px rgba(59, 130, 246, 0.25)',
+                            '&:hover': {
+                              background: 'linear-gradient(193deg, #2f5b5d 30%, #203d3f 90%)',
+                              boxShadow: '0 3px 8px rgba(59, 130, 246, 0.35)'
+                            },
+                            '&:disabled': {
+                              background: '#9ca3af',
+                              color: '#6b7280'
+                            }
+                          }}
+                          onClick={() => {
+                            setUploadFileExcel({
+                              title: 'Upload Attendance Process',
+                              apiUrl: `/assetmanagement/excelUploadForAssetMaster`,
+                              sampleFileDownload: handleSampleFileAssetForm,
+                              sampleFileName: 'Asset Sample File',
+                              loginUser: loginUserName
+                            });
+                            setUploadOpenExcel(true);
+                          }}
+                        >
+                          Excel
+                        </Button>
+                      </Box>
 
                       {/* All Images Grid */}
                       {getAllImages().length > 0 && (
@@ -1059,88 +1121,38 @@ const AssetMaster = ({ config }) => {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        alignItems: 'center',
-                        gap: 2,
-                        mt: 4,
-                        pt: 3,
-                        borderTop: '1px solid #e2e8f0',
-                        flexWrap: 'wrap'
-                      }}
-                    >
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
                       <Button
                         onClick={handleCancel}
                         variant="outlined"
                         startIcon={<Cancel />}
                         disabled={isLoading}
                         sx={{
-                          minWidth: 130,
-                          height: 42,
-                          borderRadius: '12px',
-                          px: 3,
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          borderColor: '#cbd5e1',
-                          color: '#475569',
-                          background: '#fff',
-                          transition: 'all 0.25s ease',
-
-                          '&:hover': {
-                            borderColor: '#94a3b8',
-                            background: '#f8fafc',
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 6px 14px rgba(15,23,42,0.08)'
-                          },
-
-                          '&:disabled': {
-                            background: '#f1f5f9',
-                            color: '#94a3b8'
-                          }
+                          borderRadius: 2,
+                          px: 4,
+                          textTransform: 'none'
                         }}
                       >
                         Cancel
                       </Button>
-
                       <Button
                         type="submit"
                         variant="contained"
                         startIcon={<Save />}
                         disabled={isLoading}
                         sx={{
-                          minWidth: 160,
-                          height: 42,
-                          background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
-                          borderRadius: '12px',
-                          px: 3,
+                          background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+                          borderRadius: 2,
+                          px: 4,
                           textTransform: 'none',
-                          fontWeight: 700,
-                          fontSize: '13px',
-                          letterSpacing: '0.3px',
-                          boxShadow: '0 10px 24px rgba(42,75,77,0.22)',
-                          transition: 'all 0.25s ease',
-                          border: '1px solid rgba(255,255,255,0.08)',
-
+                          fontWeight: '600',
+                          boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.3)',
                           '&:hover': {
-                            background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)',
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 14px 28px rgba(42,75,77,0.30)'
-                          },
-
-                          '&:disabled': {
-                            background: '#94a3b8',
-                            color: '#e2e8f0'
+                            boxShadow: '0 6px 20px 0 rgba(37, 99, 235, 0.4)'
                           }
                         }}
                       >
-                        {isLoading
-                          ? 'Saving...'
-                          : isEditing
-                            ? 'Update Asset'
-                            : 'Add Asset'}
+                        {isLoading ? 'Saving...' : isEditing ? 'Update Asset' : 'Add Asset'}
                       </Button>
                     </Box>
                   </Grid>
@@ -1194,6 +1206,31 @@ const AssetMaster = ({ config }) => {
           <Button onClick={handleCloseImageViewer}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Excel Upload */}
+      {uploadOpenExcel && (
+        <CommonBulkUpload
+          open={uploadOpenExcel}
+          handleClose={handleBulkUploadClose}
+          dialogTitle="Upload Files"
+          uploadText="Browse File"
+          onSubmit={handleSubmitExcel}
+          sampleFileDownload={uploadFileExcel.sampleFileDownload}
+          fileName={uploadFileExcel.sampleFileName}
+          downloadText="Download File"
+          handleFileUpload={handleFileUploadExcel}
+          apiUrl={uploadFileExcel.apiUrl}
+          screen="Asset"
+          loginUser={uploadFileExcel.loginUser}
+          includeCreatedBy={uploadFileExcel.includeCreatedBy}
+          orgId={orgId}
+          branch={branch}
+          branchCode={branchCode}
+          createdBY={loginUserName}
+
+          // showAttendanceProcessing={true}
+        />
+      )}
     </>
   );
 };

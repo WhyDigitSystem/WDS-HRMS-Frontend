@@ -37,8 +37,15 @@ import {
     CartesianGrid
 } from 'recharts';
 
-const STATUS_COLORS = ['#43a047', '#ffb300', '#e53935']; // Green, Amber, Red
-const CATEGORY_COLORS = ['#1E88E5', '#3949AB', '#FB8C00', '#8E24AA', '#00ACC1'];
+const STATUS_COLORS = ['#3a6b6d', '#4b7c7e', '#d32f2f'];
+
+const CATEGORY_COLORS = [
+    '#3a6b6d',
+    '#4b7c7e',
+    '#5c8d8f',
+    '#6d9ea0',
+    '#7eafb1'
+];
 
 const MONTHS = [
     { value: 1, label: 'January' },
@@ -60,17 +67,25 @@ const CustomTooltip = ({ active, payload, label }) => {
         return (
             <Box
                 sx={{
-                    backgroundColor: 'rgba(255,255,255,0.9)',
-                    boxShadow: 2,
-                    borderRadius: 2,
+                    backgroundColor: 'rgba(255,255,255,0.95)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    borderRadius: '14px',
                     px: 2,
-                    py: 1,
+                    py: 1.2,
+                    border: '1px solid rgba(58,107,109,0.12)'
                 }}
             >
-                <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+                <Typography variant="subtitle2" sx={{ color: '#2a4b4d', fontWeight: 600 }}>
                     {label}
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>
+
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: '#3a6b6d',
+                        fontWeight: 700
+                    }}
+                >
                     ₹{payload[0].value.toLocaleString()}
                 </Typography>
             </Box>
@@ -167,19 +182,42 @@ const DashboardExpenseTravel = () => {
     if (error) return <Alert severity="error">{error}</Alert>;
 
     return (
-        // <Box sx={{ p: { xs: 2, md: 3 }, backgroundColor: '#fafafa', borderRadius: 2 }}>
-        <Box sx={{ backgroundColor: '#fafafa', borderRadius: 2 }}>
-
+        <Box
+            sx={{
+                background: '#f8fafc',
+                borderRadius: '24px',
+                p: 2,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
+            }}
+        >
             {/* HEADER */}
             <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Grid item>
-                    <Typography variant="h6" fontWeight={600}>
+                    <Typography
+                        variant="h6"
+                        fontWeight={700}
+                        sx={{
+                            color: '#2a4b4d',
+                            letterSpacing: '0.3px'
+                        }}
+                    >
                         Expense & Travel Overview ({year})
                     </Typography>
                 </Grid>
+
                 <Grid item>
-                    <FormControl size="small" sx={{ minWidth: 180 }}>
+                    <FormControl
+                        size="small"
+                        sx={{
+                            minWidth: 180,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '12px',
+                                background: '#fff'
+                            }
+                        }}
+                    >
                         <InputLabel>Select Month</InputLabel>
+
                         <Select
                             value={month}
                             label="Select Month"
@@ -196,110 +234,199 @@ const DashboardExpenseTravel = () => {
             </Grid>
 
             {/* KPI CARDS */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid
+                container
+                spacing={1}
+                sx={{
+                    mb: 1.5,
+                    alignItems: 'stretch'
+                }}
+            >
                 <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Total Expense Claims" count={summaryCounts.expenseTotalCount} color="#1976d2" icon={<MonetizationOnIcon />} />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Approved Expense" count={summaryCounts.expenseApproved} color="#43a047" icon={<CheckCircleIcon />} />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Pending Expense" count={summaryCounts.expensePending} color="#ffb300" icon={<HourglassTopIcon />} />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Rejected Expense" count={summaryCounts.expenseRejected} color="#e53935" icon={<CancelIcon />} />
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Total Expense Claims"
+                            count={summaryCounts.expenseTotalCount}
+                            color="#3a6b6d"
+                            icon={<MonetizationOnIcon />}
+                        />
+                    </Box>
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Total Travel Requests" count={summaryCounts.travelTotalCount} color="#3f51b5" icon={<FlightTakeoffIcon />} />
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Approved Expense"
+                            count={summaryCounts.expenseApproved}
+                            color="#3a6b6d"
+                            icon={<CheckCircleIcon />}
+                        />
+                    </Box>
                 </Grid>
+
                 <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Approved Travels" count={summaryCounts.travelApproved} color="#4caf50" icon={<LuggageIcon />} />
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Pending Expense"
+                            count={summaryCounts.expensePending}
+                            color="#3a6b6d"
+                            icon={<HourglassTopIcon />}
+                        />
+                    </Box>
                 </Grid>
+
                 <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Pending Travels" count={summaryCounts.travelPending} color="#ff9800" icon={<ScheduleIcon />} />
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Rejected Expense"
+                            count={summaryCounts.expenseRejected}
+                            color="#3a6b6d"
+                            icon={<CancelIcon />}
+                        />
+                    </Box>
                 </Grid>
-                {/* <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Rejected Travels" count={summaryCounts.travelRejected} color="#f44336" icon={<CancelIcon />} />
-                </Grid> */}
+
                 <Grid item xs={12} sm={6} md={3}>
-                    <KPIBox label="Total Amount Spent" count={summaryCounts.expenseAmount + summaryCounts.travelAmount} color="#9c27b0" icon={<CurrencyRupeeIcon />} />
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Total Travel Requests"
+                            count={summaryCounts.travelTotalCount}
+                            color="#3a6b6d"
+                            icon={<FlightTakeoffIcon />}
+                        />
+                    </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Approved Travels"
+                            count={summaryCounts.travelApproved}
+                            color="#3a6b6d"
+                            icon={<LuggageIcon />}
+                        />
+                    </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Pending Travels"
+                            count={summaryCounts.travelPending}
+                            color="#3a6b6d"
+                            icon={<ScheduleIcon />}
+                        />
+                    </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                        sx={{
+                            zoom: 0.82
+                        }}
+                    >
+                        <KPIBox
+                            label="Total Amount Spent"
+                            count={summaryCounts.expenseAmount + summaryCounts.travelAmount}
+                            color="#3a6b6d"
+                            icon={<CurrencyRupeeIcon />}
+                        />
+                    </Box>
                 </Grid>
             </Grid>
 
-            {/* PIE CHARTS */}
-            {/* <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 2, borderRadius: 3, boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                            Expense Claim Status
-                        </Typography>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie data={expenseStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                                    {expenseStatusData.map((entry, index) => (
-                                        <Cell key={index} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <ReTooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </Paper>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                    <Paper sx={{ p: 2, borderRadius: 3, boxShadow: '0 3px 10px rgba(0,0,0,0.05)' }}>
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                            Travel Request Status
-                        </Typography>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie data={travelStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
-                                    {travelStatusData.map((entry, index) => (
-                                        <Cell key={index} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <ReTooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </Paper>
-                </Grid>
-            </Grid> */}
-
-            {/* BAR CHART (Expense by Category) */}
+            {/* BAR CHART */}
             <Grid item xs={12} md={6}>
                 <Paper
                     sx={{
                         p: 3,
-                        borderRadius: 3,
-                        boxShadow: '0 3px 12px rgba(0,0,0,0.08)',
-                        background: 'linear-gradient(145deg, #ffffff, #f9f9f9)',
+                        borderRadius: '24px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                        background: '#ffffff',
+                        border: '1px solid rgba(58,107,109,0.08)'
                     }}
                 >
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            mb: 2,
+                            fontWeight: 700,
+                            color: '#2a4b4d',
+                            letterSpacing: '0.3px'
+                        }}
+                    >
                         Expense by Category
                     </Typography>
+
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={expenseByCategory} barSize={40}>
-                            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e0e0e0" />
+                            <CartesianGrid
+                                vertical={false}
+                                strokeDasharray="3 3"
+                                stroke="#dbe3ea"
+                            />
+
                             <XAxis
                                 dataKey="category"
                                 axisLine={false}
                                 tickLine={false}
-                                style={{ fontSize: '13px', fill: '#616161' }}
+                                style={{
+                                    fontSize: '13px',
+                                    fill: '#4b5563'
+                                }}
                             />
+
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                style={{ fontSize: '13px', fill: '#616161' }}
+                                style={{
+                                    fontSize: '13px',
+                                    fill: '#4b5563'
+                                }}
                             />
+
                             <ReTooltip content={<CustomTooltip />} />
+
                             <Legend />
+
                             <Bar radius={[8, 8, 0, 0]} dataKey="amount">
                                 {expenseByCategory.map((entry, index) => (
-                                    <Cell key={`bar-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+                                    <Cell
+                                        key={`bar-${index}`}
+                                        fill={
+                                            CATEGORY_COLORS[
+                                            index % CATEGORY_COLORS.length
+                                            ]
+                                        }
+                                    />
                                 ))}
                             </Bar>
                         </BarChart>
