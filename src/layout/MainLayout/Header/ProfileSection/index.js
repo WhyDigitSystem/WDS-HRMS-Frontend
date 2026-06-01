@@ -63,7 +63,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { useSnackbar } from 'notistack';
 
-
 // Styled component for the profile popover
 const ProfilePopper = styled(Paper)(({ theme }) => ({
   overflow: 'hidden',
@@ -230,13 +229,9 @@ const ProfileSection = () => {
     link.click();
   };
 
-
   const handleDelete = async (doc) => {
     try {
-      const response = await apiCalls(
-        'delete',
-        `/employeedocuments/employeeDocDeleteById/${doc.id}`
-      );
+      const response = await apiCalls('delete', `/employeedocuments/employeeDocDeleteById/${doc.id}`);
 
       if (response.status === true) {
         const message = response.paramObjectsMap?.message || 'Document deleted successfully';
@@ -244,7 +239,7 @@ const ProfileSection = () => {
         fetchUploadedDocuments(); // Refresh list
       } else {
         enqueueSnackbar(response.paramObjectsMap?.errorMessage || 'Failed to delete', {
-          variant: 'error',
+          variant: 'error'
         });
       }
     } catch (error) {
@@ -527,7 +522,6 @@ const ProfileSection = () => {
                           </ListItemButton>
                         </ListItem>
 
-
                         {/* Change Password */}
                         <ListItem disablePadding>
                           <ChangePasswordPopup>
@@ -612,26 +606,43 @@ const ProfileSection = () => {
             }
           }}
         >
-          <DialogTitle sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 2 }}>
+          <DialogTitle
+            sx={{
+              p: 2,
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              color: '#fff'
+            }}
+          >
             <Stack direction="row" alignItems="center" spacing={2}>
               <Avatar
                 src={`data:image/png;base64,${employeeData?.profileImage}`}
                 sx={{
-                  width: 40,
-                  height: 40,
-                  border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    border: `2px solid ${theme.palette.primary.main}`,
-                    transform: 'scale(1.1)'
-                  }
+                  width: 42,
+                  height: 42,
+                  border: '2px solid rgba(255,255,255,0.5)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}
               />
+
               <Box>
-                <Typography variant="h5" fontWeight={700}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    color: '#fff',
+                    lineHeight: 1.2
+                  }}
+                >
                   {employeeData?.employeeName || empName} - {employeeData?.employeeCode || empcode}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#fff',
+                    opacity: 0.9
+                  }}
+                >
                   {employeeData?.designation || designation}
                 </Typography>
               </Box>
@@ -642,26 +653,42 @@ const ProfileSection = () => {
             <Tabs
               value={activeTab}
               onChange={handleTabChange}
-              variant={isMobile ? 'scrollable' : 'fullWidth'} // Scrollable tabs on mobile
-              scrollButtons={isMobile ? 'auto' : false} // Allow scrolling on mobile
+              variant={isMobile ? 'scrollable' : 'fullWidth'}
+              scrollButtons={isMobile ? 'auto' : false}
               sx={{
                 mb: 3,
+
+                // Remove default MUI styling noise
+                minHeight: 42,
+
                 '& .MuiTabs-indicator': {
-                  height: 4,
-                  borderRadius: '4px 4px 0 0'
+                  height: 3,
+                  borderRadius: '3px',
+                  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)'
+                },
+
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '13px',
+                  minHeight: 42,
+                  color: '#64748b',
+
+                  '&.Mui-selected': {
+                    color: '#2a4b4d'
+                  }
                 }
               }}
             >
-              <Tab label={isMobile ? 'Personal' : 'Personal Information'} icon={<IconUser size={20} />} iconPosition="start" />
-              <Tab label={isMobile ? 'Bank' : 'Bank Details'} icon={<IconBuildingBank size={20} />} iconPosition="start" />
+              <Tab label={isMobile ? 'Personal' : 'Personal Information'} icon={<IconUser size={18} />} iconPosition="start" />
+
+              <Tab label={isMobile ? 'Bank' : 'Bank Details'} icon={<IconBuildingBank size={18} />} iconPosition="start" />
             </Tabs>
 
             {activeTab === 0 && employeeData && (
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <Stack spacing={3}>
-
-
                     <Stack direction="row" spacing={2} alignItems="center">
                       <Avatar sx={{ bgcolor: alpha(theme.palette.secondary.main, 0.1) }}>
                         <IconMail color={theme.palette.secondary.main} />
@@ -862,19 +889,70 @@ const ProfileSection = () => {
               </Box>
             )}
             <Box mt={2}>
-              <InputLabel sx={{ mb: 1, fontWeight: 'bold' }}>Choose File</InputLabel>
-              <Button variant="outlined" component="label" sx={{ textTransform: 'none' }}>
+              <InputLabel
+                sx={{
+                  mb: 1,
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  color: '#1e293b',
+                  letterSpacing: '0.2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                Choose File
+              </InputLabel>
+
+              <Button
+                variant="contained"
+                component="label"
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 2,
+                  py: 1,
+                  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                  boxShadow: '0 6px 14px rgba(42, 75, 77, 0.18)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)'
+                  }
+                }}
+              >
                 Select File
                 <input type="file" hidden onChange={handleFileChange} />
               </Button>
 
               {selectedFile && (
-                <Box mt={1} display="flex" alignItems="center" gap={1}>
-                  <Typography variant="body2">
+                <Box
+                  mt={1.5}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  sx={{
+                    p: 1.2,
+                    borderRadius: 2,
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0'
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontSize: '12.5px', color: '#334155' }}>
                     Selected: <strong>{selectedFile.name}</strong>
                   </Typography>
+
                   <Tooltip title="Clear Selection">
-                    <IconButton size="small" onClick={handleClearFile}>
+                    <IconButton
+                      size="small"
+                      onClick={handleClearFile}
+                      sx={{
+                        color: '#dc2626',
+                        '&:hover': {
+                          background: 'rgba(220, 38, 38, 0.08)'
+                        }
+                      }}
+                    >
                       <CancelIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -884,8 +962,47 @@ const ProfileSection = () => {
           </DialogContent>
 
           <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={() => setDocumentModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleUpload} variant="contained" disabled={!selectedFile}>
+            <Button
+              onClick={() => setDocumentModalOpen(false)}
+              sx={{
+                textTransform: 'none',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                color: '#fff',
+                background: '#dc2626',
+                '&:hover': {
+                  background: '#b91c1c'
+                }
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              onClick={handleUpload}
+              variant="contained"
+              disabled={!selectedFile}
+              sx={{
+                textTransform: 'none',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                boxShadow: '0 6px 14px rgba(42, 75, 77, 0.18)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)'
+                },
+                '&.Mui-disabled': {
+                  background: '#cbd5e1',
+                  color: '#64748b'
+                }
+              }}
+            >
               Upload
             </Button>
           </DialogActions>

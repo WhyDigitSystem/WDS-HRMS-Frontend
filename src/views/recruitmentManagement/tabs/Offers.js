@@ -1,14 +1,6 @@
 // src/components/AdvancedOfferLetterSystem/MainComponent.js
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Tabs,
-  Tab,
-  AppBar,
-  Container
-} from '@mui/material';
+import { Box, Paper, Typography, Tabs, Tab, AppBar, Container } from '@mui/material';
 import {
   AddCircleOutline as CreateIcon,
   DescriptionOutlined as TemplateIcon,
@@ -23,16 +15,10 @@ import CreateOffer from './OfferTabs/CreateOffer';
 import AllOffers from './OfferTabs/AllOffer';
 import Preview from './OfferTabs/OfferPreview';
 import WorkFlow from './OfferTabs/WorkFlowPendingApprovals';
-import { useLocation } from "react-router-dom";
+import { useLocation } from 'react-router-dom';
 
 const TabPanel = ({ children, value, index, ...other }) => (
-  <div
-    role="tabpanel"
-    hidden={value !== index}
-    id={`tabpanel-${index}`}
-    aria-labelledby={`tab-${index}`}
-    {...other}
-  >
+  <div role="tabpanel" hidden={value !== index} id={`tabpanel-${index}`} aria-labelledby={`tab-${index}`} {...other}>
     {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
   </div>
 );
@@ -48,26 +34,22 @@ const AdvancedOfferLetterSystem = () => {
     }
   }, [location.state]);
 
-
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
   };
 
-  // 🎨 Define colors for icons
   const tabColors = [
-    '#3b82f6', // blue - Create Offer
-    '#10b981', // green - All Offers
-    '#f59e0b', // amber - Workflow
-    '#8b5cf6', // violet - Analytics
-    '#ec4899', // pink - Bulk Actions
-    '#6366f1', // indigo - Preview
+    '#3a6b6d', // Create Offer
+    '#2a4b4d', // All Offers
+    '#4f8a8b', // Workflow
+    '#5f9ea0' // Preview
   ];
 
   const tabs = [
     { label: 'Create Offer', icon: <CreateIcon />, component: CreateOffer },
     { label: 'All Offers', icon: <OffersIcon />, component: AllOffers },
     { label: 'Workflow', icon: <WorkflowIcon />, component: WorkFlow },
-    { label: 'Preview', icon: <PreviewIcon />, component: Preview },
+    { label: 'Preview', icon: <PreviewIcon />, component: Preview }
   ];
 
   return (
@@ -81,20 +63,20 @@ const AdvancedOfferLetterSystem = () => {
       <Paper
         sx={{
           width: '100%',
-          mt: 3,
-          borderRadius: 2,
-          boxShadow: '0 3px 10px rgba(0,0,0,0.05)',
+          mt: 2,
+          borderRadius: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
           overflow: 'hidden',
+          background: '#fff'
         }}
       >
         <AppBar
           position="static"
-          color="default"
           elevation={0}
           sx={{
-            backgroundColor: 'background.paper',
-            borderBottom: 1,
-            borderColor: 'divider',
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            borderBottom: 'none'
           }}
         >
           <Tabs
@@ -104,64 +86,54 @@ const AdvancedOfferLetterSystem = () => {
             scrollButtons="auto"
             aria-label="offer letter system tabs"
             sx={{
+              px: 1,
+
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                color: 'text.secondary',
-                minHeight: 48,
+                color: 'rgba(255,255,255,0.75)',
+                minHeight: 50,
                 px: 2.5,
                 transition: 'all 0.3s ease',
-                borderRadius: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
+                borderRadius: '10px',
+                margin: '6px 4px',
+
                 '&:hover': {
-                  backgroundColor: 'rgba(25, 118, 210, 0.05)',
-                },
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  color: '#fff'
+                }
               },
+
+              '& .Mui-selected': {
+                color: '#fff !important',
+                backgroundColor: 'rgba(255,255,255,0.12)'
+              },
+
               '& .MuiTabs-indicator': {
-                backgroundColor: 'primary.main',
+                backgroundColor: '#fff',
                 height: 3,
-                borderRadius: 2,
-              },
+                borderRadius: 10
+              }
             }}
           >
             {tabs.map((tab, index) => (
               <Tab
                 key={index}
-                icon={
-                  <Box
-                    component="span"
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color:
-                        currentTab === index
-                          ? tabColors[index]
-                          : `${tabColors[index]}99`, // slightly transparent when inactive
-                      transition: 'color 0.3s ease',
-                      '& svg': {
-                        fontSize: 20,
-                      },
-                    }}
-                  >
-                    {tab.icon}
-                  </Box>
-                }
+                icon={tab.icon}
                 iconPosition="start"
-                label={
-                  <Typography
-                    sx={{
-                      color:
-                        currentTab === index
-                          ? '#111827'
-                          : 'text.secondary',
-                    }}
-                  >
-                    {tab.label}
-                  </Typography>
-                }
+                label={tab.label}
+                sx={{
+                  color: '#fff !important',
+
+                  '& .MuiSvgIcon-root': {
+                    color: '#fff',
+                    fontSize: 20
+                  },
+
+                  '&.Mui-selected': {
+                    color: '#fff'
+                  }
+                }}
               />
             ))}
           </Tabs>
@@ -172,11 +144,7 @@ const AdvancedOfferLetterSystem = () => {
           const TabComponent = tab.component;
           return (
             <TabPanel key={index} value={currentTab} index={index}>
-              {index === 3 ? (
-                <TabComponent offer={selectedOffer} />
-              ) : (
-                <TabComponent />
-              )}
+              {index === 3 ? <TabComponent offer={selectedOffer} /> : <TabComponent />}
             </TabPanel>
           );
         })}

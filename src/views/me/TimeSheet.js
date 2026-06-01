@@ -674,15 +674,7 @@ const TimeSheet = () => {
             const dayName = config.weekOffDays.toUpperCase();
             const weekNumbers = config.weekNumbers;
 
-            const dayIndex = [
-              'SUNDAY',
-              'MONDAY',
-              'TUESDAY',
-              'WEDNESDAY',
-              'THURSDAY',
-              'FRIDAY',
-              'SATURDAY'
-            ].indexOf(dayName);
+            const dayIndex = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'].indexOf(dayName);
 
             if (dayIndex === -1) continue;
 
@@ -749,8 +741,8 @@ const TimeSheet = () => {
             title="Save"
             icon={SaveIcon}
             isLoading={isLoading}
-          // onClick={handleSave}
-          // margin="0 10px 0 10px"
+            // onClick={handleSave}
+            // margin="0 10px 0 10px"
           />
           <ActionButton title="Report" icon={DescriptionTwoToneIcon} onClick={handleReportIconClick} />
         </div>
@@ -1024,11 +1016,7 @@ const TimeSheet = () => {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setModalOpen(false)}
-                />
+                <button type="button" className="btn-close btn-close-white" onClick={() => setModalOpen(false)} />
               </div>
 
               {/* BODY */}
@@ -1089,19 +1077,14 @@ const TimeSheet = () => {
                             <select
                               name="projectName"
                               value={row.projectName}
-                              onChange={(e) =>
-                                handleRowChange(index, 'projectName', e.target.value)
-                              }
+                              onChange={(e) => handleRowChange(index, 'projectName', e.target.value)}
                               className="form-select custom-input"
                               disabled={!isCurrentMonth(selectedDate)}
                             >
                               <option value="">Select Project</option>
 
                               {alProject.map((project) => (
-                                <option
-                                  key={project.id}
-                                  value={project.projectCode}
-                                >
+                                <option key={project.id} value={project.projectCode}>
                                   {project.projectCode} - {project.projectName}
                                 </option>
                               ))}
@@ -1113,9 +1096,7 @@ const TimeSheet = () => {
                             <input
                               type="time"
                               value={row.fromTime}
-                              onChange={(e) =>
-                                handleRowChange(index, 'fromTime', e.target.value)
-                              }
+                              onChange={(e) => handleRowChange(index, 'fromTime', e.target.value)}
                               className="form-control custom-input"
                               disabled={!isCurrentMonth(selectedDate)}
                             />
@@ -1126,9 +1107,7 @@ const TimeSheet = () => {
                             <input
                               type="time"
                               value={row.toTime}
-                              onChange={(e) =>
-                                handleRowChange(index, 'toTime', e.target.value)
-                              }
+                              onChange={(e) => handleRowChange(index, 'toTime', e.target.value)}
                               className="form-control custom-input"
                               disabled={!isCurrentMonth(selectedDate)}
                             />
@@ -1138,9 +1117,7 @@ const TimeSheet = () => {
                           <td>
                             <textarea
                               value={row.description}
-                              onChange={(e) =>
-                                handleRowChange(index, 'description', e.target.value)
-                              }
+                              onChange={(e) => handleRowChange(index, 'description', e.target.value)}
                               className="form-control custom-input custom-scroll-textarea"
                               placeholder="Enter description"
                               rows={2}
@@ -1164,8 +1141,7 @@ const TimeSheet = () => {
                     onClick={handleAddRow}
                     disabled={!isCurrentMonth(selectedDate)}
                     style={{
-                      background:
-                        'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                      background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
                       color: '#fff',
                       borderRadius: '10px',
                       fontWeight: 600,
@@ -1188,34 +1164,19 @@ const TimeSheet = () => {
                 }}
               >
                 <div className="d-flex flex-wrap gap-2 w-100 justify-content-end footer-actions">
-                  <button
-                    onClick={() => setModalOpen(false)}
-                    className="footer-btn cancel"
-                    disabled={!isCurrentMonth(selectedDate)}
-                  >
+                  <button onClick={() => setModalOpen(false)} className="footer-btn cancel" disabled={!isCurrentMonth(selectedDate)}>
                     Cancel
                   </button>
 
-                  <button
-                    onClick={handleModalClear}
-                    className="footer-btn warning"
-                    disabled={!isCurrentMonth(selectedDate)}
-                  >
+                  <button onClick={handleModalClear} className="footer-btn warning" disabled={!isCurrentMonth(selectedDate)}>
                     Clear
                   </button>
 
-                  <button
-                    onClick={handleSubmit}
-                    className="footer-btn save"
-                    disabled={!isCurrentMonth(selectedDate)}
-                  >
+                  <button onClick={handleSubmit} className="footer-btn save" disabled={!isCurrentMonth(selectedDate)}>
                     Save Entry
                   </button>
 
-                  <button
-                    onClick={handleShareWhatsApp}
-                    className="footer-btn success"
-                  >
+                  <button onClick={handleShareWhatsApp} className="footer-btn success">
                     <FaWhatsapp
                       style={{
                         marginRight: 5,

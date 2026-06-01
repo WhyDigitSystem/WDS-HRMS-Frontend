@@ -5,7 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import apiCalls from 'apicall';
 import { ToastContainer } from 'react-toastify';
 import { showToast } from 'utils/toast-component';
-import RestartAltIcon from "@mui/icons-material/RestartAlt"; 
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 const ATS = () => {
   const {
@@ -121,321 +121,481 @@ const ATS = () => {
   };
 
   const handleReset = () => {
+    reset({
+      candidateName: '',
+      emailAddress: '',
+      mobileNumber: '',
+      jobId: '',
+      resumefile: null
+    });
 
-  reset({
-    candidateName: '',
-    emailAddress: '',
-    mobileNumber: '',
-    jobId: '',
-    resumefile: null
-  });
+    setAtsResult(null);
 
-  
-  setAtsResult(null);
+    setSelectedFile(null);
 
-
-  setSelectedFile(null);
-
- 
-  if (fileInputRef.current) {
-    fileInputRef.current.value = null;
-  }
-};
-
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
+    }
+  };
 
   return (
     <>
-    < ToastContainer />
-  
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f7fb', py: 0, px: { xs: 2, sm: 4 } }}>
-      <Typography variant="h3" fontWeight="bold" align="center" color="text.primary" mb={1}>
-        ATS Resume Scoring System
-      </Typography>
-      <Typography variant="body1" align="center" color="text.secondary" mb={2}>
-        Upload candidate resumes and get instant AI-powered scoring
-      </Typography>
-<Box
-  sx={{
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    width: "100%",   
-    mb: 2
-  }}
->
-  <Button
-    variant="contained"
-    startIcon={<RestartAltIcon />}
-    onClick={handleReset}
-    sx={{
-      background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-      color: "white",
-      fontWeight: 600,
-      px: 1,
-      py: 0.55,
-      borderRadius: 2,
-      letterSpacing: "0.5px",
-      fontSize: "14px",
+      <ToastContainer />
 
-      "&:hover": {
-        transform: "scale(1.06)",
-        background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-      },
+      <Box
+        sx={{
+          minHeight: '100vh',
+          py: 0,
+          px: { xs: 2, sm: 4 },
+          background: 'linear-gradient(135deg, #f8fafc 0%, #eef5f5 50%, #f8fafc 100%)'
+        }}
+      >
+        <Typography
+          variant="h3"
+          align="center"
+          mb={1}
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}
+        >
+          ATS Resume Scoring System
+        </Typography>
+        <Typography variant="body1" align="center" color="text.secondary" mb={2}>
+          Upload candidate resumes and get instant AI-powered scoring
+        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            width: '100%',
+            mb: 2
+          }}
+        >
+          <Button
+            variant="contained"
+            startIcon={<RestartAltIcon />}
+            onClick={handleReset}
+            sx={{
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              color: '#fff',
+              fontWeight: 600,
+              px: 2,
+              py: 0.7,
+              borderRadius: '10px',
+              textTransform: 'none',
+              boxShadow: '0 8px 20px rgba(58,107,109,0.25)',
 
-      "&:active": {
-        transform: "scale(0.97)",
-      },
-    }}
-  >
-    Reset
-  </Button>
-</Box>
+              '&:hover': {
+                background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)',
+                transform: 'translateY(-1px)'
+              }
+            }}
+          >
+            Reset
+          </Button>
+        </Box>
 
+        <Grid container spacing={2} sx={{ maxWidth: 1100, mx: 'auto', pl: 0, pr: 2 }}>
+          <Grid item xs={12} md={6}>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '20px',
+                  background: '#fff',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2
+                }}
+              >
+                <Typography variant="h4" fontWeight="bold">
+                  Upload Resume
+                </Typography>
 
-      <Grid container spacing={2} sx={{ maxWidth: 1100, mx: 'auto', pl: 0, pr: 2 }}>
-        <Grid item xs={12} md={6}>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Paper elevation={3} sx={{ p: 2, borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="h4" fontWeight="bold">
-                Upload Resume
+                <Controller
+                  name="candidateName"
+                  control={control}
+                  rules={{
+                    required: 'Candidate Name is required',
+                    minLength: { value: 3, message: 'Name must be at least 3 characters' },
+                    pattern: { value: /^[A-Za-z\s]+$/, message: 'Only letters and spaces are allowed' }
+                  }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Candidate Name *"
+                      size="small"
+                      fullWidth
+                      error={!!errors.candidateName}
+                      helperText={errors.candidateName?.message}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="emailAddress"
+                  control={control}
+                  rules={{
+                    required: 'Email is required',
+                    pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email format' }
+                  }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Email Address *"
+                      size="small"
+                      fullWidth
+                      error={!!errors.emailAddress}
+                      helperText={errors.emailAddress?.message}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="mobileNumber"
+                  control={control}
+                  rules={{
+                    required: 'Mobile Number is required',
+                    pattern: { value: /^[0-9]{10}$/, message: 'Invalid Mobile Number format' }
+                  }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Mobile Number *"
+                      size="small"
+                      fullWidth
+                      error={!!errors.mobileNumber}
+                      helperText={errors.mobileNumber?.message}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="jobId"
+                  control={control}
+                  rules={{ required: 'Position Applied is required' }}
+                  render={({ field, fieldState: { error } }) => (
+                    <Autocomplete
+                      {...field}
+                      options={jobPostings}
+                      getOptionLabel={(option) => option.jobTitle || ''}
+                      isOptionEqualToValue={(option, value) => option.id === value.id}
+                      onChange={(event, newValue) => field.onChange(newValue?.id || '')}
+                      value={jobPostings.find((job) => job.id === field.value) || null}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Position Applied *"
+                          placeholder="Select Job Title"
+                          size="small"
+                          fullWidth
+                          error={!!error}
+                          helperText={error?.message}
+                        />
+                      )}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="resumefile"
+                  control={control}
+                  rules={{ required: 'Resume File is required' }}
+                  render={({ field, fieldState: { error } }) => (
+                    <Box>
+                      {/* Hidden file input */}
+                      <Typography variant="body1" color={error ? 'error' : 'text.primary'} sx={{ mb: 1 }}>
+                        Resume File *
+                      </Typography>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            if (file.size > 50 * 1024 * 1024) {
+                              alert('File size must be less than 50MB');
+                              e.target.value = null;
+                              setSelectedFile('');
+                              field.onChange(null);
+                            } else {
+                              setSelectedFile(file.name);
+                              field.onChange(file);
+                            }
+                          }
+                        }}
+                      />
+
+                      {/* Upload box */}
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          border: error ? '2px dashed #dc2626' : '2px dashed #3a6b6d',
+                          borderRadius: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          py: 2.5,
+                          px: 2,
+                          mt: 1,
+                          bgcolor: '#f8fafc',
+                          cursor: 'pointer',
+                          transition: 'all 0.25s ease',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+
+                          '&:hover': {
+                            bgcolor: '#eef5f5',
+                            borderColor: '#2a4b4d',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 20px rgba(58,107,109,0.12)'
+                          }
+                        }}
+                        onClick={() => fileInputRef.current.click()}
+                      >
+                        <Box display="flex" alignItems="center" gap={2}>
+                          <Box
+                            sx={{
+                              width: 52,
+                              height: 52,
+                              borderRadius: '14px',
+                              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 6px 16px rgba(58,107,109,0.25)'
+                            }}
+                          >
+                            <CloudUploadIcon
+                              sx={{
+                                fontSize: 28,
+                                color: '#fff'
+                              }}
+                            />
+                          </Box>
+
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                color: '#1e293b'
+                              }}
+                            >
+                              {field.value ? field.value.name : 'Upload Resume'}
+                            </Typography>
+
+                            {field.value ? (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: '#64748b'
+                                }}
+                              >
+                                {(field.value.size / (1024 * 1024)).toFixed(2)} MB
+                              </Typography>
+                            ) : (
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: '#94a3b8'
+                                }}
+                              >
+                                PDF, DOC, DOCX • Max 50MB
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+
+                        {field.value && (
+                          <Button
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedFile('');
+                              field.onChange(null);
+                            }}
+                            sx={{
+                              minWidth: '80px',
+                              borderRadius: '8px',
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              color: '#dc2626',
+                              background: '#fee2e2',
+
+                              '&:hover': {
+                                background: '#fecaca'
+                              }
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </Paper>
+
+                      {/* Error message */}
+                      {error && (
+                        <Typography variant="caption" color="error">
+                          {error.message}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                />
+
+                <Button
+                  variant="contained"
+                  fullWidth
+                  type="submit"
+                  sx={{
+                    mt: 2.5,
+                    py: 1.5,
+                    borderRadius: 2.5,
+                    textTransform: 'none',
+                    fontSize: '15px',
+                    fontWeight: 600,
+                    letterSpacing: '0.3px',
+                    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                    boxShadow: '0 4px 12px rgba(58, 107, 109, 0.25)',
+                    transition: 'all 0.3s ease',
+
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #2f5a5c 0%, #1f3d3f 100%)',
+                      boxShadow: '0 8px 20px rgba(58, 107, 109, 0.35)',
+                      transform: 'translateY(-2px)'
+                    },
+
+                    '&:active': {
+                      transform: 'translateY(0)'
+                    },
+
+                    '&:disabled': {
+                      background: '#cbd5e1',
+                      color: '#64748b'
+                    }
+                  }}
+                >
+                  Analyze Resume & Calculate Score
+                </Button>
+              </Paper>
+            </form>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: '20px',
+                background: '#fff',
+                border: '1px solid rgba(58,107,109,0.12)',
+                boxShadow: '0 10px 30px rgba(58,107,109,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 3,
+                height: '100%'
+              }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight={700}
+                sx={{
+                  width: '100%',
+                  color: '#2a4b4d'
+                }}
+              >
+                Score Preview
               </Typography>
 
-              <Controller
-                name="candidateName"
-                control={control}
-                rules={{
-                  required: 'Candidate Name is required',
-                  minLength: { value: 3, message: 'Name must be at least 3 characters' },
-                  pattern: { value: /^[A-Za-z\s]+$/, message: 'Only letters and spaces are allowed' }
+              <Avatar
+                sx={{
+                  width: 120,
+                  height: 120,
+                  fontSize: 32,
+                  fontWeight: 700,
+                  color: '#fff',
+                  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                  boxShadow: '0 10px 25px rgba(58,107,109,0.25)'
                 }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Candidate Name *"
-                    size="small"
-                    fullWidth
-                    error={!!errors.candidateName}
-                    helperText={errors.candidateName?.message}
-                  />
-                )}
-              />
+              >
+                {atsResult?.overall_score || 0}
+              </Avatar>
 
-              <Controller
-                name="emailAddress"
-                control={control}
-                rules={{
-                  required: 'Email is required',
-                  pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email format' }
+              <Typography
+                sx={{
+                  color: '#64748b',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  mt: -1
                 }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Email Address *"
-                    size="small"
-                    fullWidth
-                    error={!!errors.emailAddress}
-                    helperText={errors.emailAddress?.message}
-                  />
-                )}
-              />
+              >
+                Overall ATS Score
+              </Typography>
 
-              <Controller
-                name="mobileNumber"
-                control={control}
-                rules={{
-                  required: 'Mobile Number is required',
-                  pattern: { value: /^[0-9]{10}$/, message: 'Invalid Mobile Number format' }
-                }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Mobile Number *"
-                    size="small"
-                    fullWidth
-                    error={!!errors.mobileNumber}
-                    helperText={errors.mobileNumber?.message}
-                  />
-                )}
-              />
+              <Box width="100%" display="flex" flexDirection="column" gap={2}>
+                {['Experience Match', 'Skills Match', 'Education', 'Keywords Found'].map((label, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      p: 1.5,
+                      borderRadius: 2,
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0'
+                    }}
+                  >
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 600,
+                          color: '#334155'
+                        }}
+                      >
+                        {label}
+                      </Typography>
 
-              <Controller
-                name="jobId"
-                control={control}
-                rules={{ required: 'Position Applied is required' }}
-                render={({ field, fieldState: { error } }) => (
-                  <Autocomplete
-                    {...field}
-                    options={jobPostings}
-                    getOptionLabel={(option) => option.jobTitle || ''}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    onChange={(event, newValue) => field.onChange(newValue?.id || '')}
-                    value={jobPostings.find((job) => job.id === field.value) || null}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Position Applied *"
-                        placeholder="Select Job Title"
-                        size="small"
-                        fullWidth
-                        error={!!error}
-                        helperText={error?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          color: '#3a6b6d'
+                        }}
+                      >
+                        {progressData[label]}%
+                      </Typography>
+                    </Box>
 
-              <Controller
-                name="resumefile"
-                control={control}
-                rules={{ required: 'Resume File is required' }}
-                render={({ field, fieldState: { error } }) => (
-                  <Box>
-                    {/* Hidden file input */}
-                    <Typography variant="body1" color={error ? 'error' : 'text.primary'} sx={{ mb: 1 }}>
-                      Resume File *
-                    </Typography>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          if (file.size > 50 * 1024 * 1024) {
-                            alert('File size must be less than 50MB');
-                            e.target.value = null;
-                            setSelectedFile('');
-                            field.onChange(null);
-                          } else {
-                            setSelectedFile(file.name);
-                            field.onChange(file);
-                          }
+                    <LinearProgress
+                      variant="determinate"
+                      value={progressData[label]}
+                      sx={{
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: '#e2e8f0',
+
+                        '& .MuiLinearProgress-bar': {
+                          borderRadius: 5,
+                          background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)'
                         }
                       }}
                     />
-
-                    {/* Upload box */}
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        borderStyle: 'dashed',
-                        borderColor: error ? 'red' : 'grey.400',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        py: 2,
-                        px: 2,
-                        mt: 2,
-                        bgcolor: '#fafafa',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          bgcolor: '#e0f0ff',
-                          borderColor: 'primary.main',
-                          transform: 'scale(1.02)'
-                        }
-                      }}
-                      onClick={() => fileInputRef.current.click()}
-                    >
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <CloudUploadIcon sx={{ fontSize: 40, color: 'grey.500' }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {field.value ? field.value.name : 'Click to upload or drag and drop'}
-                          </Typography>
-                          {field.value ? (
-                            <Typography variant="caption" color="text.secondary">
-                              {(field.value.size / (1024 * 1024)).toFixed(2)} MB
-                            </Typography>
-                          ) : (
-                            <Typography variant="caption" color="text.disabled">
-                              PDF, DOC, DOCX (Max 50MB)
-                            </Typography>
-                          )}
-                        </Box>
-                      </Box>
-
-                      {/* Cancel/Remove Button */}
-                      {field.value && (
-                        <Button
-                          variant="text"
-                          color="error"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedFile('');
-                            field.onChange(null);
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </Paper>
-
-                    {/* Error message */}
-                    {error && (
-                      <Typography variant="caption" color="error">
-                        {error.message}
-                      </Typography>
-                    )}
                   </Box>
-                )}
-              />
-
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                type="submit"
-                sx={{ mt: 2.5, textTransform: 'none', py: 1.5, borderRadius: 2 }}
-              >
-                Analyze Resume & Calculate Score
-              </Button>
+                ))}
+              </Box>
             </Paper>
-          </form>
+          </Grid>
         </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3} sx={{ p: 2, borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <Typography variant="h4" fontWeight="bold" align="left" sx={{ width: '100%' }}>
-              Score Preview
-            </Typography>
-            <Avatar sx={{ bgcolor: '#f3f6fa', color: 'text.primary', width: 100, height: 100, fontSize: 28, alignItems: 'center' }}>
-              {atsResult?.overall_score || 0}
-            </Avatar>
-            <Typography variant="caption" color="text.secondary">
-              Overall ATS Score
-            </Typography>
-            <Box width="100%" display="flex" flexDirection="column" gap={2}>
-              {['Experience Match', 'Skills Match', 'Education', 'Keywords Found'].map((label, index) => (
-                <Box key={index} mb={0}>
-                  <Box display="flex" justifyContent="space-between" mb={1} bgcolor="grey.100" p={0.5} borderRadius={1}>
-                    <Typography variant="body2" color="text.secondary">
-                      {label}
-                    </Typography>
-                    <Typography variant="body2" fontWeight={600}>
-                      {progressData[label]}%
-                    </Typography>
-                  </Box>
-
-                  <LinearProgress
-                    variant="determinate"
-                    value={progressData[label]}
-                    sx={{
-                      height: 10,
-                      borderRadius: 2,
-                      bgcolor: '#f0f0f0'
-                    }}
-                  />
-                </Box>
-              ))}
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
-      </>
+      </Box>
+    </>
   );
 };
 

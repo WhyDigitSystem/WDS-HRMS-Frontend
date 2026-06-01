@@ -17,12 +17,7 @@ import {
   FormControlLabel,
   Autocomplete
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Schedule as ScheduleIcon,
-  Close as CloseIcon,
-  Edit as EditIcon,
-} from '@mui/icons-material';
+import { Add as AddIcon, Schedule as ScheduleIcon, Close as CloseIcon, Edit as EditIcon } from '@mui/icons-material';
 import CommonListView from '../../../utils/AssetCommonListViewTable';
 import apiCalls from 'apicall';
 import { showToast } from 'utils/toast-component';
@@ -83,10 +78,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
   const getJobPostings = async () => {
     try {
       setLoading(true);
-      const response = await apiCalls(
-        'get',
-        `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`
-      );
+      const response = await apiCalls('get', `recruitmentmanagement/getJobPostingsByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
       if (response.status === true) {
         const jobs = response.paramObjectsMap.jobPostingsVO || [];
         setJobPostings(jobs);
@@ -128,7 +120,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
       const response = await apiCalls('get', `recruitmentmanagement/getCandidatesByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
       if (response.status === true) {
         setCandidates(response.paramObjectsMap.candidatesVO.reverse() || []);
-        setCurrentPage(1); 
+        setCurrentPage(1);
       } else {
         console.error('API Error:', response);
         setCandidates([]);
@@ -209,11 +201,11 @@ const Candidates = ({ candidates, setCandidates, config }) => {
 
   // Input handlers
   const handleInputChange = (field, value) => {
-    setCandidateData(prev => ({ ...prev, [field]: value }));
+    setCandidateData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleScheduleChange = (field, value) => {
-    setScheduleData(prev => ({ ...prev, [field]: value }));
+    setScheduleData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSaveCandidate = async () => {
@@ -228,20 +220,14 @@ const Candidates = ({ candidates, setCandidates, config }) => {
         resumeScore: parseInt(candidateData.resumeScore) || 0,
         active: candidateData.active,
         ...(isEditMode && {
-          id: selectedCandidate?.id,          
+          id: selectedCandidate?.id,
           updatedBy: loginUserName
         })
       };
 
-      const successMessage = isEditMode
-        ? 'Candidate updated successfully!'
-        : 'Candidate added successfully!';
+      const successMessage = isEditMode ? 'Candidate updated successfully!' : 'Candidate added successfully!';
 
-      const response = await apiCalls(
-        'put',
-        'recruitmentmanagement/createUpdateCandidates',
-        payload
-      );
+      const response = await apiCalls('put', 'recruitmentmanagement/createUpdateCandidates', payload);
 
       if (response.status === true) {
         showToast('success', successMessage);
@@ -308,7 +294,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
   };
 
   // Transform API data for table
-  const transformedCandidates = candidates.map(candidate => ({
+  const transformedCandidates = candidates.map((candidate) => ({
     id: candidate.id,
     candidate_name: candidate.candidatesName,
     candidate_email: candidate.email,
@@ -320,7 +306,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
     interviewer: candidate.interviewer,
     rating: candidate.rating,
     feedBack: candidate.feedBack,
-    interviewStatus:candidate.interviewStatus,
+    interviewStatus: candidate.interviewStatus,
     active: candidate.active
   }));
 
@@ -329,7 +315,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
     const date = dayjs(dateString);
     return date.isValid() ? date.format('DD-MM-YYYY') : 'Not Scheduled';
   };
-  
+
   const columns = [
     {
       key: 'candidate',
@@ -393,50 +379,38 @@ const Candidates = ({ candidates, setCandidates, config }) => {
     {
       key: 'status',
       label: 'Status',
-      render: (value, row) => (
-        <Chip
-          label={value}
-          size="small"
-          sx={getStatusChipStyles(row.active)}
-        />
-      )
+      render: (value, row) => <Chip label={value} size="small" sx={getStatusChipStyles(row.active)} />
     },
     {
       key: 'interview_date',
       label: 'Interview Date',
       render: (value) => (
         <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
-          {formatDate(value)} 
+          {formatDate(value)}
         </Typography>
       )
     }
   ];
 
-  const isActionDisabled = (candidates) =>
-  ['SELECTED', 'HOLD', 'REJECTED'].includes(candidates.interviewStatus);
+  const isActionDisabled = (candidates) => ['SELECTED', 'HOLD', 'REJECTED'].includes(candidates.interviewStatus);
   console.log(candidates.approveStatus);
 
   const actions = [
-  
     {
       icon: <EditIcon fontSize="small" />,
       tooltip: 'Edit Candidate',
-      onClick: (candidate) => handleOpenEditDialog(candidates.find(c => c.id === candidate.id)),
+      onClick: (candidate) => handleOpenEditDialog(candidates.find((c) => c.id === candidate.id)),
       disabled: (row) => isActionDisabled(row),
       color: 'primary'
     },
     {
       icon: <ScheduleIcon fontSize="small" />,
       tooltip: 'Schedule Interview',
-      onClick: (candidate) => handleOpenScheduleDialog(candidates.find(c => c.id === candidate.id)),
+      onClick: (candidate) => handleOpenScheduleDialog(candidates.find((c) => c.id === candidate.id)),
       disabled: (row) => isActionDisabled(row),
       color: 'primary'
-    },
+    }
   ];
-
-  
-
-
 
   return (
     <Box>
@@ -448,24 +422,32 @@ const Candidates = ({ candidates, setCandidates, config }) => {
           onClick={handleOpenAddDialog}
           size="small"
           sx={{
-    background: "linear-gradient(135deg, #7F00FF 0%, #E100FF 100%)",
-    color: "white",
-    fontWeight: 600,
-    px: 1,
-    // py: 0.55,
-    borderRadius: 2,
-    letterSpacing: "0.5px",
-    fontSize: "14px",
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            color: '#fff',
+            fontWeight: 600,
+            px: 2,
+            py: 0.75,
+            borderRadius: '12px',
+            letterSpacing: '0.3px',
+            fontSize: '13px',
+            textTransform: 'none',
+            boxShadow: '0 8px 20px rgba(58,107,109,0.25)',
+            transition: 'all 0.3s ease',
 
-    "&:hover": {
-      transform: "scale(1.06)",
-      background: "linear-gradient(135deg, #E100FF 0%, #7F00FF 100%)",
-    },
+            '& .MuiSvgIcon-root': {
+              fontSize: 18
+            },
 
-    "&:active": {
-      transform: "scale(0.97)",
-    }
-  }}
+            '&:hover': {
+              background: 'linear-gradient(135deg, #2a4b4d 0%, #1f3b3d 100%)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 12px 24px rgba(58,107,109,0.35)'
+            },
+
+            '&:active': {
+              transform: 'translateY(0px)'
+            }
+          }}
         >
           Add New
         </Button>
@@ -490,21 +472,30 @@ const Candidates = ({ candidates, setCandidates, config }) => {
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
-            boxShadow: '0 8px 30px rgba(0,0,0,0.1)'
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 15px 35px rgba(0,0,0,0.12)'
           }
         }}
       >
-        <DialogTitle sx={{
-          fontWeight: 700,
-          pb: 1,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            color: '#fff',
+            py: 1.5,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontWeight: 700
+          }}
+        >
           {isEditMode ? 'Edit Candidate' : 'Add Candidate'}
-          <IconButton onClick={handleCloseCandidateDialog} size="small">
-            <CloseIcon />
+          <IconButton onClick={handleCloseCandidateDialog} size="small" sx={{ color: '#fff' }}>
+            <CloseIcon
+              sx={{
+                color: '#fff'
+              }}
+            />
           </IconButton>
         </DialogTitle>
         <DialogContent>
@@ -529,23 +520,12 @@ const Candidates = ({ candidates, setCandidates, config }) => {
             <Autocomplete
               options={jobPostings}
               getOptionLabel={(option) => option.jobTitle || ''}
-              value={
-                jobPostings.find(
-                  (job) => job.jobTitle === candidateData.positionApplied
-                ) || null
-              }
+              value={jobPostings.find((job) => job.jobTitle === candidateData.positionApplied) || null}
               onChange={(event, newValue) => {
                 handleInputChange('positionApplied', newValue ? newValue.jobTitle : '');
               }}
               renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Position Applied"
-                  size="small"
-                  fullWidth
-                  required
-                  placeholder="Select Job Title"
-                />
+                <TextField {...params} label="Position Applied" size="small" fullWidth required placeholder="Select Job Title" />
               )}
             />
             <TextField
@@ -559,11 +539,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
             />
             <FormControlLabel
               control={
-                <Switch
-                  checked={candidateData.active}
-                  onChange={(e) => handleInputChange('active', e.target.checked)}
-                  color="success"
-                />
+                <Switch checked={candidateData.active} onChange={(e) => handleInputChange('active', e.target.checked)} color="success" />
               }
               label={candidateData.active ? 'Active' : 'Inactive'}
             />
@@ -574,7 +550,24 @@ const Candidates = ({ candidates, setCandidates, config }) => {
           <Button
             onClick={handleCloseCandidateDialog}
             variant="outlined"
-            sx={{ textTransform: 'none', borderRadius: 1 }}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '10px',
+              px: 3,
+              py: 0.8,
+              fontWeight: 600,
+              borderColor: '#cbd5e1',
+              color: '#475569',
+              backgroundColor: '#fff',
+              transition: 'all 0.3s ease',
+
+              '&:hover': {
+                borderColor: '#3a6b6d',
+                color: '#3a6b6d',
+                backgroundColor: '#f8fafc',
+                boxShadow: '0 4px 12px rgba(58,107,109,0.12)'
+              }
+            }}
           >
             Cancel
           </Button>
@@ -583,10 +576,13 @@ const Candidates = ({ candidates, setCandidates, config }) => {
             onClick={handleSaveCandidate}
             sx={{
               textTransform: 'none',
-              borderRadius: 1,
-              backgroundColor: config.primary_action_color,
+              borderRadius: '12px',
+              px: 3,
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+              boxShadow: '0 8px 20px rgba(58,107,109,0.25)',
               '&:hover': {
-                backgroundColor: config.primary_action_color
+                background: 'linear-gradient(135deg, #2a4b4d 0%, #1f3b3d 100%)'
               }
             }}
           >
@@ -610,11 +606,13 @@ const Candidates = ({ candidates, setCandidates, config }) => {
       >
         <DialogTitle
           sx={{
-            fontWeight: 700,
-            pb: 1,
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            color: '#fff',
+            py: 1.5,
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            fontWeight: 700
           }}
         >
           Schedule Interview
@@ -640,7 +638,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
             >
               <Avatar
                 sx={{
-                  bgcolor: config.primary_action_color,
+                  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
                   width: 40,
                   height: 40,
                   fontSize: '0.875rem'
@@ -652,10 +650,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                   {selectedCandidate.candidatesName}
                 </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
-                >
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
                   {selectedCandidate.positionApplied}
                 </Typography>
               </Box>
@@ -685,14 +680,8 @@ const Candidates = ({ candidates, setCandidates, config }) => {
             <Autocomplete
               options={allReportingPersonList}
               getOptionLabel={(option) => `${option.label} - ${option.code}` || ''}
-              value={
-                allReportingPersonList.find(
-                  (emp) => emp.label === scheduleData.interviewer
-                ) || null
-              }
-              onChange={(event, newValue) =>
-                handleScheduleChange('interviewer', newValue ? newValue.label : '')
-              }
+              value={allReportingPersonList.find((emp) => emp.label === scheduleData.interviewer) || null}
+              onChange={(event, newValue) => handleScheduleChange('interviewer', newValue ? newValue.label : '')}
               renderOption={(props, option) => (
                 <Box
                   component="li"
@@ -701,13 +690,13 @@ const Candidates = ({ candidates, setCandidates, config }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'start',
-                    width: '100%',
+                    width: '100%'
                   }}
                 >
                   <Typography
                     sx={{
                       fontSize: '0.9rem',
-                      color: 'text.primary',
+                      color: 'text.primary'
                     }}
                   >
                     {`${option.label} - ${option.code}`}
@@ -715,13 +704,7 @@ const Candidates = ({ candidates, setCandidates, config }) => {
                 </Box>
               )}
               renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Interviewer"
-                  size="small"
-                  fullWidth
-                  placeholder="Select interviewer"
-                />
+                <TextField {...params} label="Interviewer" size="small" fullWidth placeholder="Select interviewer" />
               )}
             />
           </Stack>
@@ -731,7 +714,23 @@ const Candidates = ({ candidates, setCandidates, config }) => {
           <Button
             onClick={handleCloseScheduleDialog}
             variant="outlined"
-            sx={{ textTransform: 'none', borderRadius: 1 }}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '12px',
+              px: 3,
+              py: 0.8,
+              fontWeight: 600,
+              border: '1px solid #e2e8f0',
+              color: '#64748b',
+              background: '#f8fafc',
+              transition: 'all 0.3s ease',
+
+              '&:hover': {
+                background: '#f1f5f9',
+                borderColor: '#94a3b8',
+                color: '#475569'
+              }
+            }}
           >
             Cancel
           </Button>

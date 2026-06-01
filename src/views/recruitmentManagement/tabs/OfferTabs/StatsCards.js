@@ -1,14 +1,9 @@
 // src/components/AdvancedOfferLetterSystem/common/StatsCards.js
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, CardContent, Typography, Box, Avatar, Divider, CircularProgress } from '@mui/material';
-import {
-  AssignmentTurnedIn as OfferIcon,
-  HourglassBottom as PendingIcon,
-  CheckCircle as AcceptedIcon
-} from '@mui/icons-material';
+import { AssignmentTurnedIn as OfferIcon, HourglassBottom as PendingIcon, CheckCircle as AcceptedIcon } from '@mui/icons-material';
 import apiCalls from 'apicall';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
-
 
 const StatsCards = () => {
   const [statsData, setStatsData] = useState(null);
@@ -21,10 +16,7 @@ const StatsCards = () => {
   // Fetch offer counts from API
   const getOfferCounts = async () => {
     try {
-      const response = await apiCalls(
-        'get', 
-        `recruitmentmanagement/getCreateOfferCountByOrgId?branchCode=${branchCode}&orgId=${orgId}`
-      );
+      const response = await apiCalls('get', `recruitmentmanagement/getCreateOfferCountByOrgId?branchCode=${branchCode}&orgId=${orgId}`);
 
       if (response.status === true && response.paramObjectsMap.createOfferVO) {
         const counts = response.paramObjectsMap.createOfferVO[0];
@@ -49,32 +41,31 @@ const StatsCards = () => {
     {
       label: 'Total Offers',
       value: statsData?.totalCount || '0',
-      icon: <OfferIcon />,
-      color: '#1976d2',
-      gradient: 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)',
+      icon: <OfferIcon fontSize="inherit" />,
+      color: '#3a6b6d',
+      bg: 'rgba(58,107,109,0.10)'
     },
     {
       label: 'Pending',
       value: statsData?.pendingCount || '0',
-      icon: <PendingIcon />,
-      color: '#ed6c02',
-      gradient: 'linear-gradient(135deg, #FFF4E3 0%, #FFE0B2 100%)',
+      icon: <PendingIcon fontSize="inherit" />,
+      color: '#3a6b6d',
+      bg: 'rgba(58,107,109,0.10)'
     },
     {
       label: 'Accepted',
       value: statsData?.approvedCount || '0',
-      icon: <AcceptedIcon />,
-      color: '#2e7d32',
-      gradient: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+      icon: <AcceptedIcon fontSize="inherit" />,
+      color: '#3a6b6d',
+      bg: 'rgba(58,107,109,0.10)'
     },
-   {
-  label: 'Rejected',
-  value: statsData?.rejectedCount || '0',
-  icon: <CancelRoundedIcon />,
-  color: '#dc2626', // strong red
-  gradient: 'linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%)',
-}
-
+    {
+      label: 'Rejected',
+      value: statsData?.rejectedCount || '0',
+      icon: <CancelRoundedIcon fontSize="inherit" />,
+      color: '#3a6b6d',
+      bg: 'rgba(58,107,109,0.10)'
+    }
   ];
 
   if (loading) {
@@ -94,79 +85,81 @@ const StatsCards = () => {
   }
 
   return (
-    <Grid container spacing={2} sx={{ mb: 2 }}>
+    <Grid container spacing={1.5} sx={{ mb: 2 }}>
       {stats.map((stat, index) => (
-        // <Grid item xs={12} lg={4} key={index}>
-        <Grid
-  item
-  xs={12}   
-  sm={6}    
-  md={4}    
-  lg={3}  
-  key={index}  
->
+        <Grid item xs={12} sm={6} md={3} key={index}>
           <Card
-            elevation={3}
+            elevation={0}
             sx={{
-              height: '100%',
-              borderRadius: 3,
-              overflow: 'hidden',
-              transition: 'all 0.3s ease',
+              height: 78,
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              borderTop: `3px solid ${stat.color}`,
+              background: '#fff',
+              boxShadow: '0 2px 10px rgba(15,23,42,0.05)',
+              transition: 'all .25s ease',
+
               '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-              },
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 16px rgba(58,107,109,0.12)'
+              }
             }}
           >
-            {/* --- Card Header (Icon Area) --- */}
-            <Box
+            <CardContent
               sx={{
-                background: stat.gradient,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                px: 2,
-                py: 1.5,
+                p: 1.5,
+                height: '100%',
+                '&:last-child': { pb: 1.5 }
               }}
             >
-              <Avatar
+              <Box
                 sx={{
-                  bgcolor: stat.color,
-                  color: '#fff',
-                  width: 42,
-                  height: 42,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  height: '100%'
                 }}
               >
-                {stat.icon}
-              </Avatar>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  color: stat.color,
-                }}
-              >
-                {stat.value}
-              </Typography>
-            </Box>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      color: '#64748b',
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {stat.label}
+                  </Typography>
 
-            <Divider />
+                  <Typography
+                    sx={{
+                      fontSize: '1.5rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      mt: 0.3,
+                      lineHeight: 1
+                    }}
+                  >
+                    {stat.value}
+                  </Typography>
+                </Box>
 
-            {/* --- Card Content --- */}
-            <CardContent sx={{ py: 0, px: 2.5 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  fontWeight: 600,
-                  color: 'text.primary',
-                  position: 'relative',
-                  top: 12,
-                  textAlign: 'left',
-                }}
-              >
-                {stat.label}
-              </Typography>
+                <Avatar
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    bgcolor: `${stat.color}15`,
+                    color: stat.color,
+
+                    '& svg': {
+                      fontSize: 14
+                    }
+                  }}
+                >
+                  {stat.icon}
+                </Avatar>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
