@@ -1,13 +1,7 @@
 import React from 'react';
-import {
-  Box,
-  Button,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Box, Button, Paper, Stack, Typography } from '@mui/material';
 
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
 import HourglassTopOutlinedIcon from '@mui/icons-material/HourglassTopOutlined';
 
 const ProofSubmission = () => {
@@ -15,105 +9,80 @@ const ProofSubmission = () => {
     {
       title: '80C (PPF)',
       status: 'Approved',
-      color: '#2563eb',
-      icon: (
-        <CheckBoxIcon
-          sx={{
-            fontSize: 18,
-            color: '#22c55e',
-          }}
-        />
-      ),
+      color: '#16a34a',
+      icon: <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
     },
     {
       title: '80D (Health Insurance)',
       status: 'Pending',
       color: '#d97706',
-      icon: (
-        <HourglassTopOutlinedIcon
-          sx={{
-            fontSize: 18,
-            color: '#f59e0b',
-          }}
-        />
-      ),
+      icon: <HourglassTopOutlinedIcon sx={{ fontSize: 18, color: '#d97706' }} />
     },
     {
-      title: 'HRA Rent receipts',
-      status: '10/12 uploaded',
-      color: '#059669',
-      icon: (
-        <CheckBoxIcon
-          sx={{
-            fontSize: 18,
-            color: '#22c55e',
-          }}
-        />
-      ),
-    },
+      title: 'HRA Rent Receipts',
+      status: '10/12 Uploaded',
+      color: '#3a6b6d',
+      icon: <CheckCircleOutlinedIcon sx={{ fontSize: 18, color: '#3a6b6d' }} />
+    }
   ];
 
   return (
     <Paper
       elevation={0}
       sx={{
-        border: '1px solid #e2e8f0',
-        borderRadius: '16px',
-        p: 3,
-        mt: 0,
+        border: '1px solid #d7e4e5',
+        borderRadius: '14px',
+        p: 2,
+        height: '100%'
       }}
     >
-      {/* Title */}
+      {/* Header */}
 
       <Typography
         sx={{
-          fontSize: '1.125rem',
-          fontWeight: 600,
-          color: '#0f172a',
-          mb: 3,
+          fontSize: '0.95rem',
+          fontWeight: 700,
+          color: '#2a4b4d',
+          mb: 2
         }}
       >
         Proof Submission Status
       </Typography>
 
-      {/* Status List */}
+      {/* List */}
 
-      <Stack spacing={2.5}>
+      <Stack spacing={1.2}>
         {proofs.map((item, index) => (
           <Box
             key={index}
             sx={{
               display: 'flex',
-              alignItems: 'center',
               justifyContent: 'space-between',
+              alignItems: 'center',
+              p: 1.2,
+              borderRadius: '10px',
+              backgroundColor: '#f8fbfb',
+              border: '1px solid #edf2f2'
             }}
           >
-            {/* Left Text */}
-
             <Typography
               sx={{
-                fontSize: '0.95rem',
+                fontSize: '0.82rem',
                 fontWeight: 500,
-                color: '#0f172a',
+                color: '#334155'
               }}
             >
               {item.title}
             </Typography>
 
-            {/* Right Status */}
-
-            <Stack
-              direction="row"
-              spacing={0.5}
-              alignItems="center"
-            >
+            <Stack direction="row" spacing={0.5} alignItems="center">
               {item.icon}
 
               <Typography
                 sx={{
-                  fontSize: '0.95rem',
-                  fontWeight: 500,
-                  color: item.color,
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: item.color
                 }}
               >
                 {item.status}
@@ -127,23 +96,21 @@ const ProofSubmission = () => {
 
       <Button
         fullWidth
-        variant="outlined"
+        variant="contained"
         sx={{
-          mt: 4,
+          mt: 2,
+          py: 0.8,
           textTransform: 'none',
           borderRadius: '10px',
-          py: 1.2,
           fontWeight: 600,
-          borderColor: '#cbd5e1',
-          color: '#0f172a',
-
+          fontSize: '0.82rem',
+          background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
           '&:hover': {
-            borderColor: '#94a3b8',
-            backgroundColor: '#f8fafc',
-          },
+            background: 'linear-gradient(135deg, #345f61 0%, #233f41 100%)'
+          }
         }}
       >
-        Upload missing proofs
+        Upload Missing Proofs
       </Button>
     </Paper>
   );

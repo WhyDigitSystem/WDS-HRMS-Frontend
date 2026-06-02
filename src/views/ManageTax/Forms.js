@@ -39,7 +39,7 @@ const Forms = () => {
       <Grid container spacing={4}>
         {/* Form 16 Card */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, boxShadow: 3, background: "#fff" }}>
+          <Card sx={{ borderRadius: 3, boxShadow: 3, background: '#fff' }}>
             <CardContent>
               <Stack spacing={2}>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -67,7 +67,7 @@ const Forms = () => {
                     color="primary"
                     endIcon={<CloudDownloadOutlinedIcon />}
                     disabled
-                    onClick={() => handleDownload("Form 16")}
+                    onClick={() => handleDownload('Form 16')}
                   >
                     Download
                   </Button>
@@ -83,7 +83,7 @@ const Forms = () => {
 
         {/* Form 12BB Card */}
         <Grid item xs={12} md={6}>
-          <Card sx={{ borderRadius: 3, boxShadow: 3, background: "#fff" }}>
+          <Card sx={{ borderRadius: 3, boxShadow: 3, background: '#fff' }}>
             <CardContent>
               <Stack spacing={2}>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -110,7 +110,7 @@ const Forms = () => {
                     variant="contained"
                     color="success"
                     endIcon={<CloudDownloadOutlinedIcon />}
-                    onClick={() => handleDownload("Form 12BB")}
+                    onClick={() => handleDownload('Form 12BB')}
                   >
                     Download
                   </Button>

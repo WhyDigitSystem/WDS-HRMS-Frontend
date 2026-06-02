@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Grid, Paper, Typography } from '@mui/material';
+
 const TDSsummary = () => {
   const months = [
     { month: 'Apr', amount: '₹8,250', active: false },
@@ -11,93 +12,96 @@ const TDSsummary = () => {
   ];
 
   return (
-    <>
-      <Paper
-        elevation={0}
+    <Paper
+      elevation={0}
+      sx={{
+        border: '1px solid #d6e6e6',
+        borderRadius: '14px',
+        p: 2.5,
+        mt: 0,
+        background: '#fff'
+      }}
+    >
+      {/* TITLE */}
+      <Typography
         sx={{
-          border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          p: 3,
-          mt: 0
+          fontSize: '1rem',
+          fontWeight: 700,
+          color: '#2a4b4d',
+          mb: 2
         }}
       >
-       
+        Monthly TDS Deduction (FY 2024–25)
+      </Typography>
 
-        <Typography
-          sx={{
-            fontSize: '1.125rem',
-            fontWeight: 600,
-            color: '#0f172a',
-            mb: 2
-          }}
-        >
-          Monthly TDS Deduction (FY 2024–25)
-        </Typography>
+      {/* MONTH CARDS */}
+      <Grid container spacing={1}>
+        {months.map((item, index) => (
+          <Grid item xs={6} sm={4} md={2} key={index}>
+            <Box
+              sx={{
+                border: item.active ? '1px solid #3a6b6d' : '1px solid #e5e7eb',
+                backgroundColor: item.active ? '#e0f2f1' : '#f8fafc',
+                borderRadius: '10px',
+                py: 2,
+                textAlign: 'center',
+                transition: '0.25s',
+                cursor: 'pointer',
+                boxShadow: item.active ? '0 4px 12px rgba(58,107,109,0.15)' : '0 2px 6px rgba(0,0,0,0.04)',
 
-      
-
-        <Grid container spacing={2}>
-          {months.map((item, index) => (
-            <Grid item xs={6} sm={4} md={2} key={index}>
-              <Box
+                '&:hover': {
+                  transform: 'translateY(-3px)',
+                  borderColor: '#3a6b6d'
+                }
+              }}
+            >
+              {/* MONTH */}
+              <Typography
                 sx={{
-                  border: item.active ? '1px solid #bfdbfe' : '1px solid transparent',
-                  backgroundColor: item.active ? '#eff6ff' : '#f8fafc',
-                  borderRadius: '12px',
-                  py: 2.5,
-                  textAlign: 'center',
-                  transition: '0.3s',
-
-                  '&:hover': {
-                    transform: 'translateY(-3px)'
-                  }
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  color: item.active ? '#2a4b4d' : '#64748b',
+                  mb: 0.5
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: '0.75rem',
-                    color: item.active ? '#2563eb' : '#64748b',
-                    mb: 1
-                  }}
-                >
-                  {item.month}
-                </Typography>
+                {item.month}
+              </Typography>
 
-                <Typography
-                  sx={{
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    color: item.active ? '#2563eb' : '#334155'
-                  }}
-                >
-                  {item.amount}
-                </Typography>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
+              {/* AMOUNT */}
+              <Typography
+                sx={{
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  color: item.active ? '#2a4b4d' : '#334155'
+                }}
+              >
+                {item.amount}
+              </Typography>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
 
-     
-        <Typography
+      {/* TOTAL */}
+      <Typography
+        sx={{
+          mt: 2.5,
+          fontSize: '0.8rem',
+          color: '#64748b'
+        }}
+      >
+        Total TDS deducted till date:{' '}
+        <Box
+          component="span"
           sx={{
-            mt: 3,
-            fontSize: '0.75rem',
-            color: '#64748b'
+            fontWeight: 700,
+            color: '#2a4b4d'
           }}
         >
-          Total TDS deducted till date:{' '}
-          <Box
-            component="span"
-            sx={{
-              fontWeight: 700,
-              color: '#475569'
-            }}
-          >
-            ₹49,750
-          </Box>
-        </Typography>
-      </Paper>
-    </>
+          ₹49,750
+        </Box>
+      </Typography>
+    </Paper>
   );
 };
 

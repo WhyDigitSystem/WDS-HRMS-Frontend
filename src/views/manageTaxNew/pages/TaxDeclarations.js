@@ -1,57 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Grid, Stack, Typography, } from '@mui/material';
+import { Card, CardContent, Grid, Stack, Typography } from '@mui/material';
 import Listview from '../pages/lListview';
 import apiCalls from 'apicall';
 
-const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
+const TaxDeclarations = ({ employee, employeeName, selectedYear }) => {
   const branch = localStorage.getItem('branch');
   const userName = localStorage.getItem('userName');
   const employeeCode = localStorage.getItem('employeeCode');
-  // const L = 'WDS031'
   const orgId = localStorage.getItem('orgId');
   const branchCode = localStorage.getItem('branchCode');
   const createdBy = userName;
+
   const [data, setData] = useState({});
   const [getAllData, setGetAllData] = useState([]);
   const [id, setId] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
 
- 
-  
+  const formatNumber = (value) => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
-  const formatNumber = (value) => {
-    return Number(value).toLocaleString('en-IN', {
-      maximumFractionDigits: 0
-    });
-  };
+  // ✅ TEAL THEME CARDS (UPDATED)
   const cards = [
     {
       title: 'Gross Income',
       amount: `₹${formatNumber(data?.grossIncome || 0)}`,
       subtitle: 'Per annum',
-      textColor: 'rgb(30 41 59)',
-      border: '#e2e8f0'
+      textColor: '#2a4b4d',
+      border: '#d6e6e6'
     },
     {
       title: 'Total Deductions',
       amount: `₹${formatNumber(data?.totalDedcutions || 0)}`,
       subtitle: '80C + 80D + HRA',
-      textColor: 'rgb(5 150 105)',
-      border: '#e2e8f0'
+      textColor: '#2a4b4d',
+      border: '#d6e6e6'
     },
     {
       title: 'Taxable Income',
       amount: `₹${formatNumber(data?.taxableIncome || 0)}`,
       subtitle: 'After exemptions',
-      textColor: 'rgb(30 41 59)',
-      border: '#e2e8f0'
+      textColor: '#2a4b4d',
+      border: '#d6e6e6'
     },
     {
       title: 'Monthly TDS',
       amount: `₹${formatNumber(data?.yearlyTds || 0)}`,
       subtitle: 'Deducted from salary',
-      textColor: 'rgb(217 119 6)',
-      border: '#e2e8f0'
+      textColor: '#2a4b4d',
+      border: '#e5e7eb'
     }
   ];
 
@@ -60,7 +55,6 @@ const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
     { id: 2, Label: 'INVESTMENT TYPE', accessor: 'investmentType' },
     { id: 3, Label: 'DECLARED (₹)', accessor: 'declared' },
     { id: 4, Label: 'LIMIT (₹)', accessor: 'limitAmount' },
-    // { id: 5, Label: 'PROOF', accessor: 'proof' },
     { id: 5, Label: 'STATUS', accessor: 'status' },
     { id: 6, Label: 'UPLOAD', accessor: 'fileName' }
   ];
@@ -69,8 +63,11 @@ const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
     try {
       const res = await apiCalls(
         'get',
-        `investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${employee=== ''?employeeCode:employee}&orgId=${orgId}`
+        `investmentDeclaration/getDashBoardDetailsNew?branch=${branch}&employeeCode=${
+          employee === '' ? employeeCode : employee
+        }&orgId=${orgId}`
       );
+
       if (res.status === true) {
         setData(res?.paramObjectsMap?.dashBoardDetails[0]);
       }
@@ -83,8 +80,11 @@ const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
     try {
       const res = await apiCalls(
         'get',
-        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${employee=== ''?employeeCode:employee}&orgId=${orgId}`
+        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${
+          employee === '' ? employeeCode : employee
+        }&orgId=${orgId}`
       );
+
       if (res.status === true) {
         setId(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.id);
         setTotalAmount(res?.paramObjectsMap?.investmentDeclarationVO?.[0]?.totalAmount);
@@ -98,40 +98,41 @@ const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
   useEffect(() => {
     CardsData();
     getAll();
-  }, [employee,employeeName,selectedYear]);
+  }, [employee, employeeName, selectedYear]);
 
   return (
     <>
-      {/* card */}
+      {/* ===== CARDS SECTION ===== */}
       <div className="container-fluid">
-        <Grid container spacing={1}>
+        <Grid container spacing={0.8}>
           {cards.map((card, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index} sx={{ p: 0 }}>
+            <Grid item xs={12} sm={6} md={3} key={index}>
               <Card
                 sx={{
-                  borderRadius: '18px',
-                  // backgroundColor: card.bg,
-
+                  borderRadius: '14px',
                   border: `1px solid ${card.border}`,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
-                  transition: '0.3s',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.05)',
+                  transition: '0.25s',
+                  height: '100%',
                   cursor: 'pointer',
                   '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.12)'
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 6px 16px rgba(0,0,0,0.10)'
                   }
                 }}
               >
                 <CardContent
                   sx={{
-                    padding: '17px'
+                    padding: '10px !important',
+                    '&:last-child': { paddingBottom: '10px' }
                   }}
                 >
-                  <Stack spacing={0.2}>
+                  <Stack spacing={0.3}>
+                    {/* TITLE */}
                     <Typography
                       sx={{
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
                         color: '#64748b',
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px'
@@ -140,21 +141,22 @@ const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
                       {card.title}
                     </Typography>
 
+                    {/* AMOUNT */}
                     <Typography
                       sx={{
-                        fontSize: '1rem',
+                        fontSize: '0.95rem',
                         fontWeight: 700,
-                        //   color: '#0f172a',
                         color: card.textColor
                       }}
                     >
                       {card.amount}
                     </Typography>
 
+                    {/* SUBTITLE */}
                     <Typography
                       sx={{
-                        fontSize: '0.75rem',
-                        color: 'rgb(148 163 184)'
+                        fontSize: '0.7rem',
+                        color: '#94a3b8'
                       }}
                     >
                       {card.subtitle}
@@ -166,7 +168,8 @@ const TaxDeclarations = ({employee,employeeName,selectedYear}) => {
           ))}
         </Grid>
       </div>
-      {/* list view */}
+
+      {/* ===== LIST VIEW ===== */}
       <div>
         <Listview
           columns={columns}

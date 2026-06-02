@@ -50,14 +50,15 @@ const NotificationSection = () => {
   const userId = localStorage.getItem('userId');
 
   // Separate notifications by type
-  const leaveNotifications = notificationList.filter(n => n.notificationType === 'LEAVE REQUEST');
+  const leaveNotifications = notificationList.filter((n) => n.notificationType === 'LEAVE REQUEST');
   const ticketCount = 0; // Tickets are now part of notificationList if they have TICKET type
   const calendarCount = calendarNotifications.length;
   const birthdayCount = birthdayNotifications.length;
   const anniversaryCount = todayAnniversaries.length;
   const newJoinerCount = todayJoiners.length;
   const upcomingJoinerCount = upcomingJoiners.length;
-  const totalNotifications = notificationList.length + calendarCount + birthdayCount + anniversaryCount + newJoinerCount + upcomingJoinerCount;
+  const totalNotifications =
+    notificationList.length + calendarCount + birthdayCount + anniversaryCount + newJoinerCount + upcomingJoinerCount;
 
   // Initialize audio
   useEffect(() => {
@@ -79,13 +80,18 @@ const NotificationSection = () => {
       return;
     }
 
-    const currentTotal = notificationList.length + calendarNotifications.length +
-      birthdayNotifications.length + todayAnniversaries.length + todayJoiners.length + upcomingJoiners.length;
+    const currentTotal =
+      notificationList.length +
+      calendarNotifications.length +
+      birthdayNotifications.length +
+      todayAnniversaries.length +
+      todayJoiners.length +
+      upcomingJoiners.length;
 
     if (currentTotal > 0 && !hasPlayedSound && !open) {
       try {
         audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(error => {
+        audioRef.current.play().catch((error) => {
           console.error('Failed to play notification sound:', error);
         });
         setHasPlayedSound(true);
@@ -97,7 +103,16 @@ const NotificationSection = () => {
     if (currentTotal === 0) {
       setHasPlayedSound(false);
     }
-  }, [notificationList, calendarNotifications, birthdayNotifications, todayAnniversaries, todayJoiners, upcomingJoiners, open, hasPlayedSound]);
+  }, [
+    notificationList,
+    calendarNotifications,
+    birthdayNotifications,
+    todayAnniversaries,
+    todayJoiners,
+    upcomingJoiners,
+    open,
+    hasPlayedSound
+  ]);
 
   const fetchNewJoinerData = async () => {
     try {
@@ -111,7 +126,7 @@ const NotificationSection = () => {
         const todayList = [];
         const upcomingList = [];
 
-        allJoiners.forEach(emp => {
+        allJoiners.forEach((emp) => {
           if (!emp.joinDate) return;
 
           const joinDate = dayjs(emp.joinDate);
@@ -161,7 +176,7 @@ const NotificationSection = () => {
     try {
       const result = await apiCalls('get', `/basicmaster/Getworkaniversary?orgId=${orgId}`);
       if (result?.status && result?.paramObjectsMap?.employee?.length > 0) {
-        const anniversaries = result.paramObjectsMap.employee.map(emp => ({
+        const anniversaries = result.paramObjectsMap.employee.map((emp) => ({
           name: emp.employee || emp.employeecode || 'Employee',
           initials: (emp.employee?.[0] || emp.employeecode?.[0] || 'E').toUpperCase(),
           employeeId: emp.employeecode || emp.employeeid || 'N/A',
@@ -169,7 +184,7 @@ const NotificationSection = () => {
           gender: emp.gender || '',
           years: emp.noofyears || 0,
           image: emp.profileImage || '',
-          department: emp.department || '',
+          department: emp.department || ''
         }));
         setTodayAnniversaries(anniversaries);
       } else {
@@ -196,12 +211,10 @@ const NotificationSection = () => {
 
       if (response?.status === true && response?.paramObjectsMap?.notificationVO) {
         // Filter out deleted notifications
-        const activeNotifications = response.paramObjectsMap.notificationVO.filter(
-          notification => !notification.deleted
-        );
+        const activeNotifications = response.paramObjectsMap.notificationVO.filter((notification) => !notification.deleted);
         setNotificationList(activeNotifications);
       } else if (Array.isArray(response)) {
-        setNotificationList(response.filter(n => !n.deleted));
+        setNotificationList(response.filter((n) => !n.deleted));
       } else {
         setNotificationList([]);
       }
@@ -219,7 +232,7 @@ const NotificationSection = () => {
       const response = await apiCalls('put', `/notification/clear?id=${notificationId}`);
       if (response?.status === true) {
         // Remove the notification from the list
-        setNotificationList(prev => prev.filter(notification => notification.id !== notificationId));
+        setNotificationList((prev) => prev.filter((notification) => notification.id !== notificationId));
       }
     } catch (error) {
       console.error('Error clearing notification:', error);
@@ -262,7 +275,7 @@ const NotificationSection = () => {
       }
 
       const now = dayjs();
-      const filteredEvents = calendarData.filter(event => {
+      const filteredEvents = calendarData.filter((event) => {
         if (!event.date) return false;
         const eventDate = dayjs(event.date);
         return eventDate.isSame(now, 'day') || eventDate.isAfter(now, 'day');
@@ -289,8 +302,8 @@ const NotificationSection = () => {
 
       const today = dayjs().format('MM-DD');
       const upcomingBirthdays = birthdayData
-        .filter(item => item.dob && dayjs(item.dob).format('MM-DD') === today)
-        .map(item => ({
+        .filter((item) => item.dob && dayjs(item.dob).format('MM-DD') === today)
+        .map((item) => ({
           employeeName: item.empName || 'Unknown',
           empCode: item.empCode || '',
           dob: item.dob,
@@ -345,27 +358,27 @@ const NotificationSection = () => {
         if (clear === 'clearAll') {
           setCalendarNotifications([]);
         } else {
-          setCalendarNotifications(prev => prev.filter((_, idx) => idx !== identifier));
+          setCalendarNotifications((prev) => prev.filter((_, idx) => idx !== identifier));
         }
       } else if (type === 'birthday') {
         if (clear === 'clearAll') {
           setBirthdayNotifications([]);
         } else {
-          setBirthdayNotifications(prev => prev.filter((_, idx) => idx !== identifier));
+          setBirthdayNotifications((prev) => prev.filter((_, idx) => idx !== identifier));
         }
       } else if (type === 'anniversary') {
         if (clear === 'clearAll') {
           setTodayAnniversaries([]);
         } else {
-          setTodayAnniversaries(prev => prev.filter((_, idx) => idx !== identifier));
+          setTodayAnniversaries((prev) => prev.filter((_, idx) => idx !== identifier));
         }
       } else if (type === 'joiner') {
         if (clear === 'clearAll') {
           setTodayJoiners([]);
           setUpcomingJoiners([]);
         } else {
-          setTodayJoiners(prev => prev.filter((_, idx) => idx !== identifier));
-          setUpcomingJoiners(prev => prev.filter((_, idx) => idx !== identifier));
+          setTodayJoiners((prev) => prev.filter((_, idx) => idx !== identifier));
+          setUpcomingJoiners((prev) => prev.filter((_, idx) => idx !== identifier));
         }
       }
     } catch (error) {
@@ -436,13 +449,13 @@ const NotificationSection = () => {
             <Avatar
               variant="rounded"
               sx={{
-                ...theme.typography.commonAvatar,
-                ...theme.typography.mediumAvatar,
-                backgroundColor: theme.palette.primary.light,
-                color: theme.palette.primary.dark,
+                bgcolor: 'rgba(255,255,255,0.18)',
+                color: '#fff',
+                borderRadius: '15px',
+                border: '1px solid rgba(255,255,255,0.25)',
+                backdropFilter: 'blur(8px)',
                 '&:hover': {
-                  background: theme.palette.primary.main,
-                  color: theme.palette.primary.light,
+                  bgcolor: 'rgba(255,255,255,0.28)'
                 }
               }}
             >
@@ -464,14 +477,48 @@ const NotificationSection = () => {
       >
         {({ TransitionProps }) => (
           <Transitions position={matchesXs ? 'top' : 'top-right'} in={open} {...TransitionProps}>
-            <Paper sx={{ width: 380, borderRadius: 2, boxShadow: 6 }}>
+            <Paper
+              sx={{
+                width: 440,
+                overflow: 'hidden',
+                borderRadius: '24px',
+                border: '1px solid rgba(58,107,109,0.15)',
+                background: '#fff',
+                boxShadow: '0 20px 45px rgba(15,23,42,0.15)'
+              }}
+            >
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard border={false} elevation={0} content={false}>
                   <Box sx={{ px: 2, pt: 2 }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Typography variant="h6">Notifications</Typography>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600
+                        }}
+                      >
+                        Notifications
+                      </Typography>
                       {totalNotifications > 0 && (
-                        <Button color="error" size="small" onClick={handleClearAll}>
+                        <Button
+                          size="small"
+                          onClick={handleClearAll}
+                          sx={{
+                            color: '#64748b',
+                            backgroundColor: 'transparent',
+                            border: '1px solid rgba(220, 38, 38, 0.15)',
+                            borderRadius: '10px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+
+                            '&:hover': {
+                              color: '#dc2626',
+                              backgroundColor: 'rgba(220, 38, 38, 0.08)',
+                              borderColor: 'rgba(220, 38, 38, 0.25)',
+                              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.12)'
+                            }
+                          }}
+                        >
                           Clear All
                         </Button>
                       )}
@@ -479,52 +526,93 @@ const NotificationSection = () => {
 
                     {totalNotifications > 0 && (
                       <Stack direction="row" spacing={2} sx={{ mt: 1, mb: 1 }} flexWrap="wrap">
+                        {/* Notifications */}
                         {notificationList.length > 0 && (
                           <Chip
                             icon={<IconMail size={16} />}
                             label={`${notificationList.length} Notification${notificationList.length > 1 ? 's' : ''}`}
-                            color="info"
                             size="small"
+                            sx={{
+                              backgroundColor: '#E8F0FF',
+                              color: '#1E40AF',
+                              fontWeight: 500,
+                              '& .MuiChip-icon': { color: '#1E40AF' }
+                            }}
                           />
                         )}
+
+                        {/* Calendar Events */}
                         {calendarCount > 0 && (
                           <Chip
                             icon={<IconCalendarEvent size={16} />}
                             label={`${calendarCount} Event${calendarCount > 1 ? 's' : ''}`}
-                            color="secondary"
                             size="small"
+                            sx={{
+                              backgroundColor: '#F3E8FF',
+                              color: '#6D28D9',
+                              fontWeight: 500,
+                              '& .MuiChip-icon': { color: '#6D28D9' }
+                            }}
                           />
                         )}
+
+                        {/* Birthday */}
                         {birthdayCount > 0 && (
                           <Chip
                             icon={<IconCake size={16} />}
                             label={`${birthdayCount} Birthday${birthdayCount > 1 ? 's' : ''}`}
-                            color="warning"
                             size="small"
+                            sx={{
+                              backgroundColor: '#FFE4E6',
+                              color: '#BE123C',
+                              fontWeight: 500,
+                              '& .MuiChip-icon': { color: '#BE123C' }
+                            }}
                           />
                         )}
+
+                        {/* Anniversary */}
                         {anniversaryCount > 0 && (
                           <Chip
                             icon={<IconCalendar size={16} />}
                             label={`${anniversaryCount} Anniversary${anniversaryCount > 1 ? 'ies' : ''}`}
-                            color="success"
                             size="small"
+                            sx={{
+                              backgroundColor: '#DCFCE7',
+                              color: '#166534',
+                              fontWeight: 500,
+                              '& .MuiChip-icon': { color: '#166534' }
+                            }}
                           />
                         )}
+
+                        {/* New Joiner */}
                         {newJoinerCount > 0 && (
                           <Chip
                             icon={<IconUserPlus size={16} />}
                             label={`${newJoinerCount} New Joiner${newJoinerCount > 1 ? 's' : ''}`}
-                            color="primary"
                             size="small"
+                            sx={{
+                              backgroundColor: '#CCFBF1',
+                              color: '#0F766E',
+                              fontWeight: 500,
+                              '& .MuiChip-icon': { color: '#0F766E' }
+                            }}
                           />
                         )}
+
+                        {/* Upcoming Joiner */}
                         {upcomingJoinerCount > 0 && (
                           <Chip
                             icon={<IconUserPlus size={16} />}
                             label={`${upcomingJoinerCount} Upcoming`}
-                            color="default"
                             size="small"
+                            sx={{
+                              backgroundColor: '#F1F5F9',
+                              color: '#334155',
+                              fontWeight: 500,
+                              '& .MuiChip-icon': { color: '#334155' }
+                            }}
                           />
                         )}
                       </Stack>
@@ -533,7 +621,20 @@ const NotificationSection = () => {
 
                   <Divider sx={{ mt: 1 }} />
 
-                  <Box sx={{ maxHeight: 400, overflowY: 'auto', px: 2 }}>
+                  <Box
+                    sx={{
+                      maxHeight: 500,
+                      overflowY: 'auto',
+                      px: 2,
+                      '&::-webkit-scrollbar': {
+                        width: '6px'
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        background: '#94a3b8',
+                        borderRadius: '10px'
+                      }
+                    }}
+                  >
                     {isLoading ? (
                       <Stack alignItems="center" justifyContent="center" sx={{ py: 5 }}>
                         <CircularProgress size={24} />
@@ -547,50 +648,153 @@ const NotificationSection = () => {
                         {/* General Notifications from API */}
                         {notificationList.length > 0 && (
                           <>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, mb: 1 }}>
-                              <IconMail size={20} color={theme.palette.info.main} />
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                All Notifications
-                              </Typography>
+                            {/* Header */}
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                px: 2,
+                                py: 1.2,
+                                borderRadius: 2,
+                                background: 'rgba(255,255,255,0.7)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(15,23,42,0.06)'
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <IconMail size={18} color="#2a4b4d" />
+                                <Typography
+                                  sx={{
+                                    fontWeight: 500,
+                                    fontSize: '0.95rem',
+                                    color: '#0f172a',
+                                    letterSpacing: 0.2
+                                  }}
+                                >
+                                  Notifications
+                                </Typography>
+                              </Stack>
+
+                              <Chip
+                                size="small"
+                                label={notificationList.length}
+                                sx={{
+                                  height: 22,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  bgcolor: 'rgba(42,75,77,0.08)',
+                                  color: '#2a4b4d',
+                                  border: '1px solid rgba(42,75,77,0.15)'
+                                }}
+                              />
                             </Stack>
+
+                            {/* List */}
                             {notificationList.map((item, index) => {
-                              // Determine notification type styling
-                              let notificationColor = theme.palette.info;
-                              let notificationIcon = <IconMail size={18} color={theme.palette.info.main} />;
+                              let icon = <IconMail size={18} color="#64748b" />;
+                              let tone = '#64748b';
 
                               if (item.notificationType === 'LEAVE REQUEST') {
-                                notificationColor = theme.palette.warning;
-                                notificationIcon = <IconCalendar size={18} color={theme.palette.warning.main} />;
+                                icon = <IconCalendar size={18} color="#f59e0b" />;
+                                tone = '#f59e0b';
                               } else if (item.notificationType === 'TICKET') {
-                                notificationColor = theme.palette.info;
-                                notificationIcon = <IconTicket size={18} color={theme.palette.info.main} />;
+                                icon = <IconTicket size={18} color="#3b82f6" />;
+                                tone = '#3b82f6';
                               }
 
                               return (
                                 <NotificationItem
-                                  key={`notification-${item.id}`}
-                                  icon={notificationIcon}
-                                  title={item.notificationType || 'Notification'}
-                                  description={item.message || 'No description available'}
+                                  key={`notification-${item.id || index}`}
+                                  icon={
+                                    <Box
+                                      sx={{
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'rgba(15,23,42,0.03)'
+                                      }}
+                                    >
+                                      {icon}
+                                    </Box>
+                                  }
+                                  title={
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        color: '#0f172a'
+                                      }}
+                                    >
+                                      {item.notificationType || 'Notification'}
+                                    </Typography>
+                                  }
+                                  description={
+                                    <Typography
+                                      sx={{
+                                        color: '#475569',
+                                        fontSize: '0.85rem',
+                                        mt: 0.3
+                                      }}
+                                    >
+                                      {item.message || 'No description available'}
+                                    </Typography>
+                                  }
                                   meta={
                                     <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                                       <Chip
                                         size="small"
                                         label={item.notificationType || 'General'}
-                                        color={item.notificationType === 'LEAVE REQUEST' ? 'warning' : 'info'}
+                                        sx={{
+                                          height: 20,
+                                          fontSize: '0.65rem',
+                                          fontWeight: 600,
+                                          bgcolor: `${tone}15`,
+                                          color: tone
+                                        }}
                                       />
-                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        by {item.createdBy || 'System'}
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+
+                                      <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>{item.createdBy || 'System'}</Typography>
+
+                                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
                                         {formatDateTime(item.commonDate?.createdon)}
                                       </Typography>
+
                                       {!item.read && (
-                                        <Chip size="small" label="New" color="error" variant="outlined" />
+                                        <Chip
+                                          label="New"
+                                          sx={{
+                                            height: 14,
+                                            fontSize: '0.6rem',
+                                            fontWeight: 700,
+                                            bgcolor: 'rgba(239,68,68,0.08)',
+                                            color: '#ef4444',
+                                            border: '1px solid rgba(239,68,68,0.3)',
+                                            '& .MuiChip-label': {
+                                              px: 0.5
+                                            }
+                                          }}
+                                        />
                                       )}
                                     </Stack>
                                   }
                                   onClear={() => handleClear(item.id, 'notification', 'clear')}
+                                  sx={{
+                                    mb: 1,
+                                    borderRadius: 2,
+                                    transition: 'all 0.2s ease',
+                                    border: '1px solid rgba(15,23,42,0.06)',
+                                    '&:hover': {
+                                      transform: 'translateY(-1px)',
+                                      boxShadow: '0 6px 18px rgba(15,23,42,0.08)',
+                                      borderColor: 'rgba(15,23,42,0.1)'
+                                    }
+                                  }}
                                 />
                               );
                             })}
@@ -599,38 +803,130 @@ const NotificationSection = () => {
 
                         {calendarCount > 0 && (
                           <>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, mb: 1 }}>
-                              <IconCalendarEvent size={20} color={theme.palette.secondary.main} />
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                Calendar Events
-                              </Typography>
+                            {/* Header (same pattern as Notifications) */}
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                px: 2,
+                                py: 1.2,
+                                borderRadius: 2,
+                                background: 'rgba(255,255,255,0.7)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(15,23,42,0.06)'
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <IconCalendarEvent size={18} color="#2a4b4d" />
+                                <Typography
+                                  sx={{
+                                    fontWeight: 500,
+                                    fontSize: '0.95rem',
+                                    color: '#0f172a',
+                                    letterSpacing: 0.2
+                                  }}
+                                >
+                                  Calendar Events
+                                </Typography>
+                              </Stack>
+
+                              <Chip
+                                size="small"
+                                label={calendarCount}
+                                sx={{
+                                  height: 22,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  bgcolor: 'rgba(42,75,77,0.08)',
+                                  color: '#2a4b4d',
+                                  border: '1px solid rgba(42,75,77,0.15)'
+                                }}
+                              />
                             </Stack>
+
+                            {/* List */}
                             {calendarNotifications.map((item, index) => {
-                              const formattedDate = item.date ? dayjs(item.date).format('MMM D, YYYY') : 'Unknown date';
-                              const formattedTime = item.fromTime && item.toTime
-                                ? `${formatTime(item.fromTime)} - ${formatTime(item.toTime)}`
-                                : 'All day';
+                              const formattedTime =
+                                item.fromTime && item.toTime ? `${formatTime(item.fromTime)} - ${formatTime(item.toTime)}` : 'All day';
 
                               return (
                                 <NotificationItem
-                                  key={`calendar-${index}`}
-                                  icon={<IconCalendarEvent size={18} color={theme.palette.secondary.main} />}
-                                  title={item.eventTitle || 'Event'}
-                                  description={item.description || 'No description'}
+                                  key={`calendar-${item.id || index}`}
+                                  icon={
+                                    <Box
+                                      sx={{
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'rgba(42,75,77,0.06)'
+                                      }}
+                                    >
+                                      <IconCalendarEvent size={18} color="#2a4b4d" />
+                                    </Box>
+                                  }
+                                  title={
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        color: '#0f172a'
+                                      }}
+                                    >
+                                      {item.eventTitle || 'Event'}
+                                    </Typography>
+                                  }
+                                  description={
+                                    <Typography
+                                      sx={{
+                                        color: '#475569',
+                                        fontSize: '0.85rem',
+                                        mt: 0.3
+                                      }}
+                                    >
+                                      {item.description || 'No description available'}
+                                    </Typography>
+                                  }
                                   meta={
-                                    <Stack direction="column" spacing={0.5} alignItems="flex-start">
-                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        <strong>When:</strong> {getRelativeDate(item.date)} • {formattedTime}
+                                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                                      <Chip
+                                        size="small"
+                                        label={formattedTime}
+                                        sx={{
+                                          height: 20,
+                                          fontSize: '0.65rem',
+                                          fontWeight: 600,
+                                          backgroundColor: '#F1F5F9',
+                                          color: '#334155'
+                                        }}
+                                      />
+
+                                      <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                        {item.branchName || 'Not specified'}
                                       </Typography>
-                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        <strong>Where:</strong> {item.branchName || 'Not specified'}
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        <strong>Organizer:</strong> {item.createdBy || 'Unknown'}
-                                      </Typography>
+
+                                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>{getRelativeDate(item.date)}</Typography>
+
+                                      <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>{item.createdBy || 'Unknown'}</Typography>
                                     </Stack>
                                   }
                                   onClear={() => handleClear(index, 'calendar', 'clear')}
+                                  sx={{
+                                    mb: 1,
+                                    borderRadius: 2,
+                                    transition: 'all 0.2s ease',
+                                    border: '1px solid rgba(15,23,42,0.06)',
+                                    '&:hover': {
+                                      transform: 'translateY(-1px)',
+                                      boxShadow: '0 6px 18px rgba(15,23,42,0.08)',
+                                      borderColor: 'rgba(15,23,42,0.1)'
+                                    }
+                                  }}
                                 />
                               );
                             })}
@@ -639,79 +935,137 @@ const NotificationSection = () => {
 
                         {birthdayCount > 0 && (
                           <>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{
-                              mt: 2,
-                              mb: 1,
-                              p: 1,
-                              backgroundColor: theme.palette.warning.light,
-                              borderRadius: 1
-                            }}>
-                              <IconCake size={20} color={theme.palette.warning.dark} />
-                              <Typography variant="subtitle1" sx={{
-                                fontWeight: 600,
-                                color: theme.palette.warning.dark
-                              }}>
-                                Today's Birthdays
-                              </Typography>
+                            {/* Header (glass style like others) */}
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                px: 2,
+                                py: 1.2,
+                                borderRadius: 2,
+                                background: 'rgba(255,255,255,0.7)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(15,23,42,0.06)'
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <IconCake size={18} color="#2a4b4d" />
+                                <Typography
+                                  sx={{
+                                    fontWeight: 500,
+                                    fontSize: '0.95rem',
+                                    color: '#0f172a',
+                                    letterSpacing: 0.2
+                                  }}
+                                >
+                                  Today's Birthdays
+                                </Typography>
+                              </Stack>
+
                               <Chip
-                                label={`${birthdayCount} ${birthdayCount > 1 ? 'Birthdays' : 'Birthday'}`}
                                 size="small"
+                                label={`${birthdayCount} ${birthdayCount > 1 ? 'Birthdays' : 'Birthday'}`}
                                 sx={{
-                                  ml: 'auto',
-                                  backgroundColor: theme.palette.warning.main,
-                                  color: '#fff'
+                                  height: 22,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  bgcolor: 'rgba(42,75,77,0.08)',
+                                  color: '#2a4b4d',
+                                  border: '1px solid rgba(42,75,77,0.15)'
                                 }}
                               />
                             </Stack>
 
+                            {/* List */}
                             {birthdayNotifications.map((item, index) => (
                               <NotificationItem
-                                key={`birthday-${index}`}
+                                key={`birthday-${item.id || index}`}
                                 icon={
                                   item.profileImage ? (
                                     <Avatar
                                       src={`data:image/jpeg;base64,${item.profileImage}`}
                                       sx={{
-                                        width: 40,
-                                        height: 40,
-                                        border: `2px solid ${theme.palette.warning.main}`
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        border: '2px solid rgba(42,75,77,0.25)'
                                       }}
                                     />
                                   ) : (
-                                    <Avatar sx={{
-                                      width: 40,
-                                      height: 40,
-                                      bgcolor: theme.palette.warning.light,
-                                      color: theme.palette.warning.dark,
-                                      border: `2px solid ${theme.palette.warning.main}`
-                                    }}>
-                                      <IconCake size={20} />
-                                    </Avatar>
+                                    <Box
+                                      sx={{
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'rgba(42,75,77,0.08)'
+                                      }}
+                                    >
+                                      <IconCake size={18} color="#2a4b4d" />
+                                    </Box>
                                   )
                                 }
                                 title={
                                   <Stack>
-                                    <Typography variant="subtitle2" fontWeight={600}>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        color: '#0f172a'
+                                      }}
+                                    >
                                       {item.employeeName}
                                     </Typography>
-                                    <Typography variant="caption" color="textSecondary">
+
+                                    <Typography
+                                      sx={{
+                                        fontSize: '0.7rem',
+                                        color: '#64748b'
+                                      }}
+                                    >
                                       {item.empCode}
                                     </Typography>
                                   </Stack>
                                 }
                                 description={
                                   <Stack direction="row" alignItems="center" spacing={1}>
-                                    <IconCake size={16} color={theme.palette.warning.main} />
-                                    <Typography variant="body2">
-                                      {formatDob(item.dob)}
-                                    </Typography>
+                                    <IconCake size={16} color="#2a4b4d" />
+                                    <Typography sx={{ fontSize: '0.85rem', color: '#475569' }}>{formatDob(item.dob)}</Typography>
                                   </Stack>
                                 }
-                                meta={null}
+                                meta={
+                                  <Stack direction="row" spacing={1} alignItems="center">
+                                    <Chip
+                                      size="small"
+                                      label="Birthday"
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600,
+                                        backgroundColor: '#FCE7F3',
+                                        color: '#9D174D'
+                                      }}
+                                    />
+
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>Today</Typography>
+                                  </Stack>
+                                }
                                 onClear={() => handleClear(index, 'birthday', 'clear')}
                                 sx={{
-                                  borderLeft: `4px solid ${theme.palette.warning.main}`,
-                                  backgroundColor: theme.palette.warning.lighter
+                                  mb: 1,
+                                  borderRadius: 2,
+                                  transition: 'all 0.2s ease',
+                                  border: '1px solid rgba(15,23,42,0.06)',
+                                  '&:hover': {
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 6px 18px rgba(15,23,42,0.08)',
+                                    borderColor: 'rgba(15,23,42,0.1)'
+                                  }
                                 }}
                               />
                             ))}
@@ -720,80 +1074,151 @@ const NotificationSection = () => {
 
                         {anniversaryCount > 0 && (
                           <>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{
-                              mt: 2,
-                              mb: 1,
-                              p: 1,
-                              backgroundColor: theme.palette.success.light,
-                              borderRadius: 1
-                            }}>
-                              <IconCalendar size={20} color={theme.palette.success.dark} />
-                              <Typography variant="subtitle1" sx={{
-                                fontWeight: 600,
-                                color: theme.palette.success.dark
-                              }}>
-                                Work Anniversaries
-                              </Typography>
+                            {/* Header (matched to Notifications style) */}
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                px: 2,
+                                py: 1.2,
+                                borderRadius: 2,
+                                background: 'rgba(255,255,255,0.7)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(15,23,42,0.06)'
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <IconCalendar size={18} color="#2a4b4d" />
+                                <Typography
+                                  sx={{
+                                    fontWeight: 500,
+                                    fontSize: '0.95rem',
+                                    color: '#0f172a',
+                                    letterSpacing: 0.2
+                                  }}
+                                >
+                                  Work Anniversaries
+                                </Typography>
+                              </Stack>
+
                               <Chip
-                                label={`${anniversaryCount} ${anniversaryCount > 1 ? 'Anniversaries' : 'Anniversary'}`}
                                 size="small"
+                                label={anniversaryCount}
                                 sx={{
-                                  ml: 'auto',
-                                  backgroundColor: theme.palette.success.main,
-                                  color: '#fff'
+                                  height: 22,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  bgcolor: 'rgba(42,75,77,0.08)',
+                                  color: '#2a4b4d',
+                                  border: '1px solid rgba(42,75,77,0.15)'
                                 }}
                               />
                             </Stack>
 
+                            {/* List */}
                             {todayAnniversaries.map((item, index) => (
                               <NotificationItem
                                 key={`anniversary-${index}`}
                                 icon={
-                                  item.image ? (
-                                    <Avatar
-                                      src={`data:image/jpeg;base64,${item.image}`}
-                                      sx={{
-                                        width: 40,
-                                        height: 40,
-                                        border: `2px solid ${theme.palette.success.main}`
-                                      }}
-                                    />
-                                  ) : (
-                                    <Avatar sx={{
-                                      width: 40,
-                                      height: 40,
-                                      bgcolor: theme.palette.success.light,
-                                      color: theme.palette.success.dark,
-                                      border: `2px solid ${theme.palette.success.main}`
-                                    }}>
-                                      {item.initials}
-                                    </Avatar>
-                                  )
+                                  <Box
+                                    sx={{
+                                      width: 38,
+                                      height: 38,
+                                      borderRadius: 2,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'rgba(22, 101, 52, 0.08)',
+                                      border: '1px solid rgba(22, 101, 52, 0.15)'
+                                    }}
+                                  >
+                                    {item.image ? (
+                                      <Avatar
+                                        src={`data:image/jpeg;base64,${item.image}`}
+                                        sx={{
+                                          width: 32,
+                                          height: 32,
+                                          border: '2px solid rgba(42,75,77,0.3)'
+                                        }}
+                                      />
+                                    ) : (
+                                      <Avatar
+                                        sx={{
+                                          width: 28,
+                                          height: 28,
+                                          bgcolor: 'transparent',
+                                          color: '#166534',
+                                          fontSize: '0.95rem',
+                                          fontWeight: 600
+                                        }}
+                                      >
+                                        {item.initials}
+                                      </Avatar>
+                                    )}
+                                  </Box>
                                 }
                                 title={
-                                  <Stack>
-                                    <Typography variant="subtitle2" fontWeight={600}>
-                                      {item.name}
-                                    </Typography>
-                                    <Typography variant="caption" color="textSecondary">
-                                      {item.employeeId}
-                                    </Typography>
-                                  </Stack>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: 600,
+                                      fontSize: '0.8rem',
+                                      color: '#0f172a'
+                                    }}
+                                  >
+                                    {item.name}
+                                  </Typography>
                                 }
                                 description={
-                                  <Typography variant="body2">
+                                  <Typography
+                                    sx={{
+                                      color: '#475569',
+                                      fontSize: '0.85rem',
+                                      mt: 0.3
+                                    }}
+                                  >
                                     {item.years} year{item.years !== 1 ? 's' : ''} at company
                                   </Typography>
                                 }
                                 meta={
-                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                    {item.department} • {item.role}
-                                  </Typography>
+                                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                                    <Chip
+                                      size="small"
+                                      label="Anniversary"
+                                      sx={{
+                                        height: 22,
+                                        fontSize: '0.7rem',
+                                        fontWeight: 600,
+
+                                        backgroundColor: '#DCFCE7',
+                                        color: '#166534',
+
+                                        border: '1px solid rgba(22, 101, 52, 0.15)',
+
+                                        '& .MuiChip-label': {
+                                          px: 1
+                                        }
+                                      }}
+                                    />
+
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                      {item.department} • {item.role}
+                                    </Typography>
+                                  </Stack>
                                 }
                                 onClear={() => handleClear(index, 'anniversary', 'clear')}
                                 sx={{
-                                  borderLeft: `4px solid ${theme.palette.success.main}`,
-                                  backgroundColor: theme.palette.success.lighter
+                                  mb: 1,
+                                  borderRadius: 2,
+                                  border: '1px solid rgba(15,23,42,0.06)',
+                                  transition: 'all 0.2s ease',
+                                  '&:hover': {
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 6px 18px rgba(15,23,42,0.08)',
+                                    borderColor: 'rgba(15,23,42,0.1)'
+                                  }
                                 }}
                               />
                             ))}
@@ -802,80 +1227,144 @@ const NotificationSection = () => {
 
                         {newJoinerCount > 0 && (
                           <>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{
-                              mt: 2,
-                              mb: 1,
-                              p: 1,
-                              backgroundColor: theme.palette.primary.light,
-                              borderRadius: 1
-                            }}>
-                              <IconUserPlus size={20} color={theme.palette.primary.dark} />
-                              <Typography variant="subtitle1" sx={{
-                                fontWeight: 600,
-                                color: theme.palette.primary.dark
-                              }}>
-                                New Joiners Today
-                              </Typography>
+                            {/* Header (glass unified style) */}
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                px: 2,
+                                py: 1.2,
+                                borderRadius: 2,
+                                background: 'rgba(255,255,255,0.7)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(15,23,42,0.06)'
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <IconUserPlus size={18} color="#2a4b4d" />
+                                <Typography
+                                  sx={{
+                                    fontWeight: 500,
+                                    fontSize: '0.95rem',
+                                    color: '#0f172a',
+                                    letterSpacing: 0.2
+                                  }}
+                                >
+                                  New Joiners Today
+                                </Typography>
+                              </Stack>
+
                               <Chip
-                                label={`${newJoinerCount} New`}
                                 size="small"
+                                label={`${newJoinerCount} New`}
                                 sx={{
-                                  ml: 'auto',
-                                  backgroundColor: theme.palette.primary.main,
-                                  color: '#fff'
+                                  height: 22,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  bgcolor: 'rgba(42,75,77,0.08)',
+                                  color: '#2a4b4d',
+                                  border: '1px solid rgba(42,75,77,0.15)'
                                 }}
                               />
                             </Stack>
 
+                            {/* List */}
                             {todayJoiners.map((item, index) => (
                               <NotificationItem
-                                key={`today-joiner-${index}`}
+                                key={`today-joiner-${item.id || index}`}
                                 icon={
                                   item.image ? (
                                     <Avatar
                                       src={`data:image/jpeg;base64,${item.image}`}
                                       sx={{
-                                        width: 40,
-                                        height: 40,
-                                        border: `2px solid ${theme.palette.primary.main}`
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        border: '2px solid rgba(42,75,77,0.25)'
                                       }}
                                     />
                                   ) : (
-                                    <Avatar sx={{
-                                      width: 40,
-                                      height: 40,
-                                      bgcolor: theme.palette.primary.light,
-                                      color: theme.palette.primary.dark,
-                                      border: `2px solid ${theme.palette.primary.main}`
-                                    }}>
+                                    <Box
+                                      sx={{
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'rgba(42,75,77,0.08)',
+                                        fontWeight: 600,
+                                        color: '#2a4b4d',
+                                        fontSize: '0.8rem'
+                                      }}
+                                    >
                                       {item.initials}
-                                    </Avatar>
+                                    </Box>
                                   )
                                 }
                                 title={
                                   <Stack>
-                                    <Typography variant="subtitle2" fontWeight={600}>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        color: '#0f172a'
+                                      }}
+                                    >
                                       {item.name}
                                     </Typography>
-                                    <Typography variant="caption" color="textSecondary">
+
+                                    <Typography
+                                      sx={{
+                                        fontSize: '0.7rem',
+                                        color: '#64748b'
+                                      }}
+                                    >
                                       {item.employeeId}
                                     </Typography>
                                   </Stack>
                                 }
                                 description={
-                                  <Typography variant="body2">
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.85rem',
+                                      color: '#475569'
+                                    }}
+                                  >
                                     Joined today
                                   </Typography>
                                 }
                                 meta={
-                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                    {item.department} • {item.role}
-                                  </Typography>
+                                  <Stack direction="row" spacing={1} alignItems="center">
+                                    <Chip
+                                      size="small"
+                                      label={item.department}
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600,
+                                        bgcolor: 'rgba(42,75,77,0.08)',
+                                        color: '#2a4b4d'
+                                      }}
+                                    />
+
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>{item.role}</Typography>
+                                  </Stack>
                                 }
                                 onClear={() => handleClear(index, 'joiner', 'clear')}
                                 sx={{
-                                  borderLeft: `4px solid ${theme.palette.primary.main}`,
-                                  backgroundColor: theme.palette.primary.lighter
+                                  mb: 1,
+                                  borderRadius: 2,
+                                  transition: 'all 0.2s ease',
+                                  border: '1px solid rgba(15,23,42,0.06)',
+                                  '&:hover': {
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 6px 18px rgba(15,23,42,0.08)',
+                                    borderColor: 'rgba(15,23,42,0.1)'
+                                  }
                                 }}
                               />
                             ))}
@@ -884,80 +1373,144 @@ const NotificationSection = () => {
 
                         {upcomingJoinerCount > 0 && (
                           <>
-                            <Stack direction="row" alignItems="center" spacing={1} sx={{
-                              mt: 2,
-                              mb: 1,
-                              p: 1,
-                              backgroundColor: theme.palette.grey[200],
-                              borderRadius: 1
-                            }}>
-                              <IconUserPlus size={20} color={theme.palette.grey[800]} />
-                              <Typography variant="subtitle1" sx={{
-                                fontWeight: 600,
-                                color: theme.palette.grey[800]
-                              }}>
-                                Upcoming Joiners
-                              </Typography>
+                            {/* Header (glass unified style) */}
+                            <Stack
+                              direction="row"
+                              alignItems="center"
+                              justifyContent="space-between"
+                              sx={{
+                                mt: 2,
+                                mb: 2,
+                                px: 2,
+                                py: 1.2,
+                                borderRadius: 2,
+                                background: 'rgba(255,255,255,0.7)',
+                                backdropFilter: 'blur(8px)',
+                                border: '1px solid rgba(15,23,42,0.06)'
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" spacing={1}>
+                                <IconUserPlus size={18} color="#2a4b4d" />
+                                <Typography
+                                  sx={{
+                                    fontWeight: 500,
+                                    fontSize: '0.95rem',
+                                    color: '#0f172a',
+                                    letterSpacing: 0.2
+                                  }}
+                                >
+                                  Upcoming Joiners
+                                </Typography>
+                              </Stack>
+
                               <Chip
-                                label={`${upcomingJoinerCount} Upcoming`}
                                 size="small"
+                                label={`${upcomingJoinerCount} Upcoming`}
                                 sx={{
-                                  ml: 'auto',
-                                  backgroundColor: theme.palette.grey[500],
-                                  color: '#fff'
+                                  height: 22,
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  bgcolor: 'rgba(42,75,77,0.08)',
+                                  color: '#2a4b4d',
+                                  border: '1px solid rgba(42,75,77,0.15)'
                                 }}
                               />
                             </Stack>
 
+                            {/* List */}
                             {upcomingJoiners.map((item, index) => (
                               <NotificationItem
-                                key={`upcoming-joiner-${index}`}
+                                key={`upcoming-joiner-${item.id || index}`}
                                 icon={
                                   item.image ? (
                                     <Avatar
                                       src={`data:image/jpeg;base64,${item.image}`}
                                       sx={{
-                                        width: 40,
-                                        height: 40,
-                                        border: `2px solid ${theme.palette.grey[500]}`
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        border: '2px solid rgba(42,75,77,0.25)'
                                       }}
                                     />
                                   ) : (
-                                    <Avatar sx={{
-                                      width: 40,
-                                      height: 40,
-                                      bgcolor: theme.palette.grey[200],
-                                      color: theme.palette.grey[800],
-                                      border: `2px solid ${theme.palette.grey[500]}`
-                                    }}>
+                                    <Box
+                                      sx={{
+                                        width: 38,
+                                        height: 38,
+                                        borderRadius: 2,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        bgcolor: 'rgba(42,75,77,0.06)',
+                                        color: '#2a4b4d',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600
+                                      }}
+                                    >
                                       {item.initials}
-                                    </Avatar>
+                                    </Box>
                                   )
                                 }
                                 title={
                                   <Stack>
-                                    <Typography variant="subtitle2" fontWeight={600}>
+                                    <Typography
+                                      sx={{
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        color: '#0f172a'
+                                      }}
+                                    >
                                       {item.name}
                                     </Typography>
-                                    <Typography variant="caption" color="textSecondary">
+
+                                    <Typography
+                                      sx={{
+                                        fontSize: '0.7rem',
+                                        color: '#64748b'
+                                      }}
+                                    >
                                       {item.employeeId}
                                     </Typography>
                                   </Stack>
                                 }
                                 description={
-                                  <Typography variant="body2">
-                                    Joining in {item.daysUntil} day{item.daysUntil !== 1 ? 's' : ''} ({item.joinDate})
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.85rem',
+                                      color: '#475569'
+                                    }}
+                                  >
+                                    Joining in {item.daysUntil} day{item.daysUntil !== 1 ? 's' : ''} • {item.joinDate}
                                   </Typography>
                                 }
                                 meta={
-                                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                    {item.department} • {item.role}
-                                  </Typography>
+                                  <Stack direction="row" spacing={1} alignItems="center">
+                                    <Chip
+                                      size="small"
+                                      label={item.department}
+                                      sx={{
+                                        height: 20,
+                                        fontSize: '0.65rem',
+                                        fontWeight: 600,
+                                        bgcolor: 'rgba(42,75,77,0.08)',
+                                        color: '#2a4b4d'
+                                      }}
+                                    />
+
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>{item.role}</Typography>
+                                  </Stack>
                                 }
                                 onClear={() => handleClear(index, 'joiner', 'clear')}
                                 sx={{
-                                  borderLeft: `4px solid ${theme.palette.grey[500]}`,
-                                  backgroundColor: theme.palette.grey[100]
+                                  mb: 1,
+                                  borderRadius: 2,
+                                  transition: 'all 0.2s ease',
+                                  border: '1px solid rgba(15,23,42,0.06)',
+                                  '&:hover': {
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: '0 6px 18px rgba(15,23,42,0.08)',
+                                    borderColor: 'rgba(15,23,42,0.1)'
+                                  }
                                 }}
                               />
                             ))}
@@ -982,59 +1535,48 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
   return (
     <Box
       sx={{
-        background: theme.palette.background.paper,
         p: 2,
         mb: 1.5,
-        borderRadius: 1,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        boxShadow: theme.shadows[1],
+        borderRadius: '18px',
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+        border: '1px solid rgba(58,107,109,0.15)',
+        boxShadow: '0 8px 24px rgba(58,107,109,0.08)',
+        transition: 'all 0.25s ease',
 
-        // IMPORTANT: prevent any inherited opacity effects
-        opacity: 1,
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 1.5,
+        width: '100%',
 
         '&:hover': {
-          background: theme.palette.action.hover,
-          boxShadow: theme.shadows[2],
-          opacity: 1,
-
-          // Force ALL text to stay fully opaque
-          '& .MuiTypography-root': {
-            opacity: 1,
-            color: theme.palette.text.primary
-          },
-
-          '& .MuiTypography-caption': {
-            opacity: 1,
-            color: theme.palette.text.secondary
-          },
-
-          '& .MuiTypography-body2': {
-            opacity: 1,
-            color: theme.palette.text.primary
-          },
-
-          '& .MuiTypography-subtitle2': {
-            opacity: 1,
-            color: theme.palette.text.primary
-          }
+          background: 'linear-gradient(135deg, #f8fafc 0%, #eef6f6 100%)',
+          borderColor: '#3a6b6d',
+          transform: 'translateY(-2px)',
+          boxShadow: '0 14px 30px rgba(58,107,109,0.18)'
         },
 
         ...sx
       }}
     >
-      <Stack direction="row" spacing={2} sx={{ flex: 1, alignItems: 'flex-start' }}>
-        <Box sx={{ pt: 0.5 }}>
-          {icon}
-        </Box>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          alignItems: 'flex-start'
+        }}
+      >
+        <Box sx={{ pt: 0.5 }}>{icon}</Box>
 
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           {typeof title === 'string' ? (
             <Typography
               variant="subtitle2"
               fontWeight={600}
-              sx={{ opacity: 1, color: theme.palette.text.primary }}
+              sx={{
+                color: '#2a4b4d'
+              }}
             >
               {title}
             </Typography>
@@ -1047,7 +1589,9 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
               {typeof description === 'string' ? (
                 <Typography
                   variant="body2"
-                  sx={{ opacity: 1, color: theme.palette.text.primary }}
+                  sx={{
+                    color: '#475569'
+                  }}
                 >
                   {description}
                 </Typography>
@@ -1058,11 +1602,15 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
           )}
 
           {meta && (
-            <Box sx={{ mt: 0.5 }}>
+            <Box sx={{ mt: 0.25, lineHeight: 1.2 }}>
               {typeof meta === 'string' ? (
                 <Typography
                   variant="caption"
-                  sx={{ opacity: 1, color: theme.palette.text.secondary }}
+                  sx={{
+                    color: '#64748b',
+                    fontSize: '0.68rem',
+                    lineHeight: 1.2
+                  }}
                 >
                   {meta}
                 </Typography>
@@ -1074,22 +1622,37 @@ const NotificationItem = ({ icon, title, description, meta, onClear, sx }) => {
         </Box>
       </Stack>
 
-      <Tooltip title="Clear">
-        <IconButton
-          size="small"
-          onClick={onClear}
-          sx={{
-            color: theme.palette.text.secondary,
-            '&:hover': {
-              color: theme.palette.error.main,
-              backgroundColor: theme.palette.error.lighter,
-              opacity: 1
-            }
-          }}
-        >
-          <IconX size="1rem" />
-        </IconButton>
-      </Tooltip>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-end',
+          flexShrink: 0
+        }}
+      >
+        <Tooltip title="Clear">
+          <IconButton
+            size="small"
+            onClick={onClear}
+            sx={{
+              flexShrink: 0,
+              alignSelf: 'flex-start',
+              p: 0.5,
+              mt: -0.5,
+              color: '#3a6b6d',
+              borderRadius: '10px',
+
+              '&:hover': {
+                color: '#dc2626',
+                backgroundColor: 'rgba(220, 38, 38, 0.12)',
+                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.12)'
+              }
+            }}
+          >
+            <IconX size="1rem" />
+          </IconButton>
+        </Tooltip>
+      </Box>
     </Box>
   );
 };

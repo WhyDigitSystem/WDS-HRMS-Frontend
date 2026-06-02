@@ -8,14 +8,14 @@ import { ButtonBase } from '@mui/material';
 import { MENU_OPEN } from 'store/actions';
 // import LogoImage from '../../../../src/assets/images/HRMS_Logo.png';
 import LogoImage from '../../../../src/assets/images/BIN_BEE.png';
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // ==============================|| MAIN LOGO ||============================== //
 
 const LogoSection = () => {
   const defaultId = useSelector((state) => state.customization.defaultId);
   const dispatch = useDispatch();
-  // 
+  //
   const navigate = useNavigate();
   return (
     // <ButtonBase disableRipple onClick={() => dispatch({ type: MENU_OPEN, id: defaultId })} component={Link} className="ps-lg-3 ps-0">
@@ -31,7 +31,7 @@ const LogoSection = () => {
     //     }}
     //   />
     // </ButtonBase>
-      <ButtonBase onClick={()=>navigate('/dashboard/default')}>
+    <ButtonBase onClick={() => navigate('/dashboard/default')}>
       {/* <Logo /> */}
       <img
         src={LogoImage}
@@ -40,7 +40,6 @@ const LogoSection = () => {
           width: '110px',
           // height: '75px'
           height: '50px'
-
         }}
       />
     </ButtonBase>
