@@ -437,7 +437,7 @@ export const Comp_Off = () => {
           }
         }
         showToast('success', 'Compensatory Off saved successfully');
-        await sendEmailNotification(finalPayload);
+        // await sendEmailNotification(finalPayload);
 
         // ✅ Mark all editable rows as saved (disabled)
         setLeaveTypeTable((prev) => prev.map((row) => (!row.disabled ? { ...row, disabled: true } : row)));

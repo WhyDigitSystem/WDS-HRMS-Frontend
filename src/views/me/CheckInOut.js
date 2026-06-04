@@ -219,6 +219,82 @@ const CheckInOut = () => {
     setCheckInModalOpen(true);
   };
 
+  // const handleSave = async () => {
+  //   if (!selectedRow) return;
+
+  //   if (!reason.trim()) {
+  //     showToast('error', 'Please provide a reason for this adjustment');
+  //     return;
+  //   }
+
+  //   let formattedDate = '';
+  //   if (selectedRow.date.includes('/')) {
+  //     const [day, month, year] = selectedRow.date.split('/');
+  //     formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  //   } else {
+  //     formattedDate = selectedRow.date;
+  //   }
+
+  //   const payload = {
+  //     screenName: 'CHECKINOUTADJUSTMENT',
+  //     branch: branch,
+  //     branchCode: branchCode,
+  //     date: formattedDate,
+  //     empCode: empCode,
+  //     empName: empName,
+  //     entryIn: checkInTime,
+  //     email: employeeEmail,
+  //     entryOut: checkOutTime,
+  //     orgId: orgId,
+  //     reportingPersonMail: reportingPersonMail,
+  //     notify: reportingPerson,
+  //     notifyCode: reportingPersonCode,
+  //     requestReason: reason // Add reason to payload
+  //   };
+
+  //   setIsLoading(true);
+
+  //   try {
+  //     const response = await apiCalls('put', '/basicmaster/createCheckInOutAdjustment', payload);
+
+  //     if (response.status === true) {
+  //       const checkInOutVO = Array.isArray(response.paramObjectsMap.checkInOutAdjustmentVO)
+  //         ? response.paramObjectsMap.checkInOutAdjustmentVO[0]
+  //         : response.paramObjectsMap.checkInOutAdjustmentVO || {};
+
+  //       showToast('success', 'Check In & Out time submitted successfully');
+
+  //       await sendEmailNotificationForCheckIn({
+  //         ...payload,
+  //         ...checkInOutVO
+  //       });
+
+  //       const updatedData = listViewData.map((row) => (row.date === selectedRow.date ? { ...row, checkInTime, checkOutTime } : row));
+
+  //       setListViewData(updatedData);
+  //       setFilteredData(
+  //         updatedData.filter(
+  //           (row) =>
+  //             row.date.toLowerCase().includes(searchText) ||
+  //             row.day.toLowerCase().includes(searchText) ||
+  //             row.checkInTime.toLowerCase().includes(searchText)
+  //         )
+  //       );
+
+  //       setCheckInModalOpen(false);
+  //       setReason(''); // Reset reason after save
+  //       getAllSwipeInandOut();
+  //     } else {
+  //       showToast('error', response.paramObjectsMap?.errorMessage || 'Check-In/Out submission failed');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error submitting Check-In/Out:', error);
+  //     showToast('error', 'Check-In/Out submission failed');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleSave = async () => {
     if (!selectedRow) return;
 
@@ -237,53 +313,60 @@ const CheckInOut = () => {
 
     const payload = {
       screenName: 'CHECKINOUTADJUSTMENT',
-      branch: branch,
-      branchCode: branchCode,
+      branch,
+      branchCode,
       date: formattedDate,
-      empCode: empCode,
-      empName: empName,
+      empCode,
+      empName,
       entryIn: checkInTime,
       email: employeeEmail,
       entryOut: checkOutTime,
-      orgId: orgId,
-      reportingPersonMail: reportingPersonMail,
-      requestReason: reason // Add reason to payload
+      orgId,
+      reportingPersonMail,
+      notify: reportingPerson,
+      notifyCode: reportingPersonCode,
+      requestReason: reason
     };
 
     setIsLoading(true);
 
     try {
-      const response = await apiCalls('put', '/basicmaster/createCheckInOutAdjustment', payload);
+      const response = await apiCalls(
+        'put',
+        '/basicmaster/createCheckInOutAdjustment',
+        payload
+      );
 
       if (response.status === true) {
-        const checkInOutVO = Array.isArray(response.paramObjectsMap.checkInOutAdjustmentVO)
-          ? response.paramObjectsMap.checkInOutAdjustmentVO[0]
-          : response.paramObjectsMap.checkInOutAdjustmentVO || {};
-
         showToast('success', 'Check In & Out time submitted successfully');
 
-        await sendEmailNotificationForCheckIn({
-          ...payload,
-          ...checkInOutVO
-        });
-
-        const updatedData = listViewData.map((row) => (row.date === selectedRow.date ? { ...row, checkInTime, checkOutTime } : row));
+        const updatedData = listViewData.map((row) =>
+          row.date === selectedRow.date
+            ? { ...row, checkInTime, checkOutTime }
+            : row
+        );
 
         setListViewData(updatedData);
+
         setFilteredData(
           updatedData.filter(
             (row) =>
-              row.date.toLowerCase().includes(searchText) ||
-              row.day.toLowerCase().includes(searchText) ||
-              row.checkInTime.toLowerCase().includes(searchText)
+              row.date.toLowerCase().includes(searchText.toLowerCase()) ||
+              row.day.toLowerCase().includes(searchText.toLowerCase()) ||
+              row.checkInTime.toLowerCase().includes(searchText.toLowerCase())
           )
         );
 
         setCheckInModalOpen(false);
-        setReason(''); // Reset reason after save
-        getAllSwipeInandOut();
+        setReason('');
+
+        await getAllSwipeInandOut();
       } else {
-        showToast('error', response.paramObjectsMap?.errorMessage || 'Check-In/Out submission failed');
+        showToast(
+          'error',
+          response.paramObjectsMap?.errorMessage ||
+          'Check-In/Out submission failed'
+        );
       }
     } catch (error) {
       console.error('Error submitting Check-In/Out:', error);

@@ -354,7 +354,7 @@ const LeaveRequest = () => {
             saveData.id = newId; // 🔁 Add the ID to sendEmailNotification payload
           }
           showToast('success', editId ? 'Leave Request Updated Successfully' : 'Leave Request created successfully');
-          await sendEmailNotification([saveData]);
+          // await sendEmailNotification([saveData]);
           handleClear();
           getLeaveRequestByOrgId();
           setIsLoading(false);
