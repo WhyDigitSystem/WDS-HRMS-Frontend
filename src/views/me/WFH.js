@@ -220,7 +220,7 @@ const WFH = () => {
             id: response.paramObjectsMap?.id
           };
 
-          await sendEmailNotification([savedRow]);
+          // await sendEmailNotification([savedRow]);
 
           handleClear();
           getAllWorkFromHomeRequests();

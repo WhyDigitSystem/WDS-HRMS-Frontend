@@ -385,7 +385,7 @@ const PermissionRequest = () => {
             saveData.id = newId; // 🔁 Add the ID to sendEmailNotification payload
           }
           showToast('success', editId ? 'Permission Request Updated Successfully' : 'Permission Request created successfully');
-          await sendEmailNotification([saveData]);
+          // await sendEmailNotification([saveData]);
           handleClear();
           getAllPermissionRequestByOrgId();
         } else {
