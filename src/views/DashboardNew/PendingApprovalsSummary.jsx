@@ -173,18 +173,9 @@ const PendingApprovalsSummary = () => {
 
                 // Transform the new API response to match the existing format
                 const mappedRequests = pendingApprovals.map((item) => {
-                    let screenName = "";
-                    if (item.leavecode === "COMP-OFF" || item.leavetype === "COMPENSATORY OFF" || item.leavetype === "Compensatory Off") {
-                        screenName = "COMPENSATORY OFF";
-                    } else if (item.leavetype) {
-                        screenName = item.leavetype.toUpperCase() + " REQUEST";
-                    } else {
-                        screenName = "LEAVE REQUEST";
-                    }
-
                     return {
                         id: item.id,
-                        screenName: screenName,
+                        screenName: item.screenname || "LEAVE REQUEST",
                         approveStatus: item.status,
                         startDate: item.fromdate,
                         endDate: item.todate,
@@ -194,7 +185,9 @@ const PendingApprovalsSummary = () => {
                         reason: "",
                         leaveType: item.leavetype,
                         employeeEmail: "",
-                        createdOn: item.createdon
+                        createdOn: item.createdon,
+                        screenCode: item.screencode,
+                        time: item.time
                     };
                 });
 
