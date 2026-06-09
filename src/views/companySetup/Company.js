@@ -126,6 +126,8 @@ const Company = () => {
     shiftIn: null,
     shiftOut: null,
     gstRegistered: true,
+    monthlyAttendanceMail: true,
+    permissionRequest: true,
     active: true,
     latitude: null,
     longitude: null,
@@ -160,6 +162,8 @@ const Company = () => {
     shiftIn: null,
     shiftOut: null,
     gstRegistered: true,
+    monthlyAttendanceMail: true,
+    permissionRequest: true,
     active: true,
     latitude: null,
     longitude: null,
@@ -464,6 +468,8 @@ const Company = () => {
           otType: particularCompany.otType,
           otPolicy: particularCompany.otPolicy,
           gstRegistered: particularCompany.gstregistered === 'Active',
+          monthlyAttendanceMail: particularCompany.monthlyAttendanceMail,
+          permissionRequest: particularCompany.permissionRequest,
           active: particularCompany.active === 'Active',
           // weekOff: weekOffDays,
           // shiftIn: particularCompany.shiftIn || null,
@@ -540,6 +546,8 @@ const Company = () => {
       shiftIn: null,
       shiftOut: null,
       gstRegistered: true,
+      monthlyAttendanceMail: true,
+      permissionRequest: true,
       active: true,
       latitude: null,
       longitude: null,
@@ -572,6 +580,8 @@ const Company = () => {
       shiftIn: null,
       shiftOut: null,
       gstRegistered: true,
+      monthlyAttendanceMail: true,
+      permissionRequest: true,
       active: true,
       latitude: null,
       longitude: null,
@@ -673,6 +683,8 @@ const Company = () => {
         currency: formData.currency,
         gstIn: formData.gstIn,
         gstRegistered: formData.gstRegistered,
+        monthlyAttendanceMail: formData.monthlyAttendanceMail,
+        permissionRequest: formData.permissionRequest,
         leaveCreditControl: formData.leaveCreditControl,
         // autoCreditDate: formData.autoCreditDate,
         autoCreditDate: formData.autoCreditDate
@@ -1301,6 +1313,18 @@ const Company = () => {
                 <FormControlLabel
                   control={<Checkbox checked={formData.gstRegistered} onChange={handleInputChange} name="gstRegistered" />}
                   label="Gst Registered"
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <FormControlLabel
+                  control={<Checkbox checked={formData.monthlyAttendanceMail} onChange={handleInputChange} name="monthlyAttendanceMail" />}
+                  label="Monthly Attendance Mail"
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <FormControlLabel
+                  control={<Checkbox checked={formData.permissionRequest} onChange={handleInputChange} name="permissionRequest" />}
+                  label="Permission Request"
                 />
               </div>
               <div className="col-md-3 mb-3">
