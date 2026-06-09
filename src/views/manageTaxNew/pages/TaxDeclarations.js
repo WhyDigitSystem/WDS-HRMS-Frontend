@@ -15,6 +15,7 @@ const TaxDeclarations = ({ employee, employeeName, selectedYear }) => {
   const [getAllData, setGetAllData] = useState([]);
   const [id, setId] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
+  const currentYear = new Date().getFullYear();
 
   const formatNumber = (value) => Number(value).toLocaleString('en-IN', { maximumFractionDigits: 0 });
 
@@ -80,7 +81,7 @@ const TaxDeclarations = ({ employee, employeeName, selectedYear }) => {
     try {
       const res = await apiCalls(
         'get',
-        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&employeeCode=${
+        `investmentDeclaration/getInvestmentDeclarationDetails?branch=${branch}&finYear=${selectedYear}&employeeCode=${
           employee === '' ? employeeCode : employee
         }&orgId=${orgId}`
       );

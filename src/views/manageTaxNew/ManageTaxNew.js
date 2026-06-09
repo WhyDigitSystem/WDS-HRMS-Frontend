@@ -202,7 +202,7 @@ const ManageTaxNew = () => {
         </Tabs>
 
         <TabPanel value={activeTab} index={0}>
-          <TaxDeclarations employee={employeeCode} employeeName={employeeName} selectedYear={selectedYear} />
+          <TaxDeclarations employee={employeeCode} employeeName={employeeName} selectedYear={selectedYear}  />
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
