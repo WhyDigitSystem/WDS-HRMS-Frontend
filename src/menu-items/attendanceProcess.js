@@ -24,13 +24,13 @@ const hasScreenAccess = (screenId) => {
 
 // Define children based on access
 const attendanceChildren = [
-  hasScreenAccess('MA') && {
-    id: 'monthlyAttendance',
-    title: 'Monthly Attendance',
-    type: 'item',
-    url: '/attendanceProcess/MonthlyAttendance',
-    icon: IconCalendarStats
-  },
+  // hasScreenAccess('MA') && {
+  //   id: 'monthlyAttendance',
+  //   title: 'Monthly Attendance',
+  //   type: 'item',
+  //   url: '/attendanceProcess/MonthlyAttendance',
+  //   icon: IconCalendarStats
+  // },
   hasScreenAccess('AP') && {
     id: 'attendanceProcess',
     title: 'Attendance Process',
