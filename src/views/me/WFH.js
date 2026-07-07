@@ -69,7 +69,7 @@ const WFH = () => {
     try {
       const response = await apiCalls('get', `/leaveprocess/getWorkFromHomeByOrgId?orgId=${orgId}`);
       if (response.status) {
-        setListViewData(response.paramObjectsMap.workFromHomeVO || []);
+        setListViewData(response.paramObjectsMap.workFromHomeVO.reverse() || []);
       } else {
         showToast('error', response.message || 'Failed to fetch WFH records');
       }
@@ -162,81 +162,82 @@ const WFH = () => {
     setListView(false);
   };
 
-  const handleSave = async () => {
-    const errors = {};
+  // const handleSave = async () => {
+  //   const errors = {};
 
-    if (!formData.wfhDate) errors.wfhDate = 'Date is required';
-    if (!formData.workAccomplished) errors.workAccomplished = 'Work Accomplished is required';
-    if (!formData.reason) errors.reason = 'Reason is required';
-    if (!formData.reportingManager) errors.reportingManager = 'Reporting Manager is required';
-    if (!formData.departmentHead) errors.departmentHead = 'Department Head is required';
+  //   if (!formData.wfhDate) errors.wfhDate = 'Date is required';
+  //   if (!formData.workAccomplished) errors.workAccomplished = 'Work Accomplished is required';
+  //   if (!formData.reason) errors.reason = 'Reason is required';
+  //   if (!formData.reportingManager) errors.reportingManager = 'Reporting Manager is required';
+  //   if (!formData.departmentHead) errors.departmentHead = 'Department Head is required';
 
-    // Get reporting person and HOD data from list
-    const reportingManagerObj = allReportingPersonList.find((person) => person.label === formData.reportingManager);
-    const departmentHeadObj = allReportingPersonList.find((person) => person.label === formData.departmentHead);
+  //   // Get reporting person and HOD data from list
+  //   const reportingManagerObj = allReportingPersonList.find((person) => person.label === formData.reportingManager);
+  //   const departmentHeadObj = allReportingPersonList.find((person) => person.label === formData.departmentHead);
+  //   const reportingManagerEmail = reportingManagerObj?.email || '';
+  //   const reportingManagerCode = reportingManagerObj?.code || '';
+  //   const departmentHeadEmail = departmentHeadObj?.email || '';
+  //   const departmentHeadCode = departmentHeadObj?.code || '';
 
-    const reportingManagerEmail = reportingManagerObj?.email || '';
-    const reportingManagerCode = reportingManagerObj?.code || '';
-    const departmentHeadEmail = departmentHeadObj?.email || '';
-    const departmentHeadCode = departmentHeadObj?.code || '';
+  //   if (!reportingManagerEmail) errors.reportingManagerEmail = 'Reporting Manager email not found';
+  //   if (!departmentHeadEmail) errors.departmentHeadEmail = 'Department Head email not found';
 
-    if (!reportingManagerEmail) errors.reportingManagerEmail = 'Reporting Manager email not found';
-    if (!departmentHeadEmail) errors.departmentHeadEmail = 'Department Head email not found';
+  //   if (Object.keys(errors).length === 0) {
+  //     setIsLoading(true);
 
-    if (Object.keys(errors).length === 0) {
-      setIsLoading(true);
+  //     const saveData = {
+  //       ...(editId && { id: editId }),
+  //       branch,
+  //       branchCode,
+  //       createdBy: loginUserName,
+  //       departmentHead: formData.departmentHead,
+  //       departmentHeadCode,
+  //       departmentHeadEmail,
+  //       employeeCode,
+  //       employeeName,
+  //       orgId: Number(orgId),
+  //       reason: formData.reason,
+  //       reportingManager: formData.reportingManager,
+  //       reportingManagerCode,
+  //       reportingManagerEmail,
+  //       wfhDate: dayjs(formData.wfhDate).format('YYYY-MM-DD'),
+  //       workAccomplished: formData.workAccomplished,
+  //       finYear: dayjs().format('YYYY'),
+  //     };
 
-      const saveData = {
-        ...(editId && { id: editId }),
-        branch,
-        branchCode,
-        createdBy: loginUserName,
-        departmentHead: formData.departmentHead,
-        departmentHeadCode,
-        departmentHeadEmail,
-        employeeCode,
-        employeeName,
-        orgId: Number(orgId),
-        reason: formData.reason,
-        reportingManager: formData.reportingManager,
-        reportingManagerCode,
-        reportingManagerEmail,
-        wfhDate: dayjs(formData.wfhDate).format('YYYY-MM-DD'),
-        workAccomplished: formData.workAccomplished,
-        finYear: dayjs().format('YYYY'),
-      };
+  //     console.log("Save Payload:", saveData);
+  //     console.log(errors);
+  //     try {
+  //       const response = await apiCalls('put', '/leaveprocess/createUpdateWorkFromHome', saveData);
 
-      try {
-        const response = await apiCalls('put', '/leaveprocess/createUpdateWorkFromHome', saveData);
+  //       if (response.status === true) {
+  //         showToast('success', editId ? 'Work From Home Updated Successfully' : 'Work From Home Request created successfully');
 
-        if (response.status === true) {
-          showToast('success', editId ? 'Work From Home Updated Successfully' : 'Work From Home Request created successfully');
+  //         // ✅ ADD THIS HERE
+  //         console.log("API RESPONSE:", response);
 
-          // ✅ ADD THIS HERE
-          console.log("API RESPONSE:", response);
+  //         // const savedRow = response.paramObjectsMap?.workFromHomeVO || {
+  //         //   ...saveData,
+  //         //   id: response.paramObjectsMap?.id
+  //         // };
 
-          const savedRow = response.paramObjectsMap?.workFromHomeVO || {
-            ...saveData,
-            id: response.paramObjectsMap?.id
-          };
+  //         // await sendEmailNotification([savedRow]);
 
-          // await sendEmailNotification([savedRow]);
-
-          handleClear();
-          getAllWorkFromHomeRequests();
-        } else {
-          showToast('error', response.paramObjectsMap.errorMessage || 'Request failed');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        showToast('error', 'Request failed');
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setFieldErrors(errors);
-    }
-  };
+  //         handleClear();
+  //         getAllWorkFromHomeRequests();
+  //       } else {
+  //         showToast('error', response.paramObjectsMap.errorMessage || 'Request failed');
+  //       }
+  //     } catch (error) {
+  //       console.error('Error:', error);
+  //       showToast('error', 'Request failed');
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   } else {
+  //     setFieldErrors(errors);
+  //   }
+  // };
 
   // const sendEmailNotification = async (newRows) => {
   //   try {
@@ -294,42 +295,42 @@ const WFH = () => {
   //   }
   // };
 
-  const sendEmailNotification = async (newRows) => {
-    try {
-      for (const row of newRows) {
-        const baseURL = 'http://localhost:3000/pages/confirmationPage/confirmationPage';
-        const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
-        const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
+  // const sendEmailNotification = async (newRows) => {
+  //   try {
+  //     for (const row of newRows) {
+  //       const baseURL = 'http://localhost:3000/pages/confirmationPage/confirmationPage';
+  //       const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
+  //       const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${row.screenName}`;
 
-        const emailParams = {
-          name: row.reportingManager,
-          from_name: employeeName,
-          email: row.reportingManagerEmail,
-          date: dayjs(row.wfhDate).format('DD-MM-YYYY'),
-          message: row.reason,
-          work_Accomplished: row.workAccomplished,
-          approve_link: approveLink,
-          reject_link: rejectLink,
-          screenName: row.screenName
-        };
+  //       const emailParams = {
+  //         name: row.reportingManager,
+  //         from_name: employeeName,
+  //         email: row.reportingManagerEmail,
+  //         date: dayjs(row.wfhDate).format('DD-MM-YYYY'),
+  //         message: row.reason,
+  //         work_Accomplished: row.workAccomplished,
+  //         approve_link: approveLink,
+  //         reject_link: rejectLink,
+  //         screenName: row.screenName
+  //       };
 
-        console.log('Email Params:', emailParams);
+  //       console.log('Email Params:', emailParams);
 
-        if (!emailParams.email) {
-          console.error('Error: Recipient email is missing!');
-          showToast('error', 'Recipient email is missing!');
-          continue;
-        }
+  //       if (!emailParams.email) {
+  //         console.error('Error: Recipient email is missing!');
+  //         showToast('error', 'Recipient email is missing!');
+  //         continue;
+  //       }
 
-        // ✅ Send email with EmailJS
-        await emailjs.send('service_ywei7br', 'template_rl5cfjh', emailParams, '-y3NVuC6et9lUpj0-');
-        console.log('Email Sent Successfully for', emailParams.email);
-      }
-    } catch (error) {
-      console.error('Email Sending Failed:', error);
-      showToast('error', 'Failed to send email notification. Please try again.');
-    }
-  };
+  //       // ✅ Send email with EmailJS
+  //       await emailjs.send('service_ywei7br', 'template_rl5cfjh', emailParams, '-y3NVuC6et9lUpj0-');
+  //       console.log('Email Sent Successfully for', emailParams.email);
+  //     }
+  //   } catch (error) {
+  //     console.error('Email Sending Failed:', error);
+  //     showToast('error', 'Failed to send email notification. Please try again.');
+  //   }
+  // };
 
   const handleView = () => {
     setListView(!listView);
@@ -339,15 +340,138 @@ const WFH = () => {
     setErrorDialog({ open: false, message: '' });
   };
 
+  const handleSave = async () => {
+  console.log("========== SAVE START ==========");
+
+  try {
+    const errors = {};
+
+    // Validation
+    if (!formData.wfhDate) errors.wfhDate = "Date is required";
+    if (!formData.workAccomplished?.trim()) errors.workAccomplished = "Work Accomplished is required";
+    if (!formData.reason?.trim()) errors.reason = "Reason is required";
+    if (!formData.reportingManager) errors.reportingManager = "Reporting Manager is required";
+    if (!formData.departmentHead) errors.departmentHead = "Department Head is required";
+
+    console.log("Form Data :", formData);
+    console.log("Reporting List :", allReportingPersonList);
+
+    // Safety check
+    const reportingList = Array.isArray(allReportingPersonList)
+      ? allReportingPersonList
+      : [];
+
+    const reportingManagerObj = reportingList.find(
+  (person) =>
+    person.label?.trim().toUpperCase() ===
+    formData.reportingManager?.trim().toUpperCase()
+);
+
+const departmentHeadObj = reportingList.find(
+  (person) =>
+    person.label?.trim().toUpperCase() ===
+    formData.departmentHead?.trim().toUpperCase()
+)
+
+    const reportingManagerEmail = reportingManagerObj?.email || "";
+    const reportingManagerCode = reportingManagerObj?.code || "";
+
+    const departmentHeadEmail = departmentHeadObj?.email || "";
+    const departmentHeadCode = departmentHeadObj?.code || "";
+
+    if (!reportingManagerEmail) {
+      errors.reportingManager = "Reporting Manager Email not found";
+    }
+
+    if (!departmentHeadEmail) {
+      errors.departmentHead = "Department Head Email not found";
+    }
+
+    console.log("Validation Errors :", errors);
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      console.log("Validation Failed");
+      return;
+    }
+
+    setFieldErrors({});
+    setIsLoading(true);
+
+    const saveData = {
+      ...(editId && { id: editId }),
+      branch,
+      branchCode,
+      createdBy: loginUserName,
+      departmentHead: formData.departmentHead,
+      departmentHeadCode,
+      departmentHeadEmail,
+      employeeCode,
+      employeeName,
+      orgId: Number(orgId),
+      reason: formData.reason,
+      reportingManager: formData.reportingManager,
+      reportingManagerCode,
+      reportingManagerEmail,
+      wfhDate: dayjs(formData.wfhDate).format("YYYY-MM-DD"),
+      workAccomplished: formData.workAccomplished,
+      finYear: dayjs().format("YYYY")
+    };
+
+    console.log("Save Payload :", saveData);
+
+    const response = await apiCalls(
+      "put",
+      "/leaveprocess/createUpdateWorkFromHome",
+      saveData
+    );
+
+    console.log("API Response :", response);
+
+    if (response?.status) {
+      showToast(
+        "success",
+        editId
+          ? "Work From Home Updated Successfully"
+          : "Work From Home Request Created Successfully"
+      );
+
+      handleClear();
+      getAllWorkFromHomeRequests();
+
+      // Uncomment if required
+      // await sendEmailNotification(
+      //   response?.paramObjectsMap?.workFromHomeVO
+      //     ? [response.paramObjectsMap.workFromHomeVO]
+      //     : []
+      // );
+    } else {
+      showToast(
+        "error",
+        response?.paramObjectsMap?.errorMessage ||
+          response?.message ||
+          "Save Failed"
+      );
+    }
+  } catch (error) {
+    console.error("SAVE ERROR :", error);
+    showToast("error", error.message || "Something went wrong");
+  } finally {
+    setIsLoading(false);
+    console.log("========== SAVE END ==========");
+  }
+};
+
   return (
     <>
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-            <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+            {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
+           
             <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
             <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} margin="0 10px 0 10px" />
+             <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
           </div>
         </div>
 

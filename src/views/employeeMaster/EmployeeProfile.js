@@ -3,10 +3,17 @@ import FormatListBulletedTwoToneIcon from '@mui/icons-material/FormatListBullete
 import SaveIcon from '@mui/icons-material/Save';
 import SearchIcon from '@mui/icons-material/Search';
 import {
-  Checkbox, FormControl, FormControlLabel, FormGroup, TextField, Autocomplete, Button, Dialog,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  FormGroup,
+  TextField,
+  Autocomplete,
+  Button,
+  Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
+  DialogActions
 } from '@mui/material';
 import apiCalls from 'apicall';
 import { useEffect, useRef, useState } from 'react';
@@ -50,6 +57,7 @@ import { saveAs } from 'file-saver';
 import DownloadIcon from '@mui/icons-material/Download';
 
 const EmployeeProfile = () => {
+  // const [code, setCode] = useState([]);
   const [companyDetails, setCompanyDetails] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -91,7 +99,7 @@ const EmployeeProfile = () => {
     contactNumber: '',
     contactEmail: '',
     employeeName: '',
-    employeeCode: '',
+    employeeCode: "",
     bioId: '',
     employeeAddress: '',
     otApplicable: '',
@@ -123,7 +131,7 @@ const EmployeeProfile = () => {
     esiFlag: false,
     esiPercentage: '',
     pfFlag: false,
-    pfPercentage: '',
+    pfPercentage: 0,
     weekOffFlag: false,
     weekOffEligibility: false,
     branchCode: '',
@@ -133,7 +141,7 @@ const EmployeeProfile = () => {
     employeeType: '',
     contractor: '',
     employeeName: '',
-    employeeCode: '',
+    employeeCode: "",
     bioId: '',
     employeeAddress: '',
     otApplicable: '',
@@ -163,7 +171,7 @@ const EmployeeProfile = () => {
     esiFlag: false,
     esiPercentage: '',
     pfFlag: false,
-    pfPercentage: '',
+    pfPercentage: 0,
     weekOffFlag: false,
     weekOffEligibility: '',
     branchCode: '',
@@ -233,7 +241,7 @@ const EmployeeProfile = () => {
         </span>
       )
     },
-    { accessorKey: 'type', header: 'Type', size: 140 },
+    // { accessorKey: 'type', header: 'Type', size: 140 },
     { accessorKey: 'employeeCode', header: 'Code', size: 140 },
     // { accessorKey: 'joiningDate', header: 'Date of Join', size: 140 },
     { accessorKey: 'department', header: 'Department', size: 140 },
@@ -265,6 +273,30 @@ const EmployeeProfile = () => {
     getAllReportingPerson();
     getCompanyDetails();
   }, []);
+
+  useEffect(() => {
+    if(!editId){
+      getAllCode();
+    }
+  }, [formData.employeeType]);
+
+  const getAllCode = async () => {
+    try {
+      const response = await apiCalls('get', `master/generateEmployeeCode?employeeType=${formData.employeeType}&orgId=${orgId}`);
+      console.log('API Response:', response);
+
+      if (response.status === true) {
+          setFormData((prev) => ({
+    ...prev,
+    employeeCode: response?.paramObjectsMap?.employeeCode || "",
+  }));
+      } else {
+        console.error('API Error:', response);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
   const getAllBranches = async () => {
     try {
       const branchData = await getAllActiveBranches(orgId);
@@ -500,10 +532,17 @@ const EmployeeProfile = () => {
           branchCode: selectedBranch ? selectedBranch.branchCode : ''
         }));
       } else {
+        // if (name === 'email') {
+        //   inputValue = value.toLowerCase();
+        // } else if (type === 'text' || type === 'textarea') {
+        //   inputValue = value.toUpperCase();
+        // }
         if (name === 'email') {
           inputValue = value.toLowerCase();
-        } else if (type === 'text' || type === 'textarea') {
+        } else if ((type === 'text' || type === 'textarea') && name !== 'bankName' && name !== 'employeeAddress') {
           inputValue = value.toUpperCase();
+        } else {
+          inputValue = value;
         }
 
         setFormData((prevData) => ({ ...prevData, [name]: inputValue }));
@@ -606,7 +645,7 @@ const EmployeeProfile = () => {
       employeeType: '',
       contractor: '',
       employeeName: '',
-      employeeCode: '',
+      employeeCode: "",
       bioId: '',
       employeeAddress: '',
       otApplicable: '',
@@ -636,7 +675,7 @@ const EmployeeProfile = () => {
       esiFlag: false,
       esiPercentage: '',
       pfFlag: false,
-      pfPercentage: '',
+      pfPercentage: 0,
       branchCode: '',
       profileImage: ''
     });
@@ -734,6 +773,7 @@ const EmployeeProfile = () => {
 
       const saveFormData = {
         ...(editId && { id: editId }),
+        ...(editId && { employeeCode: formData.employeeCode }),
         aadharNo: parseInt(formData.aadhaarNo),
         bankName: formData.bankName,
         accountNo: formData.accountNo,
@@ -757,7 +797,8 @@ const EmployeeProfile = () => {
         email: formData.email,
         employeeAddress: formData.employeeAddress,
         otFlag: formData.otApplicable,
-        employeeCode: formData.employeeCode,
+        // employeeCode: '',
+       
         bioId: formData.bioId,
         employeeLeaveDTO: detailsVo,
         employeeName: formData.employeeName,
@@ -920,11 +961,11 @@ const EmployeeProfile = () => {
       prev.map((r) =>
         r.id === row.id
           ? {
-            ...r,
-            leaveType: newValue ? newValue.leaveType : '',
-            leaveCode: newValue ? newValue.leaveCode : '',
-            totalLeave: newValue ? newValue.totalLeave : ''
-          }
+              ...r,
+              leaveType: newValue ? newValue.leaveType : '',
+              leaveCode: newValue ? newValue.leaveCode : '',
+              totalLeave: newValue ? newValue.totalLeave : ''
+            }
           : r
       )
     );
@@ -1016,7 +1057,7 @@ const EmployeeProfile = () => {
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
-    // 
+    //
     const title = 'Employee Details';
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -1027,15 +1068,7 @@ const EmployeeProfile = () => {
     const titleX = (pageW - (titleWidth + titlePaddingX * 2)) / 2;
     const titleY = 15;
     doc.setFillColor(220, 240, 255);
-    doc.roundedRect(
-      titleX,
-      titleY - titlePaddingY,
-      titleWidth + titlePaddingX * 2,
-      titleHeight,
-      4,
-      4,
-      'F'
-    );
+    doc.roundedRect(titleX, titleY - titlePaddingY, titleWidth + titlePaddingX * 2, titleHeight, 4, 4, 'F');
     doc.setTextColor(40, 40, 40);
     doc.text(title, pageW / 2, titleY + 3, { align: 'center' });
     if (logo) {
@@ -1052,12 +1085,13 @@ const EmployeeProfile = () => {
             formatValue(row.department),
             formatValue(row.designation),
             formatValue(row.mobileNo),
-            formatValue(row.active === true ? 'Active' : 'Inactive'),
-          ]
+            formatValue(row.active === true ? 'Active' : 'Inactive')
+          ];
         }),
 
         styles: {
-          fontSize: 8, cellPadding: 2,
+          fontSize: 8,
+          cellPadding: 2,
           lineColor: [200, 200, 200],
           lineWidth: 0.1
         },
@@ -1070,35 +1104,19 @@ const EmployeeProfile = () => {
           3: { halign: 'left' },
           4: { halign: 'left' },
           5: { halign: 'right' },
-          6: { halign: 'left' },
-
+          6: { halign: 'left' }
         },
 
         didDrawPage: (data) => {
           const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
           doc.setFontSize(8).setTextColor('#555555');
-          doc.text(
-            `Print On: ${dayjs().format('DD-MM-YYYY hh:mm A')}`,
-            pageW - 15,
-            pageH - 10,
-            { align: 'right' }
-          );
-          doc.text(
-            `Employee Details - ${currentPage}`,
-            pageW / 2,
-            pageH - 10,
-            { align: 'center' }
-          );
-          doc.text(
-            `Printed By: ${loginUserName}`,
-            15,
-            pageH - 10,
-            { align: 'left' }
-          );
+          doc.text(`Print On: ${dayjs().format('DD-MM-YYYY hh:mm A')}`, pageW - 15, pageH - 10, { align: 'right' });
+          doc.text(`Employee Details - ${currentPage}`, pageW / 2, pageH - 10, { align: 'center' });
+          doc.text(`Printed By: ${loginUserName}`, 15, pageH - 10, { align: 'left' });
         }
       });
     }
-    // 
+    //
     doc.save(`Employee_Details.pdf`);
   };
 
@@ -1131,14 +1149,14 @@ const EmployeeProfile = () => {
         console.error('Error adding logo:', err);
       }
     }
-    // 
+    //
     const allBorders = {
       top: { style: 'thin' },
       left: { style: 'thin' },
       bottom: { style: 'thin' },
       right: { style: 'thin' }
     };
-    // 
+    //
     const titleRow = sheet.getRow(2);
     sheet.mergeCells('C2:H3');
     const titleCell = sheet.getCell('C2');
@@ -1162,9 +1180,7 @@ const EmployeeProfile = () => {
       cell.border = allBorders;
     }
     // --- Define headers ---
-    const headers = [
-      'Name', 'Type', 'Code', 'Department', 'Designation', 'Mobile', 'Active'
-    ];
+    const headers = ['Name', 'Type', 'Code', 'Department', 'Designation', 'Mobile', 'Active'];
 
     const columnWidths = headers.map(() => ({ width: 20 }));
     sheet.columns = headers.map((header, i) => ({
@@ -1195,8 +1211,8 @@ const EmployeeProfile = () => {
         formatValue(row.department),
         formatValue(row.designation),
         formatValue(row.mobileNo),
-        formatValue(row.active === true ? 'Active' : 'Inactive'),
-      )
+        formatValue(row.active === true ? 'Active' : 'Inactive')
+      );
 
       const dataRow = sheet.addRow(rowData);
 
@@ -1281,7 +1297,6 @@ const EmployeeProfile = () => {
             }}
           />
           {!showForm && (
-
             <Tooltip title="Download PDF">
               <IconButton onClick={() => handleDownloadPDF({ logo: companyDetails[0]?.companyLogo })} isLoading={isLoading}>
                 <PictureAsPdfIcon color="error" />
@@ -1468,10 +1483,11 @@ const EmployeeProfile = () => {
                   fullWidth
                   name="employeeCode"
                   value={formData.employeeCode}
-                  onChange={handleInputChange}
+                  disabled
+                  // onChange={handleInputChange}
                   error={!!fieldErrors.employeeCode}
                   helperText={fieldErrors.employeeCode}
-                // disabled={isViewMode}
+                  // disabled={isViewMode}
                 />
               </div>
 
@@ -1594,8 +1610,8 @@ const EmployeeProfile = () => {
                           textField: { size: 'small', clearable: true }
                         }}
                         format="DD-MM-YYYY"
-                      // error={fieldErrors.resignationDate}
-                      // helperText={fieldErrors.resignationDate && 'Required'}
+                        // error={fieldErrors.resignationDate}
+                        // helperText={fieldErrors.resignationDate && 'Required'}
                       />
                     </LocalizationProvider>
                   </FormControl>
@@ -1770,8 +1786,8 @@ const EmployeeProfile = () => {
                     value={formData.otApplicable}
                     onChange={handleInputChange}
                   >
-                    <MenuItem value="YES">YES</MenuItem>
-                    <MenuItem value="NO">NO</MenuItem>
+                    <MenuItem value="YES">Yes</MenuItem>
+                    <MenuItem value="N)">No</MenuItem>
                   </Select>
                   {fieldErrors.otApplicable && <FormHelperText>{fieldErrors.otApplicable}</FormHelperText>}
                 </FormControl>
@@ -1894,16 +1910,10 @@ const EmployeeProfile = () => {
                       }}
                     />
                   )}
-                  <Dialog
-                    open={previewOpen}
-                    onClose={() => setPreviewOpen(false)}
-                    maxWidth="sm"
-                    fullWidth
-                  >
+                  <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="sm" fullWidth>
                     <DialogTitle
                       sx={{
-                        background:
-                          'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
+                        background: 'linear-gradient(193deg, rgb(58, 107, 109) 30%, rgb(42, 75, 77) 90%)',
                         color: '#fff',
                         fontWeight: 600
                       }}
@@ -1941,10 +1951,7 @@ const EmployeeProfile = () => {
                     </DialogContent>
 
                     <DialogActions sx={{ p: 2 }}>
-                      <Button
-                        onClick={() => setPreviewOpen(false)}
-                        variant="contained"
-                      >
+                      <Button onClick={() => setPreviewOpen(false)} variant="contained">
                         Close
                       </Button>
                     </DialogActions>
@@ -2123,8 +2130,8 @@ const EmployeeProfile = () => {
                   name="bankName"
                   value={formData.bankName}
                   onChange={handleInputChange}
-                // error={!!fieldErrors.bankName}
-                // helperText={fieldErrors.bankName}
+                  // error={!!fieldErrors.bankName}
+                  // helperText={fieldErrors.bankName}
                 />
               </div>
 
