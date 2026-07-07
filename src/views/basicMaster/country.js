@@ -42,8 +42,8 @@ export const Country = () => {
 
   const [listView, setListView] = useState(false);
   const listViewColumns = [
-    { accessorKey: 'countryCode', header: 'Code', size: 140 },
     { accessorKey: 'countryName', header: 'Country', size: 140 },
+    { accessorKey: 'countryCode', header: 'Code', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
   ];
   const [listViewData, setListViewData] = useState([]);
@@ -118,32 +118,72 @@ export const Country = () => {
 
   const handleInputChange = (e) => {
     const { name, value, selectionStart, selectionEnd, type } = e.target;
-    const codeRegex = /^[A-Za-z]*$/;
+
+    const codeRegex = /^[A-Z]*$/;
     const nameRegex = /^[A-Za-z ]*$/;
 
-    if (name === 'countryCode' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'countryCode' && value.length > 3) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Max Length is 3' });
-    } else if (name === 'countryName' && !nameRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'countryName' && value.length > 57) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else {
-      setFormData({ ...formData, [name]: value.toUpperCase() });
-      setFieldErrors({ ...fieldErrors, [name]: '' });
+    let newValue = value;
 
-      // Update the cursor position after the input change
-      if (type === 'text' || type === 'textarea') {
-        setTimeout(() => {
-          const inputElement = document.getElementsByName(name)[0];
-          if (inputElement) {
-            inputElement.setSelectionRange(selectionStart, selectionEnd);
-          }
-        }, 0);
+    if (name === "countryCode") {
+      newValue = value.toUpperCase();
+
+      if (!codeRegex.test(newValue)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          countryCode: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (newValue.length > 3) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          countryCode: "Max Length is 3",
+        }));
+        return;
       }
     }
+
+    if (name === "countryName") {
+      newValue = value;
+
+      if (!nameRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          countryName: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (newValue.length > 57) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          countryName: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const input = document.getElementsByName(name)[0];
+        if (input) {
+          input.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }, 0);
+    }
   };
+
   const handleClear = () => {
     setFormData({
       countryName: '',
@@ -331,19 +371,6 @@ export const Country = () => {
             <div className="row">
               <div className="col-md-3 mb-3">
                 <TextField
-                  label="Code"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  name="countryCode"
-                  value={formData.countryCode}
-                  onChange={handleInputChange}
-                  error={!!fieldErrors.countryCode}
-                  helperText={fieldErrors.countryCode}
-                />
-              </div>
-              <div className="col-md-3 mb-3">
-                <TextField
                   label="Name"
                   variant="outlined"
                   size="small"
@@ -353,6 +380,19 @@ export const Country = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.countryName}
                   helperText={fieldErrors.countryName}
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <TextField
+                  label="Code"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  name="countryCode"
+                  value={formData.countryCode}
+                  onChange={handleInputChange}
+                  error={!!fieldErrors.countryCode}
+                  helperText={fieldErrors.countryCode}
                 />
               </div>
               <div className="col-md-3 mb-3">

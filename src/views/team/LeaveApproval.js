@@ -43,13 +43,13 @@ const LeaveApproval = () => {
   const listViewColumns = [
     { accessorKey: 'employeeName', header: 'Name', size: 140 },
     { accessorKey: 'employeeCode', header: 'Code', size: 140 },
-    { accessorKey: 'employeeEmail', header: 'Email', size: 140 },
-    { accessorKey: 'reason', header: 'Reason', size: 140 },
     { accessorKey: 'leaveType', header: 'Leave Type', size: 140 },
-    { accessorKey: 'totalDays', header: 'Total Days', size: 140 },
     { accessorKey: 'startDate', header: 'Start Date', size: 140 },
     { accessorKey: 'endDate', header: 'End Date', size: 140 },
-    { accessorKey: 'screenName', header: 'Screen Name', size: 140 }
+    { accessorKey: 'totalDays', header: 'Total Days', size: 140 },
+    { accessorKey: 'employeeEmail', header: 'Email', size: 140 },
+    { accessorKey: 'reason', header: 'Reason', size: 140 },
+    // { accessorKey: 'screenName', header: 'Screen Name', size: 140 }
   ];
 
   return (

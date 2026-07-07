@@ -34,12 +34,12 @@ export const Designation = () => {
   });
   const [listView, setListView] = useState(false);
   const listViewColumns = [
-    { accessorKey: 'designationCode', header: 'Designation Code', size: 140 },
     {
       accessorKey: 'designationName',
       header: 'Designation',
       size: 140
     },
+    { accessorKey: 'designationCode', header: 'Designation Code', size: 140 },
     { accessorKey: 'expenseLimit', header: 'Expense Limit', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
   ];
@@ -83,28 +83,82 @@ export const Designation = () => {
   };
   const handleInputChange = (e) => {
     const { name, value, selectionStart, selectionEnd, type } = e.target;
-    const codeRegex = /^[a-zA-Z- ]*$/;
-    if (name === 'designationCode' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'designationCode' && value.length > 10) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else if (name === 'designationName' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'designationName' && value.length > 50) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else {
-      setFormData({ ...formData, [name]: value.toUpperCase() });
-      setFieldErrors({ ...fieldErrors, [name]: '' });
 
-      // Update the cursor position after the input change
-      if (type === 'text' || type === 'textarea') {
-        setTimeout(() => {
-          const inputElement = document.getElementsByName(name)[0];
-          if (inputElement) {
-            inputElement.setSelectionRange(selectionStart, selectionEnd);
-          }
-        }, 0);
+    const codeRegex = /^[A-Za-z- ]*$/;
+    const numericRegex = /^\d*$/;
+
+    // Validation
+    if (name === "designationCode") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          designationCode: "Only Alphabets Allowed",
+        }));
+        return;
       }
+
+      if (value.length > 10) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          designationCode: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    if (name === "designationName") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          designationName: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 50) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          designationName: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    if (name === "expenseLimit") {
+      if (!numericRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          expenseLimit: "Only Numbers Allowed",
+        }));
+        return;
+      }
+    }
+
+    let newValue = value;
+
+    // Only Designation Code should be uppercase
+    if (name === "designationCode") {
+      newValue = value.toUpperCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }, 0);
     }
   };
 

@@ -761,9 +761,9 @@ const AttendenceProcess = () => {
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
             {/* <ActionButton title="Search" icon={SearchIcon} onClick={getAllLeaveProcess} /> */}
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             {/* <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} /> */}
             <ActionButton title="Save" icon={SaveIcon} isLoading={isSaveLoading} onClick={handleSave} />
+            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             <ActionButton
               title="Upload"
               icon={UploadIcon}
@@ -1100,10 +1100,10 @@ const AttendenceProcess = () => {
                                       <strong>#</strong>
                                     </TableCell>
                                     <TableCell align='center' sx={{ color: 'white' }}>
-                                      <strong>Code</strong>
+                                      <strong>Name</strong>
                                     </TableCell>
                                     <TableCell align='center' sx={{ color: 'white' }}>
-                                      <strong>Name</strong>
+                                      <strong>Code</strong>
                                     </TableCell>
                                     {/* {formData.branch === 'All' && (
                                       <TableCell>
@@ -1150,8 +1150,8 @@ const AttendenceProcess = () => {
                                     filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                                       <TableRow key={row.employeeCode || index} hover>
                                         <TableCell align='center'>{page * rowsPerPage + index + 1}</TableCell>
-                                        <TableCell align='left'>{row.employeeCode}</TableCell>
                                         <TableCell align='left'>{row.employeeName}</TableCell>
+                                        <TableCell align='left'>{row.employeeCode}</TableCell>
                                         {/* {formData.branch === 'All' && <TableCell>{row.branch}</TableCell>} */}
                                         {formData.department === 'All' && <TableCell align='left'>{row.department}</TableCell>}
                                         <TableCell align='right'>{formatNumber(row.totalDays)}</TableCell>
@@ -1396,9 +1396,6 @@ const AttendenceProcess = () => {
                         }}
                       />
                     </TableCell>
-                    <TableCell align='center' style={{ background: 'linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%)', color: '#e9dcdc' }}>
-                      <strong>Code</strong>
-                    </TableCell>
                     <TableCell
                       align='center'
                       style={{
@@ -1407,6 +1404,9 @@ const AttendenceProcess = () => {
                       }}
                     >
                       <strong>Name</strong>
+                    </TableCell>
+                    <TableCell align='center' style={{ background: 'linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%)', color: '#e9dcdc' }}>
+                      <strong>Code</strong>
                     </TableCell>
                     {/* {formData.branch === 'All' && (
                       <TableCell
@@ -1522,8 +1522,8 @@ const AttendenceProcess = () => {
                         <TableCell padding="checkbox">
                           <Checkbox checked={isItemSelected} onChange={() => handleClick(row.employeeCode)} />
                         </TableCell>
-                        <TableCell align='left'>{row.employeeCode}</TableCell>
                         <TableCell align='left'>{row.employeeName}</TableCell>
+                        <TableCell align='left'>{row.employeeCode}</TableCell>
                         {/* {formData.branch === 'All' && <TableCell>{row.branch}</TableCell>} */}
                         {formData.department === 'All' && <TableCell align='left'>{row.department}</TableCell>}
                         <TableCell align='right'>{formatNumber(row.totalDays)}</TableCell>

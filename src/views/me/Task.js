@@ -693,8 +693,8 @@ const Task = () => {
       <div className="row d-flex ml">
         <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
           {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
-          <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
-          <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
+          {/* <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+          <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} /> */}
           <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} />
           <ActionButton title="Report" icon={DescriptionTwoToneIcon} onClick={handleReportIconClick} />
         </div>

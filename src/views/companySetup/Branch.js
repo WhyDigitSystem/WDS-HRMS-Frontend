@@ -204,68 +204,106 @@ const Branch = () => {
 
   const handleInputChange = (e) => {
     const { name, value, checked, selectionStart, selectionEnd, type } = e.target;
+
     const nameRegex = /^[A-Za-z ]*$/;
     const branchNameRegex = /^[A-Za-z0-9@_\-* ]*$/;
-    const branchCodeRegex = /^[a-zA-Z0-9#_\-\/\\]*$/;
+    const branchCodeRegex = /^[A-Za-z0-9#_\-\/\\]*$/;
     const alphanumericRegex = /^[A-Za-z0-9]*$/;
     const numericRegex = /^[0-9]*$/;
 
-    let newValue = value.toUpperCase();
-    let error = '';
+    let error = "";
 
-    if (name === 'branchCode') {
+    // Branch Code
+    if (name === "branchCode") {
       if (!branchCodeRegex.test(value)) {
-        error = 'Only alphanumeric characters and @, _, -, /, are allowed';
+        error = "Only alphanumeric characters and @, _, -, / are allowed";
       }
-    } else if (name === 'branchName') {
-      if (!branchNameRegex.test(value)) {
-        error = 'Only alphanumeric characters and @, _, -, * are allowed';
-      }
-    } else if (name === 'gst') {
-      if (!alphanumericRegex.test(value)) {
-        error = 'Special Characters are not allowed';
-      } else if (value.length > 15) {
-        error = 'Only 15 characters are allowed';
-      }
-    } else if (name === 'pincode') {
-      if (!numericRegex.test(value)) {
-        error = 'Only numeric characters are allowed';
-      } else if (value.length > 6) {
-        error = 'Only 6 digits are allowed';
-        newValue = value.slice(0, 6);
-      }
-    } else if (name === 'mobile') {
-      if (!numericRegex.test(value)) {
-        error = 'Only numeric characters are allowed';
-      } else if (value.length > 10) {
-        error = 'Only 10 digits are allowed';
-        newValue = value.slice(0, 10); // Limit to 10 digits
-      }
-    } else if (name === 'active') {
-      newValue = checked;
-    } else if (name === 'email') {
-      newValue = value; // Preserve email case
     }
 
-    // Update error state
-    setFieldErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: error
+    // Branch Name
+    if (name === "branchName") {
+      if (!branchNameRegex.test(value)) {
+        error = "Only alphanumeric characters and @, _, -, * are allowed";
+      }
+    }
+
+    // Contact Person
+    if (name === "contactPerson") {
+      if (!nameRegex.test(value)) {
+        error = "Only Alphabets Allowed";
+      }
+    }
+
+    // GST
+    if (name === "gst") {
+      if (!alphanumericRegex.test(value)) {
+        error = "Special Characters are not allowed";
+      } else if (value.length > 15) {
+        error = "Only 15 Characters are allowed";
+      }
+    }
+
+    // Mobile
+    if (name === "mobile") {
+      if (!numericRegex.test(value)) {
+        error = "Only numeric characters are allowed";
+      } else if (value.length > 10) {
+        error = "Only 10 Digits are allowed";
+      }
+    }
+
+    // Pincode
+    if (name === "pincode") {
+      if (!numericRegex.test(value)) {
+        error = "Only numeric characters are allowed";
+      } else if (value.length > 6) {
+        error = "Only 6 Digits are allowed";
+      }
+    }
+
+    if (error) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+      return;
+    }
+
+    let newValue = value;
+
+    // Only these fields should be uppercase
+    if (name === "branchCode" || name === "gst") {
+      newValue = value.toUpperCase();
+    }
+
+    // Limit numeric fields
+    if (name === "mobile") {
+      newValue = value.slice(0, 10);
+    }
+
+    if (name === "pincode") {
+      newValue = value.slice(0, 6);
+    }
+
+    if (name === "active") {
+      newValue = checked;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
     }));
 
-    // Only update form data if there's no error
-    if (!error) {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: newValue
-      }));
-    }
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
 
-    // Handle cursor position for text, textarea, and email fields
-    if (type === 'text' || type === 'textarea' || type === 'email') {
+    // Maintain cursor position
+    if (type === "text" || type === "textarea" || type === "email") {
       setTimeout(() => {
         const inputElement = document.getElementsByName(name)[0];
-        if (inputElement) {
+        if (inputElement && inputElement.setSelectionRange) {
           inputElement.setSelectionRange(selectionStart, selectionEnd);
         }
       }, 0);
@@ -435,10 +473,9 @@ const Branch = () => {
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start mb-4" style={{ marginBottom: '20px' }}>
-            <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
-            <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={() => handleSave()} margin="0 10px 0 10px" />
+            <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={() => handleSave()} />
+            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
           </div>
         </div>
         {listView ? (
@@ -501,8 +538,8 @@ const Branch = () => {
                   name="contactPerson"
                   value={formData.contactPerson}
                   onChange={handleInputChange}
-                  // error={!!fieldErrors.contactPerson}
-                  // helperText={fieldErrors.contactPerson}
+                // error={!!fieldErrors.contactPerson}
+                // helperText={fieldErrors.contactPerson}
                 />
               </div>
               <div className="col-md-3 mb-3">
@@ -514,8 +551,8 @@ const Branch = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  // error={!!fieldErrors.email}
-                  // helperText={fieldErrors.email}
+                // error={!!fieldErrors.email}
+                // helperText={fieldErrors.email}
                 />
               </div>
               <div className="col-md-3 mb-3">

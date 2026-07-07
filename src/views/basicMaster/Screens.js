@@ -31,12 +31,12 @@ export const Screens = () => {
   const [listView, setListView] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const listViewColumns = [
-    { accessorKey: 'screenCode', header: 'Code', size: 140 },
     {
       accessorKey: 'screenName',
       header: 'Screens',
       size: 140
     },
+    { accessorKey: 'screenCode', header: 'Code', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
   ];
   const [listViewData, setListViewData] = useState([]);
@@ -175,14 +175,13 @@ export const Screens = () => {
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start mb-4" style={{ marginBottom: '20px' }}>
             <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             <ActionButton
               title="Save"
               icon={SaveIcon}
               isLoading={isLoading}
               onClick={() => handleSave()}
-              margin="0 10px 0 10px"
-            /> &nbsp;{' '}
+            />
+            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
           </div>
         </div>
         {listView ? (
@@ -200,19 +199,6 @@ export const Screens = () => {
             <div className="row">
               <div className="col-md-3 mb-3">
                 <TextField
-                  label="Code"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  name="screenCode"
-                  value={formData.screenCode}
-                  onChange={handleInputChange}
-                  error={!!fieldErrors.screenCode}
-                  helperText={fieldErrors.screenCode}
-                />
-              </div>
-              <div className="col-md-3 mb-3">
-                <TextField
                   label="Name"
                   variant="outlined"
                   size="small"
@@ -222,6 +208,19 @@ export const Screens = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.screenName}
                   helperText={fieldErrors.screenName}
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <TextField
+                  label="Code"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  name="screenCode"
+                  value={formData.screenCode}
+                  onChange={handleInputChange}
+                  error={!!fieldErrors.screenCode}
+                  helperText={fieldErrors.screenCode}
                 />
               </div>
               <div className="col-md-3 mb-3">

@@ -233,14 +233,13 @@ export const LeaveAssigned = () => {
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start mb-4" style={{ marginBottom: '20px' }}>
             <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             <ActionButton
               title="Save"
               icon={SaveIcon}
               isLoading={isLoading}
               onClick={() => handleSave()}
-              margin="0 10px 0 10px"
-            /> &nbsp;{' '}
+            />
+            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
           </div>
         </div>
         {listView ? (

@@ -734,9 +734,7 @@ const TimeSheet = () => {
     <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
       <div className="row d-flex ml">
         <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-          <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-          <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
-          <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
+          {/* <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} /> */}
           <ActionButton
             title="Save"
             icon={SaveIcon}
@@ -745,6 +743,7 @@ const TimeSheet = () => {
             // margin="0 10px 0 10px"
           />
           <ActionButton title="Report" icon={DescriptionTwoToneIcon} onClick={handleReportIconClick} />
+          {/* <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} /> */}
         </div>
       </div>
       <div>

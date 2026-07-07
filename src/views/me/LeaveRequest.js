@@ -757,10 +757,8 @@ const LeaveRequest = () => {
             {/* ✅ BUTTON ROW */}
             <div
               className="d-flex flex-wrap justify-content-start align-items-center"
-              style={{ gap: '10px' }}
+              style={{ gap: '0px' }}
             >
-              <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-              <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
               <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
               <ActionButton
                 title="Save"
@@ -768,6 +766,7 @@ const LeaveRequest = () => {
                 isLoading={isLoading}
                 onClick={handleSave}
               />
+              <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             </div>
 
             {/* ✅ LEAVE BALANCE ROW */}
@@ -942,7 +941,7 @@ const LeaveRequest = () => {
               {/* Notes */}
               <div className="col-md-3 mb-3">
                 <TextField
-                  label="Remarks"
+                  label="Reason"
                   variant="outlined"
                   size="small"
                   fullWidth

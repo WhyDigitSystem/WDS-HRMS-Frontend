@@ -547,15 +547,15 @@ export const Comp_Off = () => {
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start mb-4" style={{ marginBottom: '20px' }}>
             {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
-            <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+            {/* <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} /> */}
+            
             <ActionButton
               title="Save"
               icon={SaveIcon}
               isLoading={isLoading}
               onClick={() => handleSave()}
-              margin="0 10px 0 10px"
-            /> &nbsp;{' '}
+            />
+            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
           </div>
         </div>
         <>
@@ -586,16 +586,16 @@ export const Comp_Off = () => {
                           S.No
                         </th>
                         <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
-                          Compensatory Off Date
+                          Comp Off Date
                         </th>
                         <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
-                          Compensatory Off Day
+                          Comp Off Day
                         </th>
                         <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
                           Assigned By
                         </th>
                         <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
-                          Area of Description
+                          Remarks
                         </th>
                         <th className="px-2 py-2 text-center" style={{ width: '200px' }}>
                           Notify
