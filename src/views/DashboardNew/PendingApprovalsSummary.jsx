@@ -871,9 +871,30 @@ const PendingApprovalsSummary = () => {
         </Box>
       );
     }
-    else {
+    else if (request.screenName === 'COMPENSATORY OFF') {
       return (
         <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={4}>
+          <Box>
+            <Typography sx={{ fontSize: '0.72rem', color: '#7b8794', mb: 0.5, textTransform: 'uppercase' }}>Type</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#334155' }}>{request.screenName || '-'}</Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: '0.72rem', color: '#7b8794', mb: 0.5, textTransform: 'uppercase' }}>Date</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#334155' }}>
+                 {dayjs(request.compOffDate).format('DD-MM-YYYY')}
+            </Typography>
+          </Box>
+           <Box>
+            <Typography sx={{ fontSize: '0.72rem', color: '#7b8794', mb: 0.5, textTransform: 'uppercase' }}>Reason</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#334155' }}>{request.reason || '-'}</Typography>
+          </Box>
+         
+        </Box>
+      );
+    }
+    else {
+      return (
+        <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={2}>
           <Box>
             <Typography sx={{ fontSize: '0.72rem', color: '#7b8794', mb: 0.5, textTransform: 'uppercase' }}>Type</Typography>
             <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#334155' }}>{request.screenName || '-'}</Typography>
