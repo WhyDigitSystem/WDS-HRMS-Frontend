@@ -56,7 +56,7 @@ const SupportTickets = () => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const userType = localStorage.getItem('userType');
-
+const [email, setEmail] = useState(localStorage.getItem('email'));
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [detailDialog, setDetailDialog] = useState(false);
   const [tickets, setTickets] = useState([]);
@@ -155,7 +155,8 @@ const SupportTickets = () => {
       status: ticket.status,
       userName: loginUserName,
       orgId: orgId,
-      createdBy: loginUserName
+      createdBy: loginUserName,
+      email: email
     };
 
     try {
