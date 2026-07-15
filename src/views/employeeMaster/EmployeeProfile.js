@@ -1787,7 +1787,7 @@ const EmployeeProfile = () => {
                     onChange={handleInputChange}
                   >
                     <MenuItem value="YES">Yes</MenuItem>
-                    <MenuItem value="N)">No</MenuItem>
+                    <MenuItem value="No">No</MenuItem>
                   </Select>
                   {fieldErrors.otApplicable && <FormHelperText>{fieldErrors.otApplicable}</FormHelperText>}
                 </FormControl>
