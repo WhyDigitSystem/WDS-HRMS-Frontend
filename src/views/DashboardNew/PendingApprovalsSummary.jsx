@@ -78,7 +78,7 @@ const PendingApprovalsSummary = () => {
       setLoading(true);
 
       // ================= ADMIN FLOW =================
-      if (userType === 'ADMIN') {
+      if (userType) {
         const [leaveResponse, permissionResponse, compoOffResponse, checkInOutResult, incrementResponse, expenseClaims, travelExpense, WFHResponse] =
           await Promise.all([
             apiCalls(
@@ -1040,7 +1040,7 @@ const PendingApprovalsSummary = () => {
               </Typography>
             </Box>
             <Box display="flex" alignItems="center" gap={1}>
-              {isAdmin && leaveRequests.length > 0 && (
+              {leaveRequests.length > 0 && (
                 <Button
                   variant="contained"
                   color="success"
@@ -1128,7 +1128,7 @@ const PendingApprovalsSummary = () => {
 
                     {renderRequestDetails(request)}
 
-                    {isAdmin && <ActionButtons request={request} />}
+                    {leaveRequests.length > 0 && <ActionButtons request={request} />}
                   </ListItem>
                 ))}
               </List>
