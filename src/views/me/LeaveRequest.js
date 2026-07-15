@@ -715,7 +715,7 @@ const LeaveRequest = () => {
       if (selectedLeave) {
         const availableLeaveDays = parseFloat(selectedLeave.leaveDays);
 
-        if (workingDays > availableLeaveDays && formData.leaveType !== 'LOSS OF PAY' && formData.leaveType !== 'COMPENSATORY OFF') {
+        if (workingDays > availableLeaveDays && formData.leaveType !== 'Loss Of Pay') {
           showErrorDialog(`You have only ${availableLeaveDays} day available for ${formData.leaveType}.`);
           setFormData((prevData) => ({
             ...prevData,
