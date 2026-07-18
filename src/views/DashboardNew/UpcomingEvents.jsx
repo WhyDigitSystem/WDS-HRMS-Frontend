@@ -142,7 +142,8 @@ const UpcomingEvents = () => {
     const fetchAnniversaries = async () => {
         try {
             const result = await apiCalls('get', `/basicmaster/Getworkaniversary?orgId=${orgId}`);
-            if (result?.status && result?.paramObjectsMap?.employee?.length > 0) {
+            if (result?.status  && result?.paramObjectsMap?.employee?.length > 0) {
+                console.log(result,'Sheik');
                 const today = dayjs();
                 const endDate = today.add(30, 'day');
 
@@ -168,7 +169,8 @@ const UpcomingEvents = () => {
                             isToday: anniversaryThisYear.isSame(today, 'day')
                         };
                     })
-                    .filter(emp => emp.isWithinRange)
+                    // .filter(emp => emp.isWithinRange)
+                    .filter(emp => emp.isWithinRange || emp.isToday)
                     .sort((a, b) => a.daysUntil - b.daysUntil)
                     .slice(0, 3);
 

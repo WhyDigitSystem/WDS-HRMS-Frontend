@@ -140,6 +140,9 @@ const RecruitmentManagement = Loadable(lazy(() => import('views/recruitmentManag
 const EmployeeSeparationModule = Loadable(lazy(() => import('views/SeparationManagement/employeeSeparationModule')));
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
+const EscalationReport = Loadable(lazy(() => import('views/team/EscalationReport')));
+
+
 const HrmsRoute = {
   path: '/',
   element: (
@@ -448,6 +451,10 @@ const HrmsRoute = {
     {
       path: '/team/payslipGenerate',
       element: <PayslipGenerate />
+    },
+     {
+      path: '/team/escalation',
+      element: <EscalationReport />
     },
     // manageTax
     {

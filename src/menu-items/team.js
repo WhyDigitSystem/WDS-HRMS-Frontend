@@ -113,6 +113,13 @@ const teamChildren = [
     url: '/me/OverAllReport',
     icon: IconFileInvoice
   },
+   hasScreenAccess('ER') && {
+    id: 'escalationReport',
+    title: 'Escalation',
+    type: 'item',
+    url: '/team/escalation',
+    icon: IconFileInvoice
+  },
   // hasScreenAccess('LA') && {
   //   id: 'leaveApproval',
   //   title: 'Leave Approval',

@@ -110,7 +110,7 @@ const meChildren = [
     id: 'task',
     title: 'Task',
     type: 'item',
-    url: '/me/Task',
+    url: '/team/Task',
     icon: IconFileInvoice
   },
 ].filter(Boolean); // filter out inaccessible screens
