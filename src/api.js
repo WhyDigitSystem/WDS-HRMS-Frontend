@@ -4,10 +4,7 @@ import { refreshToken } from 'utils/authUtils';
 
 const api = axios.create({
   baseURL: `${process.env.REACT_APP_API_URL}/api`,
-  timeout: 600000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  timeout: 600000
 });
 
 api.interceptors.request.use(

@@ -49,9 +49,9 @@ export const State = () => {
   });
   const [listView, setListView] = useState(false);
   const listViewColumns = [
+    { accessorKey: 'stateName', header: 'State Name', size: 140 },
     { accessorKey: 'stateCode', header: 'State Code', size: 140 },
     { accessorKey: 'stateNumber', header: 'State No', size: 140 },
-    { accessorKey: 'stateName', header: 'State Name', size: 140 },
     { accessorKey: 'country', header: 'Country', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
   ];
@@ -138,35 +138,91 @@ export const State = () => {
   };
   const handleInputChange = (e) => {
     const { name, value, selectionStart, selectionEnd, type } = e.target;
-    const codeRegex = /^[a-zA-Z]*$/;
+
+    const codeRegex = /^[A-Za-z]*$/;
     const nameRegex = /^[A-Za-z ]*$/;
     const numericRegex = /^[0-9]*$/;
 
-    if (name === 'stateCode' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'stateCode' && value.length > 2) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Max Length is 2' });
-    } else if (name === 'stateNo' && !numericRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Numerics Allowed' });
-    } else if (name === 'stateNo' && value.length > 3) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Max Length is 3' });
-    } else if (name === 'stateName' && !nameRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'stateName' && value.length > 40) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else {
-      setFormData({ ...formData, [name]: value.toUpperCase() });
-      setFieldErrors({ ...fieldErrors, [name]: '' });
-
-      // Update the cursor position after the input change
-      if (type === 'text' || type === 'textarea') {
-        setTimeout(() => {
-          const inputElement = document.getElementsByName(name)[0];
-          if (inputElement) {
-            inputElement.setSelectionRange(selectionStart, selectionEnd);
-          }
-        }, 0);
+    // Validation
+    if (name === "stateCode") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          stateCode: "Only Alphabets Allowed",
+        }));
+        return;
       }
+
+      if (value.length > 2) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          stateCode: "Max Length is 2",
+        }));
+        return;
+      }
+    }
+
+    if (name === "stateNo") {
+      if (!numericRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          stateNo: "Only Numerics Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 3) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          stateNo: "Max Length is 3",
+        }));
+        return;
+      }
+    }
+
+    if (name === "stateName") {
+      if (!nameRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          stateName: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 40) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          stateName: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    // Set value
+    let newValue = value;
+
+    if (name === "stateCode") {
+      newValue = value.toUpperCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }, 0);
     }
   };
 
@@ -354,7 +410,7 @@ export const State = () => {
           <div className="row">
             <div className="col-md-3 mb-3">
               <TextField
-                label="State Name"
+                label="Name"
                 variant="outlined"
                 size="small"
                 fullWidth
@@ -367,7 +423,7 @@ export const State = () => {
             </div>
             <div className="col-md-3 mb-3">
               <TextField
-                label="State Code"
+                label="Code"
                 variant="outlined"
                 size="small"
                 fullWidth

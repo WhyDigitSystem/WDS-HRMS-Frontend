@@ -33,6 +33,7 @@ const LeaveRequest = () => {
   const [department, setDepartment] = useState(localStorage.getItem('department'));
   const [designation, setDesignation] = useState(localStorage.getItem('designation'));
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
+  const [employeeEmail, setEmployeeEmail] = useState(localStorage.getItem('email'));
   const [editId, setEditId] = useState('');
   const [branchList, setBranchList] = useState([]);
   const [companyList, setCompanyList] = useState([]);
@@ -41,6 +42,7 @@ const LeaveRequest = () => {
   const [totalLeaveDays, setTotalLeaveDays] = useState([]);
   const [notifyEmail, setNotifyEmail] = useState('');
   const [allReportingPersonList, setAllReportingPersonList] = useState([]);
+  const [leaveBalance, setLeaveBalance] = useState([]);
   const [formData, setFormData] = useState({
     leaveType: '',
     leaveTypeCode: '',
@@ -160,14 +162,25 @@ const LeaveRequest = () => {
 
   const getLeaveType = async () => {
     try {
-      const result = await apiCalls('get', `leaveprocess/getAllLeaveTypeFromLeaveMaster?employeeCode=${employeeCode}&orgId=${orgId}`);
+      const result = await apiCalls(
+        'get',
+        `leaveprocess/getAllLeaveTypeFromLeaveMaster?employeeCode=${employeeCode}&orgId=${orgId}`
+      );
 
       const formattedLeaveList = result.paramObjectsMap.leaveRequestVO.map((leave) => ({
         ...leave,
-        leaveDays: parseFloat(leave.leaveDays).toString()
+        leaveDays: parseFloat(leave.leaveDays)
       }));
 
       setLeaveTypeList(formattedLeaveList);
+
+      // 🔥 FILTER ONLY AVAILABLE LEAVES (> 0)
+      const availableLeaves = formattedLeaveList.filter(
+        (leave) => leave.leaveDays > 0
+      );
+
+      setLeaveBalance(availableLeaves);
+
     } catch (error) {
       console.error('Error fetching leave types:', error);
     }
@@ -317,13 +330,14 @@ const LeaveRequest = () => {
         designation: designation,
         employeeCode: employeeCode,
         employeeName: employeeName,
+        email: employeeEmail,
         createdBy: loginUserName,
         leaveRequestNotifyDTO: Array.isArray(formData.allNotifyPerson)
           ? formData.allNotifyPerson.map((item) => ({
-              notify2: item.label || '',
-              notify2Code: item.code || '',
-              notify2Email: item.email || ''
-            }))
+            notify2: item.label || '',
+            notify2Code: item.code || '',
+            notify2Email: item.email || ''
+          }))
           : []
       };
 
@@ -340,7 +354,7 @@ const LeaveRequest = () => {
             saveData.id = newId; // 🔁 Add the ID to sendEmailNotification payload
           }
           showToast('success', editId ? 'Leave Request Updated Successfully' : 'Leave Request created successfully');
-          await sendEmailNotification([saveData]);
+          // await sendEmailNotification([saveData]);
           handleClear();
           getLeaveRequestByOrgId();
           setIsLoading(false);
@@ -398,7 +412,7 @@ const LeaveRequest = () => {
       for (const row of newRows) {
         const notify2Emails = (row.leaveRequestNotifyDTO || []).map((p) => p.notify2Email).join(', ');
 
-        const baseURL = 'http://139.5.190.203:8045/pages/confirmationPage/confirmationPage'; // 🔁 Replace with real backend URL
+        const baseURL = 'http://139.5.190.73:8048/pages/confirmationPage/confirmationPage'; // 🔁 Replace with real backend URL
         const approveLink = `${baseURL}?id=${row.id}&action=APPROVED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${row.notifyCode}&notify=${row.notify}&screenName=${row.screenName}`;
         const rejectLink = `${baseURL}?id=${row.id}&action=REJECTED&employeeCode=${row.employeeCode}&actionBy=${employeeName}&orgId=${orgId}&notifyCode=${row.notifyCode}&notify=${row.notify}&screenName=${row.screenName}`;
 
@@ -622,8 +636,25 @@ const LeaveRequest = () => {
   const getCompanyWeekOff = async () => {
     try {
       const result = await apiCalls('get', `commonmaster/company/${orgId}`);
-      const weekOffData = result.paramObjectsMap.companyVO[0].companyWeekOffVO || [];
-      setWeekOff(weekOffData); // Store full objects
+      const weekOffConfig = result?.paramObjectsMap?.companyVO?.[0]?.companyWeekOffVO || [];
+
+      const userDesignation = designation?.toUpperCase()?.trim();
+
+      const filteredWeekOffs = weekOffConfig
+        .filter((off) => {
+          if (!off.type) return false;
+
+          const types = off.type.split(',').map((t) => t.trim().toUpperCase());
+
+          // Allow if designation matches OR type contains ALL
+          return types.includes('ALL') || types.includes(userDesignation);
+        })
+        .map((off) => ({
+          weekOffDays: off.weekOffDays.toUpperCase(),
+          weekNumbers: off.weekNumbers || [-1]
+        }));
+
+      setWeekOff(filteredWeekOffs);
     } catch (error) {
       console.error('Error fetching company week off data:', error);
     }
@@ -675,7 +706,7 @@ const LeaveRequest = () => {
 
       const result = await apiCalls(
         'get',
-        `leaveprocess/calculateLeavedays?fromDate=${formattedFromDate}&orgId=${orgId}&selectLeave=${leaveType || ''}&toDate=${formattedToDate}`
+        `leaveprocess/calculateLeavedays?fromDate=${formattedFromDate}&orgId=${orgId}&selectLeave=${leaveType || ''}&toDate=${formattedToDate}&employeeCode=${employeeCode}`
       );
 
       const workingDays = result.workingDays || 0;
@@ -684,7 +715,7 @@ const LeaveRequest = () => {
       if (selectedLeave) {
         const availableLeaveDays = parseFloat(selectedLeave.leaveDays);
 
-        if (workingDays > availableLeaveDays && formData.leaveType !== 'LOSS OF PAY' && formData.leaveType !== 'COMPENSATORY OFF') {
+        if (workingDays > availableLeaveDays && formData.leaveType !== 'Loss Of Pay') {
           showErrorDialog(`You have only ${availableLeaveDays} day available for ${formData.leaveType}.`);
           setFormData((prevData) => ({
             ...prevData,
@@ -721,11 +752,58 @@ const LeaveRequest = () => {
     <>
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
         <div className="row d-flex ml">
-          <div className="d-flex flex-wrap justify-content-start" style={{ marginBottom: '20px' }}>
-            <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
-            <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
-            <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} margin="0 10px 0 10px" />
+          <div style={{ marginBottom: '20px' }}>
+
+            {/* ✅ BUTTON ROW */}
+            <div
+              className="d-flex flex-wrap justify-content-start align-items-center"
+              style={{ gap: '0px' }}
+            >
+              <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
+              <ActionButton
+                title="Save"
+                icon={SaveIcon}
+                isLoading={isLoading}
+                onClick={handleSave}
+              />
+              <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
+            </div>
+
+            {/* ✅ LEAVE BALANCE ROW */}
+            {leaveBalance.length > 0 && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '10px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '10px',
+                  alignItems: 'center'
+                }}
+              >
+                <span style={{ fontWeight: 600, marginRight: '10px' }}>
+                  Available Leaves:
+                </span>
+
+                {leaveBalance.map((leave) => (
+                  <div
+                    key={leave.leaveTypeCode}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#e0f2fe',
+                      borderRadius: '20px',
+                      fontSize: '13px',
+                      fontWeight: 500
+                    }}
+                  >
+                    {leave.leaveType} : {leave.leaveDays}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         {listView ? (
@@ -735,7 +813,7 @@ const LeaveRequest = () => {
               columns={listViewColumns}
               blockEdit={false}
               toEdit={getLeaveRequestById}
-              // enableEditing={false}
+            // enableEditing={false}
             />
           </div>
         ) : (
@@ -752,8 +830,10 @@ const LeaveRequest = () => {
                   onChange={handleLeaveTypeChange} // Use new function for validation
                   renderOption={(props, option) => {
                     let textColor = '#888';
-                    if (option.leaveDays === '0') textColor = 'red';
-                    else if (parseInt(option.leaveDays) > 5) textColor = 'green';
+                    const days = Number(option.leaveDays);
+
+                    if (days === 0) textColor = 'red';
+                    else if (days > 5) textColor = 'green';
                     else textColor = 'orange';
 
                     return (
@@ -790,8 +870,8 @@ const LeaveRequest = () => {
                         value={formData.fromDate || null}
                         onChange={(newValue) => handleDateChange('fromDate', newValue)}
                         shouldDisableDate={disableWeekOffDays}
-                        // minDate={formData.effectiveFrom ? dayjs(formData.effectiveFrom) : null} // Prevent selecting dates before effectiveFrom
-                        // minDate={getMinSelectableDate()}
+                      // minDate={formData.effectiveFrom ? dayjs(formData.effectiveFrom) : null} // Prevent selecting dates before effectiveFrom
+                      // minDate={getMinSelectableDate()}
                       />
                     ) : (
                       <TextField label="From Date" size="small" value="" placeholder="Select Leave Type First" disabled />
@@ -861,7 +941,7 @@ const LeaveRequest = () => {
               {/* Notes */}
               <div className="col-md-3 mb-3">
                 <TextField
-                  label="Remarks"
+                  label="Reason"
                   variant="outlined"
                   size="small"
                   fullWidth
@@ -931,8 +1011,8 @@ const LeaveRequest = () => {
                   value={
                     Array.isArray(formData.allNotifyPerson)
                       ? allReportingPersonList.filter((person) =>
-                          formData.allNotifyPerson.some((selected) => selected.code === person.code)
-                        )
+                        formData.allNotifyPerson.some((selected) => selected.code === person.code)
+                      )
                       : []
                   }
                   onChange={(event, newValue) => {

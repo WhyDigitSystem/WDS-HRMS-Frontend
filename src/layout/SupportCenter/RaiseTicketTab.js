@@ -36,16 +36,24 @@ const UploadButton = styled(Button)(({ theme }) => ({
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   marginTop: theme.spacing(1),
-  borderRadius: '30px',
+  borderRadius: '10px',
   textTransform: 'none',
-  padding: '5px 15px',
-  background: 'linear-gradient(145deg, #6a11cb, #2575fc)',
+  padding: '6px 16px',
+  background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
   color: '#fff',
-  fontWeight: 400,
-  fontSize: '14px',
-  boxShadow: '0 4px 14px rgba(13, 7, 7, 0.4)',
+  fontWeight: 600,
+  fontSize: '13px',
+  boxShadow: '0 6px 16px rgba(42, 75, 77, 0.25)',
+  transition: 'all 0.2s ease',
+
   '&:hover': {
-    background: 'linear-gradient(135deg, #FF5252, #FFC107)'
+    background: 'linear-gradient(135deg, #4b8587 0%, #355f61 100%)',
+    boxShadow: '0 8px 20px rgba(42, 75, 77, 0.35)',
+    transform: 'translateY(-1px)'
+  },
+
+  '&:active': {
+    transform: 'translateY(0px)'
   }
 }));
 
@@ -82,7 +90,35 @@ const RaiseTicketTab = ({ ticket, handleChange, handleSubmit }) => {
         <Grid item xs={12}>
           <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
             <Box>
-              <UploadButton variant="outlined" component="label" startIcon={<IconCamera size={20} />}>
+              <UploadButton
+                variant="outlined"
+                component="label"
+                startIcon={<IconCamera size={20} />}
+                style={{
+                  textTransform: 'none',
+                  borderRadius: 10,
+                  padding: '6px 16px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  border: '1px solid #3a6b6d',
+                  color: '#2a4b4d',
+                  backgroundColor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(58, 107, 109, 0.08)';
+                  e.currentTarget.style.boxShadow = '0 6px 14px rgba(42, 75, 77, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'translateY(0px)';
+                }}
+              >
                 Upload Screenshot
                 <input type="file" name="image" hidden accept="image/*" onChange={handleChange} />
               </UploadButton>
@@ -117,7 +153,19 @@ const RaiseTicketTab = ({ ticket, handleChange, handleSubmit }) => {
               )}
             </Box>
 
-            <SubmitButton variant="contained" endIcon={<IconSend size={18} />} onClick={handleSubmit}>
+            <SubmitButton
+              variant="contained"
+              endIcon={<IconSend size={18} />}
+              onClick={handleSubmit}
+              style={{
+                background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: 8,
+                paddingLeft: 24,
+                paddingRight: 24
+              }}
+            >
               Submit Ticket
             </SubmitButton>
           </Box>

@@ -19,7 +19,11 @@ import { SnackbarProvider } from 'notistack';
 const container = document.getElementById('root');
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(
-  <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} autoHideDuration={3000}>
+  <SnackbarProvider
+  maxSnack={3}
+  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+  autoHideDuration={3000}
+>
     <Provider store={store}>
       <BrowserRouter basename={config.basename}>
         <App />

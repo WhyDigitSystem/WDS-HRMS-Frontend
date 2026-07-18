@@ -63,6 +63,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
           minWidth: { xs: 'auto', md: 140 },
           display: 'flex',
           alignItems: 'center',
+          gap: '50px'
         }}
       >
         {/* <Box component="span" sx={{ display: { xs: 'none', md: 'block' }, flexGrow: 1 }}>
@@ -74,10 +75,10 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
         <ButtonBase
           sx={{
-            borderRadius: '12px',
-            overflow: 'hidden',
-            display: { xs: 'inline-flex', md: 'none' }, // Visible only on xs (mobile), hidden on sm and up
-            mr: 1
+            borderRadius: '8px',
+            overflow: 'hidden'
+            // display: { xs: 'inline-flex', md: 'none' }, // Visible only on xs (mobile), hidden on sm and up
+            // mr: 1
           }}
         >
           <Avatar
@@ -220,10 +221,10 @@ const Header = ({ handleLeftDrawerToggle }) => {
             display: 'flex',
             flexDirection: 'column',
             minWidth: 0,
-            maxWidth: { sm: 120, md: 160 },
-            cursor: 'pointer'
+            maxWidth: { sm: 120, md: 160 }
+            // cursor: 'pointer'
           }}
-          onClick={() => setLogoPreviewOpen(true)}
+          // onClick={() => setLogoPreviewOpen(true)}
         >
           <Typography
             variant="subtitle2"
@@ -241,20 +242,22 @@ const Header = ({ handleLeftDrawerToggle }) => {
           <Chip
             label={localStorage.getItem('branch') || 'Branch'}
             size="small"
-            color="primary"
             sx={{
-              fontSize: '0.7rem',
               height: 22,
-              px: 0.5,
-              fontWeight: 500,
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              color: '#fff',
+              background: 'rgba(255,255,255,0.18)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.25)',
               maxWidth: '100%',
               '& .MuiChip-label': {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                px: 0.5
+                px: 0.8
               },
-              display: { xs: 'none', sm: 'flex' } // Hide on xs, show on sm and above
+              display: { xs: 'none', sm: 'flex' }
             }}
           />
         </Box>
@@ -262,8 +265,6 @@ const Header = ({ handleLeftDrawerToggle }) => {
 
       {/* Right Side Actions */}
       <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 2 }}>
-
-
         {/* Notification */}
         <NotificationSection />
 

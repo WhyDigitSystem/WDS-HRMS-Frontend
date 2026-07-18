@@ -2,7 +2,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FormatListBulletedTwoToneIcon from '@mui/icons-material/FormatListBulletedTwoTone';
 import SaveIcon from '@mui/icons-material/Save';
 import SearchIcon from '@mui/icons-material/Search';
-import { Avatar, ButtonBase, FormHelperText, Tooltip, TextField, Checkbox, FormControlLabel } from '@mui/material';
+import { Avatar, ButtonBase, FormHelperText, Tooltip, TextField, Checkbox, FormControlLabel, Autocomplete } from '@mui/material';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -29,6 +29,7 @@ export const City = () => {
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [finyearList, setFinyearList] = useState([]);
   const [typeList, setTypeList] = useState([]);
+  const [kpiKraList, setKpiKraList] = useState([]);
 
   const [formData, setFormData] = useState({
     finYear: null,
@@ -48,6 +49,24 @@ export const City = () => {
   });
   const [listView, setListView] = useState(false);
   const [listViewData, setListViewData] = useState([]);
+
+  useEffect(() => {
+    getAllKRAKPIs();
+  }, []);
+
+  const getAllKRAKPIs = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getKpiKraByOrgId?orgId=${orgId}`);
+      if (response.status) {
+        setKpiKraList(response.paramObjectsMap.kpiKraVO || []);
+      } else {
+        showToast('error', response.message || 'Failed to fetch KPIKRA');
+      }
+    } catch (error) {
+      console.error('Error fetching KPIKRA:', error);
+      showToast('error', 'Failed to fetch KPIKRA');
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -148,7 +167,7 @@ export const City = () => {
     const payload = {
       ...(editId && { id: editId }),
       active: formData.active,
-      appraisalId: parseInt(formData.appraisalId),
+      appraisalId: formData.appraisalId,
       createdBy: loginUserName,
       effectiveForm: formData.effectiveFrom,
       effectiveTo: formData.effectiveTo,
@@ -242,6 +261,45 @@ export const City = () => {
                             </div> */}
 
               <div className="col-md-3 mb-3">
+                <Autocomplete
+                  options={kpiKraList}
+                  getOptionLabel={(option) => option.appraisalId || ''}
+
+                  value={kpiKraList.find(
+                    (item) => item.appraisalId === formData.appraisalId
+                  ) || null}
+
+                  onChange={(event, newValue) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      appraisalId: newValue ? newValue.appraisalId : ''
+                    }));
+
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      appraisalId: ''
+                    }));
+                  }}
+
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Appraisal ID"
+                      variant="outlined"
+                      size="small"
+                      error={!!fieldErrors.appraisalId}
+                      helperText={fieldErrors.appraisalId}
+                    />
+                  )}
+
+                  isOptionEqualToValue={(option, value) =>
+                    option.appraisalId === value?.appraisalId
+                  }
+
+                  noOptionsText="No Appraisal IDs found"
+                />
+              </div>
+              <div className="col-md-3 mb-3">
                 <TextField
                   label="Financial Year"
                   variant="outlined"
@@ -267,19 +325,7 @@ export const City = () => {
                   helperText={fieldErrors.type}
                 />
               </div>
-              <div className="col-md-3 mb-3">
-                <TextField
-                  label="Appraise ID"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  name="appraisalId"
-                  value={formData.appraisalId}
-                  onChange={handleInputChange}
-                  error={!!fieldErrors.appraisalId}
-                  helperText={fieldErrors.appraisalId}
-                />
-              </div>
+
               <div className="col-md-3 mb-3">
                 <FormControl fullWidth variant="filled" size="small">
                   <LocalizationProvider dateAdapter={AdapterDayjs}>

@@ -10,20 +10,27 @@ import {
 
 // screen access utility
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
 // Define children based on access
 const attendanceChildren = [
-  hasScreenAccess('MA') && {
-    id: 'monthlyAttendance',
-    title: 'Monthly Attendance',
-    type: 'item',
-    url: '/attendanceProcess/MonthlyAttendance',
-    icon: IconCalendarStats
-  },
+  // hasScreenAccess('MA') && {
+  //   id: 'monthlyAttendance',
+  //   title: 'Monthly Attendance',
+  //   type: 'item',
+  //   url: '/attendanceProcess/MonthlyAttendance',
+  //   icon: IconCalendarStats
+  // },
   hasScreenAccess('AP') && {
     id: 'attendanceProcess',
     title: 'Attendance Process',
@@ -54,9 +61,9 @@ const attendanceChildren = [
   },
   hasScreenAccess('TA') && {
     id: 'todayAttendance',
-    title: 'Today Attendance',
+    title: 'Daily Attendance',
     type: 'item',
-    url: '/team/TodayAttendance',
+    url: '/team/DailyAttendance',
     icon: IconCalendarEvent
   },
 ].filter(Boolean);
@@ -70,7 +77,7 @@ const attendanceProcess =
       children: [
         {
           id: 'attendanceProcessCollapse',
-          title: 'Attendance',
+          title: 'Attendance Tracker',
           type: 'collapse',
           icon: IconCalendarTime,
           children: attendanceChildren

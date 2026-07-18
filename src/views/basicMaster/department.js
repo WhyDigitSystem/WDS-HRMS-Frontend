@@ -18,7 +18,7 @@ export const Department = () => {
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     active: true,
     department: '',
@@ -73,7 +73,7 @@ export const Department = () => {
           departmentCode: particularDepartment.departmentCode,
           active: particularDepartment.active === 'Active' ? true : false
         });
-        
+
       } else {
         console.error('API Error');
       }
@@ -84,29 +84,71 @@ export const Department = () => {
 
   const handleInputChange = (e) => {
     const { name, value, selectionStart, selectionEnd, type } = e.target;
-    const codeRegex = /^[a-zA-Z ]*$/;
 
-    if (name === 'department' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'department' && value.length > 50) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else if (name === 'departmentCode' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'departmentCode' && value.length > 10) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else {
-      setFormData({ ...formData, [name]: value.toUpperCase() });
-      setFieldErrors({ ...fieldErrors, [name]: '' });
+    const codeRegex = /^[A-Za-z &\p{Extended_Pictographic}]*$/u;
 
-      // Update the cursor position after the input change
-      if (type === 'text' || type === 'textarea') {
-        setTimeout(() => {
-          const inputElement = document.getElementsByName(name)[0];
-          if (inputElement) {
-            inputElement.setSelectionRange(selectionStart, selectionEnd);
-          }
-        }, 0);
+    // Validation
+    if (name === "department") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          department: "Only Alphabets Allowed",
+        }));
+        return;
       }
+
+      if (value.length > 50) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          department: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    if (name === "departmentCode") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          departmentCode: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 10) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          departmentCode: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    let newValue = value;
+
+    // Only Department Code should be uppercase
+    if (name === "departmentCode") {
+      newValue = value.toUpperCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }, 0);
     }
   };
 

@@ -9,13 +9,22 @@ import {
   IconIdBadge2,
   IconBeach,
   IconReportMoney,
-  IconReport
+  IconReport,
+  IconFileInvoice,
+  IconReportAnalytics  
 } from '@tabler/icons-react';
 
 // screen access utility
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
@@ -34,6 +43,13 @@ const teamChildren = [
     url: '/team/EmployeeAttanceReport',
     icon: IconUsers
   },
+  hasScreenAccess('CIOR') && {
+    id: 'checkInOutReport',
+    title: 'Rejected Logs',
+    type: 'item',
+    url: '/team/RejectedRequestsReport',
+    icon: IconReportAnalytics 
+  },
   hasScreenAccess('SAR') && {
     id: 'shiftAssignReport',
     title: 'Shift Assign',
@@ -45,9 +61,16 @@ const teamChildren = [
     id: 'holidayReport',
     title: 'Holiday',
     type: 'item',
-    url: '/me/HolidayReport',
+    url: '/me/Holiday',
     icon: IconBeach
   },
+  //   hasScreenAccess('HR') && {
+  //   id: 'holidays',
+  //   title: 'Holidays',
+  //   type: 'item',
+  //   url: '/leaveMaster/Holidays',
+  //   icon: IconBeach
+  // },
   hasScreenAccess('SR') && {
     id: 'SalaryReport',
     title: 'Salary',
@@ -55,13 +78,13 @@ const teamChildren = [
     url: '/salaryMaster/SalaryReport',
     icon: IconChartBar
   },
-  hasScreenAccess('OT') && {
-    id: 'OverTimeApproval',
-    title: 'OverTime Approval',
-    type: 'item',
-    url: '/basicMaster/OverTimeApproval',
-    icon: IconIdBadge2
-  },
+  // hasScreenAccess('OT') && {
+  //   id: 'OverTimeApproval',
+  //   title: 'OT Approval',
+  //   type: 'item',
+  //   url: '/basicMaster/OTApproval',
+  //   icon: IconIdBadge2
+  // },
   hasScreenAccess('ESIR') && {
     id: 'esi-report',
     title: 'ESI',
@@ -82,6 +105,20 @@ const teamChildren = [
     type: 'item',
     url: '/team/PayslipGenerate',
     icon: IconClockCheck
+  },
+    hasScreenAccess('OATR') && {
+    id: 'overAllReport',
+    title: 'Over All Task Report',
+    type: 'item',
+    url: '/me/OverAllReport',
+    icon: IconFileInvoice
+  },
+   hasScreenAccess('ER') && {
+    id: 'escalationReport',
+    title: 'Escalation',
+    type: 'item',
+    url: '/team/escalation',
+    icon: IconFileInvoice
   },
   // hasScreenAccess('LA') && {
   //   id: 'leaveApproval',

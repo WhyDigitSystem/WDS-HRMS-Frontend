@@ -9,13 +9,21 @@ import {
   IconUserPlus,
   IconShield,
   IconListDetails,
-  IconCalendarEvent
+  IconCalendarEvent,
+  IconUserSearch
 } from '@tabler/icons-react';
 
 // screen access utility
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
@@ -37,9 +45,9 @@ const adminChildren = [
   },
   hasScreenAccess('SN') && {
     id: 'screenNames',
-    title: 'Screen Names',
+    title: 'Screens',
     type: 'item',
-    url: '/companysetup/ScreenNames',
+    url: '/companysetup/Screens',
     icon: IconListDetails
   },
   hasScreenAccess('SCA') && {
@@ -55,7 +63,14 @@ const adminChildren = [
     type: 'item',
     url: '/companysetup/LeaveAssigned',
     icon: IconCalendarEvent
-  }
+  },
+  hasScreenAccess('ED') && {
+    id: 'employeeDetails',
+    title: 'Employee Profile',
+    type: 'item',
+    url: '/employeeMaster/employeeProfile',
+    icon: IconUserSearch
+  },
 ].filter(Boolean);
 
 // full admin menu
@@ -67,7 +82,7 @@ const admin =
         children: [
           {
             id: 'admin',
-            title: 'User',
+            title: 'User Mgmt',
             type: 'collapse',
             icon: IconShield,
             children: adminChildren

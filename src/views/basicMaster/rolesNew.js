@@ -67,7 +67,7 @@ const RolesNew = () => {
   };
 
   const columns = [
-    { accessorKey: 'role', header: 'Role', size: 140 },
+    { accessorKey: 'role', header: 'Role', size: 250 },
     {
       accessorKey: 'rolesReposibilitiesVO',
       header: 'Responsibilities',
@@ -276,8 +276,8 @@ const RolesNew = () => {
         <div className="d-flex flex-wrap justify-content-start mb-4">
           {/* <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} /> */}
           <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
+          <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} />
           <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
-          <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} margin="0 10px 0 10px" />
         </div>
         {listView ? (
           <CommonListViewTable

@@ -57,7 +57,7 @@ const Responsibilities = () => {
   });
 
   const columns = [
-    { accessorKey: 'responsibility', header: 'Responsibility', size: 140 },
+    { accessorKey: 'responsibility', header: 'Responsibility', size: 250 },
     {
       accessorKey: 'screensVO',
       header: 'Screens',
@@ -252,8 +252,8 @@ const Responsibilities = () => {
           <Box sx={{ width: '100%', typography: 'body1' }}>
             <div className="d-flex flex-wrap justify-content-start mb-4">
               <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
+              <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} />
               <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
-              <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={handleSave} margin="0 10px 0 10px" />
             </div>
             {!listView ? (
               <div className="row d-flex">
