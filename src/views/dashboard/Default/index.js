@@ -59,9 +59,9 @@ const Dashboard = () => {
               <TimeDate isLoading={isLoading} />
             </Box>
           </Grid>
-          <Grid item lg={6} md={12} sm={12} xs={12} sx={{ display: 'flex' }}>
+          <Grid item lg={6} md={12} sm={12} xs={12} sx={{ display: 'flex', mt: 8 }}>
             <Box sx={{ width: '100%', height: '100%' }}>
-              <Main isLoading={isLoading} />
+              <Pendingupload isLoading={isLoading} />
             </Box>
           </Grid>
           <Grid item lg={6} md={12} sm={12} xs={12} sx={{ display: 'flex' }}>
@@ -82,7 +82,7 @@ const Dashboard = () => {
           </Grid>
           <Grid item lg={6} md={12} sm={12} xs={12} sx={{ display: 'flex' }}>
             <Box sx={{ width: '100%', height: '100%' }}>
-              <Pendingupload isLoading={isLoading} />
+              <Main isLoading={isLoading} />
             </Box>
           </Grid>
         </Grid>

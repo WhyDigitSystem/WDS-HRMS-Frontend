@@ -235,9 +235,9 @@ const DesktopSearch = ({ value, setValue, screens }) => {
         endAdornment={
           <InputAdornment position="end">
             <ButtonBase>
-              <HeaderAvatarStyle variant="rounded">
+              {/* <HeaderAvatarStyle variant="rounded">
                 <IconAdjustmentsHorizontal stroke={1.5} size="1.3rem" />
-              </HeaderAvatarStyle>
+              </HeaderAvatarStyle> */}
             </ButtonBase>
           </InputAdornment>
         }
@@ -312,7 +312,7 @@ const SearchSection = () => {
           {(popupState) => (
             <>
               <Box sx={{ ml: 2 }}>
-                <ButtonBase>
+                <ButtonBase sx={{ borderRadius: '12px' }}>
                   <HeaderAvatarStyle variant="rounded" {...bindToggle(popupState)}>
                     <IconSearch stroke={1.5} size="1.2rem" />
                   </HeaderAvatarStyle>

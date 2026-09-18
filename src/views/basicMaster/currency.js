@@ -103,48 +103,65 @@ export const Currency = () => {
 
   const handleInputChange = (e) => {
     const { name, value, checked, selectionStart, selectionEnd, type } = e.target;
-    const nameRegex = /^[A-Za-z ]*$/;
-    let errorMessage = '';
 
-    // Define max length for each field
+    const nameRegex = /^[A-Za-z ]*$/;
+
     const maxLengths = {
       currency: 3,
       currencyDescription: 50,
-      subCurrency: 20
+      subCurrency: 20,
     };
+
+    let errorMessage = "";
+
     switch (name) {
-      case 'currency':
-      case 'currencyDescription':
-      case 'subCurrency':
+      case "currency":
+      case "currencyDescription":
+      case "subCurrency":
         if (!nameRegex.test(value)) {
-          errorMessage = 'Only Alphabets Allowed';
+          errorMessage = "Only Alphabets Allowed";
         } else if (value.length > maxLengths[name]) {
-          errorMessage = `Exceeded Max length`;
+          errorMessage = "Exceeded Max Length";
         }
         break;
+
       default:
         break;
     }
 
     if (errorMessage) {
-      setFieldErrors({ ...fieldErrors, [name]: errorMessage });
-    } else {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: name === 'active' ? checked : value.toUpperCase()
+      setFieldErrors((prev) => ({
+        ...prev,
+        [name]: errorMessage,
       }));
+      return;
+    }
 
-      setFieldErrors({ ...fieldErrors, [name]: '' });
+    let newValue = value;
 
-      // Preserve the cursor position for text-based inputs
-      if (type === 'text' || type === 'textarea') {
-        setTimeout(() => {
-          const inputElement = document.getElementsByName(name)[0];
-          if (inputElement && inputElement.setSelectionRange) {
-            inputElement.setSelectionRange(selectionStart, selectionEnd);
-          }
-        }, 0);
-      }
+    // Only Currency should be uppercase
+    if (name === "currency") {
+      newValue = value.toUpperCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "active" ? checked : newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement && inputElement.setSelectionRange) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }, 0);
     }
   };
 

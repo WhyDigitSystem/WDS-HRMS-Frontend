@@ -11,7 +11,9 @@ import {
     Tab,
     Tabs,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    Autocomplete,
+    MenuItem
 } from '@mui/material';
 import dayjs from 'dayjs';
 import GridOnIcon from '@mui/icons-material/GridOn';
@@ -30,8 +32,24 @@ function PaperComponent(props) {
         </Draggable>
     );
 }
+
+const ActionButtonTab = ({ title, icon: Icon, onClick, ...props }) => {
+    return (
+        <Button
+            variant="contained"
+            size="small"
+            startIcon={Icon ? <Icon /> : null}
+            onClick={onClick}
+            {...props}
+        >
+            {title} {/* ✅ THIS IS IMPORTANT */}
+        </Button>
+    );
+};
+
 const KRAKPI = () => {
     const [listViewData, setListViewData] = useState([]);
+    const [appraisalOptions, setAppraisalOptions] = useState([]);
     const [orgId, setOrgId] = useState(parseInt(localStorage.getItem('orgId')));
     const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
     const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
@@ -44,6 +62,10 @@ const KRAKPI = () => {
     const [selectAll, setSelectAll] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
     const [fillGridData, setFillGridData] = useState([]);
+    const [currentKpiId, setCurrentKpiId] = useState('');
+    const [currentKraId, setCurrentKraId] = useState('');
+    const [reportingPersonList, setReportingPersonList] = useState([]);
+    const [designationList, setDesignationList] = useState([]);
     const [formData, setFormData] = useState({
         appraisalId: ''
     });
@@ -59,8 +81,17 @@ const KRAKPI = () => {
     const [goalsDetailsErrors, setGoalsDetailsErrors] = useState([
         { kpiId: '', kpiDescription: '' }
     ]);
+    // Update the initial state to include kpiObj
     const [detailsTableData, setDetailsTableData] = useState([
-        { id: null, kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
+        {
+            id: null,
+            kraId: '',
+            kraDescription: '',
+            ro: '',
+            kpiId: '',
+            kpiKraDescription: '',
+            kpiObj: null  // Add this
+        }
     ]);
 
     const [detailsTableErrors, setDetailsTableErrors] = useState([
@@ -69,26 +100,112 @@ const KRAKPI = () => {
 
     const listViewColumns = [
         { accessorKey: 'appraisalId', header: 'Appraisal ID', size: 140 },
+        { accessorKey: 'designation', header: 'Designation', size: 140 },
     ];
+
+    useEffect(() => {
+        getAllKRAKPIs();
+        getGoalsDocId();
+        getKpiDocId();
+        getKraDocId();
+        getAllReportingPersonList();
+        getAllDesignation();
+    }, []);
+
+    useEffect(() => {
+        const init = async () => {
+            const kpiDocId = await getKpiDocId();
+            const kraDocId = await getKraDocId();
+
+            setCurrentKpiId(kpiDocId);
+            setCurrentKraId(kraDocId);
+
+            setkpiDetailsData([
+                { id: null, kpiId: kpiDocId, kpiDescription: '' }
+            ]);
+
+            setDetailsTableData([
+                {
+                    id: null,
+                    kraId: kraDocId,
+                    kraDescription: '',
+                    ro: '',
+                    kpiId: '',
+                    kpiObj: null,
+                    kpiKraDescription: ''
+                }
+            ]);
+        };
+
+        init();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value, checked, type } = e.target;
-        const updatedValue = value;
+        const updatedValue = type === 'checkbox' ? checked : value;
 
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             [name]: updatedValue
         }));
 
-        setFieldErrors(prev => ({
+        setFieldErrors((prev) => ({
             ...prev,
             [name]: ''
         }));
     };
 
-    useEffect(() => {
-        getAllKRAKPIs();
-    }, []);
+    const getGoalsDocId = async () => {
+        try {
+            const response = await apiCalls('get', `/goalsController/getGoalsDocId?orgId=${orgId}`);
+
+            const docId = response.paramObjectsMap.goalsDocId;
+
+            setFormData((prev) => ({
+                ...prev,
+                appraisalId: docId
+            }));
+
+            return docId; // ✅ ADD THIS
+        } catch (error) {
+            console.error('Error fetching goals docid:', error);
+            showToast('error', 'Failed to fetch goals docid');
+            return '';
+        }
+    };
+
+    const getAllDesignation = async () => {
+        try {
+            const result = await apiCalls(
+                'get',
+                `commonmaster/getDesignationByOrgId?orgid=${orgId}`
+            );
+
+            setDesignationList(result.paramObjectsMap.designationVO || []);
+        } catch (err) {
+            console.log('error', err);
+        }
+    };
+
+    const getKpiDocId = async () => {
+        try {
+            const response = await apiCalls('get', `/goalsController/getKpiDocId?orgId=${orgId}`);
+            return response?.paramObjectsMap?.kpiDocId || '';
+        } catch (error) {
+            console.error('Error fetching KPI Doc ID:', error);
+            return '';
+        }
+    };
+
+    const getKraDocId = async () => {
+        try {
+            const response = await apiCalls('get', `/goalsController/getKraDocId?orgId=${orgId}`);
+            return response?.paramObjectsMap?.kpiDocId || '';
+        } catch (error) {
+            console.error('Error fetching KRA Doc ID:', error);
+            return '';
+        }
+    };
 
     const getAllKRAKPIs = async () => {
         try {
@@ -103,6 +220,29 @@ const KRAKPI = () => {
             showToast('error', 'Failed to fetch KPIKRA');
         }
     };
+
+    const getAllReportingPersonList = async () => {
+        try {
+            const result = await apiCalls(
+                'get',
+                `master/getReportingNameForEmployee?branchCode=${branchCode}&employeeCode="Undefined"&orgId=${orgId}`
+            );
+
+            const employeeList = result?.paramObjectsMap?.employeeVO || [];
+
+            const mappedList = employeeList.map((emp) => ({
+                label: emp.employeeName,
+                value: emp.employeeCode,
+                email: emp.email,
+                role: emp.role
+            }));
+
+            setReportingPersonList(mappedList); // ✅ FIXED
+        } catch (err) {
+            console.log('Error fetching notify list', err);
+        }
+    };
+
     const getKraKpiById = async (row) => {
         setEditId(row.original.id);
         try {
@@ -111,7 +251,8 @@ const KRAKPI = () => {
                 setListView(false);
                 const goal = response.paramObjectsMap.kpiKraVO;
                 setFormData({
-                    appraisalId: goal.appraisalId
+                    appraisalId: goal.appraisalId,
+                    designation: goal.designation || ''
                 });
 
                 // Preserve actual database IDs
@@ -130,7 +271,14 @@ const KRAKPI = () => {
                         kraDescription: detail.kraDescription,
                         ro: detail.ro,
                         kpiId: detail.kpiId,
-                        kpiKraDescription: detail.kpiDescription
+                        kpiKraDescription: detail.kpiDescription,
+
+                        // ✅ ADD THIS
+                        kpiObj: {
+                            value: detail.kpiId,
+                            label: `${detail.kpiId} - ${detail.kpiDescription}`,
+                            description: detail.kpiDescription
+                        }
                     }))
                 );
 
@@ -195,13 +343,13 @@ const KRAKPI = () => {
 
         // Prepare details payload with IDs
         const kpiVo = kpiDetailsData.map(row => ({
-            ...(row.id && { id: row.id }), // Include ID if exists
+            // ...(row.id && { id: row.id }), // Include ID if exists
             kpiDescription: row.kpiDescription,
             kpiId: row.kpiId
         }));
 
         const kpiKraDetailsVo = detailsTableData.map(row => ({
-            ...(row.id && { id: row.id }), // Include ID if exists
+            // ...(row.id && { id: row.id }), // Include ID if exists
             kpiDescription: row.kpiKraDescription,
             kpiId: row.kpiId,
             kraDescription: row.kraDescription,
@@ -211,21 +359,22 @@ const KRAKPI = () => {
 
         const payload = {
             ...(editId && { id: editId }),
+            active: true,
             appraisalId: formData.appraisalId,
+            designation: formData.designation,
             createdBy: loginUserName,
             kpiDTO: kpiVo,
             kpiKraDetailsDTO: kpiKraDetailsVo,
-            orgId: orgId,   
-            finYear: '2025',
-            branchCode:branchCode,
-            branch:branch,
+            orgId: orgId,
+            branchCode: branchCode,
+            branch: branch,
         };
 
         try {
             const response = await apiCalls('put', '/goalsController/createUpdateKpiKra', payload);
             if (response.status) {
                 showToast('success', editId ? 'KRAKPI updated successfully' : 'KRAKPI created successfully');
-                handleClear();
+                await resetWithNewIds();
                 getAllKRAKPIs();
             } else {
                 showToast('error', response.message || 'Operation failed');
@@ -239,33 +388,47 @@ const KRAKPI = () => {
     };
 
     const handleClear = () => {
-        setFormData({
-            appraisalId: ''
-        });
+        setFormData((prev) => ({
+            ...prev,
+            designation: ''  // only clear this
+        }));
 
         setFieldErrors({
-            appraisalId: ''
+            appraisalId: '',
+            designation: ''
         });
 
-        setkpiDetailsData([
-            { id: null, kpiId: '', kpiDescription: '' }
-        ]);
+        // ✅ KEEP KPI ID
+        setkpiDetailsData((prev) =>
+            prev.map((row) => ({
+                ...row,
+                kpiDescription: ''
+            }))
+        );
 
-        setGoalsDetailsErrors([
-            { kpiId: '', kpiDescription: '' }
-        ]);
-
-        setDetailsTableData([
-            { id: null, kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
-        ]);
-
-        setDetailsTableErrors([
-            { kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
-        ]);
-
-        setEditId('');
+        // ✅ KEEP KRA ID
+        setDetailsTableData((prev) =>
+            prev.map((row) => ({
+                ...row,
+                kraDescription: '',
+                ro: '',
+                kpiId: '',
+                kpiKraDescription: '',
+                kpiObj: null
+            }))
+        );
     };
 
+    const incrementDocId = (docId) => {
+        if (!docId) return '';
+
+        const prefix = docId.replace(/\d+$/, ''); // KPI
+        const number = parseInt(docId.replace(/\D/g, ''), 10); // 18
+
+        const nextNumber = number + 1;
+
+        return `${prefix}${String(nextNumber).padStart(5, '0')}`;
+    };
 
     const handleDeleteKpiRow = (id) => {
         if (kpiDetailsData.length <= 1) {
@@ -284,85 +447,100 @@ const KRAKPI = () => {
     };
 
     const handleAddRow = () => {
-        if (kpiDetailsData.length > 0) {
-            const lastRow = kpiDetailsData[kpiDetailsData.length - 1];
+        const newId =
+            kpiDetailsData.length > 0
+                ? Math.min(...kpiDetailsData.map((d) => d.id)) - 1
+                : -1;
 
-            // Validate last row before adding new one
-            if (!lastRow.kpiId || !lastRow.kpiDescription) {
-                const newErrors = [...goalsDetailsErrors];
-                const lastIndex = newErrors.length - 1;
-                newErrors[lastIndex] = {
-                    kpiId: !lastRow.kpiId ? 'KPI Id is required' : '',
-                    kpiDescription: !lastRow.kpiDescription ? 'KPI Description is required' : '',
-                };
-                setGoalsDetailsErrors(newErrors);
-                showToast('warning', 'Please fill current row before adding new');
-                return;
+        const nextKpiId = incrementDocId(currentKpiId);
+
+        setCurrentKpiId(nextKpiId);
+
+        setkpiDetailsData((prev) => [
+            ...prev,
+            {
+                id: newId,
+                kpiId: nextKpiId,
+                kpiDescription: ''
             }
-        }
-
-        // Generate unique temporary ID
-        const newId = kpiDetailsData.length > 0
-            ? Math.min(...kpiDetailsData.map(d => d.id)) - 1
-            : -1;
-
-        // Add new row with correct keys
-        setkpiDetailsData(prev => [
-            ...prev,
-            { id: newId, kpiId: '', kpiDescription: '' }
-        ]);
-
-        setGoalsDetailsErrors(prev => [
-            ...prev,
-            { kpiId: '', kpiDescription: '' }
         ]);
     };
 
     const handleAddRow1 = () => {
-        if (detailsTableData.length === 0) {
-            // Generate temporary ID for first row
-            const newId = -1;
+        const newId =
+            detailsTableData.length > 0
+                ? Math.min(...detailsTableData.map((d) => d.id)) - 1
+                : -1;
 
-            setDetailsTableData([
-                { id: newId, kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
-            ]);
-
-            setDetailsTableErrors([
-                { kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
-            ]);
-            return;
-        }
-
-        const lastRow = detailsTableData[detailsTableData.length - 1];
-
-        // Validate last row before adding new one
-        if (!lastRow.kraId || !lastRow.kraDescription || !lastRow.kpiId || !lastRow.kpiKraDescription) {
-            const newErrors = [...detailsTableErrors];
-            const lastIndex = newErrors.length - 1;
-            newErrors[lastIndex] = {
-                kraId: !lastRow.kraId ? 'KRA Id is required' : '',
-                kraDescription: !lastRow.kraDescription ? 'KRA Description is required' : '',
-                kpiId: !lastRow.kpiId ? 'KPI Id is required' : '',
-                kpiKraDescription: !lastRow.kpiKraDescription ? 'KPI Description is required' : ''
-            };
-            setDetailsTableErrors(newErrors);
-            showToast('warning', 'Please fill current row before adding new');
-            return;
-        }
-
-        // Generate temporary negative ID for new rows
-        const newId = detailsTableData.length > 0
-            ? Math.min(...detailsTableData.map(d => d.id)) - 1
-            : -1;
-
-        setDetailsTableData(prev => [
+        setDetailsTableData((prev) => [
             ...prev,
-            { id: newId, kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
+            {
+                id: newId,
+                kraId: currentKraId, // ✅ SAME KRA ID
+                kraDescription: '',
+                ro: '',
+                kpiId: '',
+                kpiKraDescription: '',
+                kpiObj: null
+            }
+        ]);
+    };
+
+    const handleNewKra = () => {
+        const nextKraId = incrementDocId(currentKraId);
+        setCurrentKraId(nextKraId);
+
+        const newId =
+            detailsTableData.length > 0
+                ? Math.min(...detailsTableData.map((d) => d.id)) - 1
+                : -1;
+
+        setDetailsTableData((prev) => [
+            ...prev,
+            {
+                id: newId,
+                kraId: nextKraId,
+                kraDescription: '',
+                ro: '',
+                kpiId: '',
+                kpiKraDescription: '',
+                kpiObj: null
+            }
+        ]);
+    };
+
+    const resetWithNewIds = async () => {
+        const newAppraisalId = await getGoalsDocId(); // already sets inside
+        const newKpiId = await getKpiDocId();
+        const newKraId = await getKraDocId();
+
+        setCurrentKpiId(newKpiId);
+        setCurrentKraId(newKraId);
+
+        setFormData((prev) => ({
+            ...prev,
+            appraisalId: newAppraisalId, // ensure latest
+            designation: ''
+        }));
+
+        setkpiDetailsData([
+            {
+                id: null,
+                kpiId: newKpiId,
+                kpiDescription: ''
+            }
         ]);
 
-        setDetailsTableErrors(prev => [
-            ...prev,
-            { kraId: '', kraDescription: '', ro: '', kpiId: '', kpiKraDescription: '' }
+        setDetailsTableData([
+            {
+                id: null,
+                kraId: newKraId,
+                kraDescription: '',
+                ro: '',
+                kpiId: '',
+                kpiKraDescription: '',
+                kpiObj: null
+            }
         ]);
     };
 
@@ -390,11 +568,26 @@ const KRAKPI = () => {
         newData[index] = { ...newData[index], [field]: value };
         setkpiDetailsData(newData);
 
-        if (value) {
-            const newErrors = [...goalsDetailsErrors];
-            newErrors[index] = { ...newErrors[index], [field]: '' };
-            setGoalsDetailsErrors(newErrors);
-        }
+        // Update the matching rows in details table
+        const updatedDetails = detailsTableData.map((row) => {
+            if (row.kpiId === kpiDetailsData[index].kpiId) {
+                return {
+                    ...row,
+                    [field]: value,
+                    // If kpiId changes, update the kpiObj reference
+                    ...(field === 'kpiId' && {
+                        kpiObj: {
+                            kpiId: value,
+                            label: `${value} - ${row.kpiKraDescription}`,
+                            description: row.kpiKraDescription
+                        }
+                    })
+                };
+            }
+            return row;
+        });
+
+        setDetailsTableData(updatedDetails);
     };
 
     const handleDetailChange = (id, field, value) => {
@@ -402,9 +595,33 @@ const KRAKPI = () => {
         if (index === -1) return;
 
         const newData = [...detailsTableData];
-        newData[index] = { ...newData[index], [field]: value };
+
+        if (field === 'kpiId') {
+            // When KPI ID changes, also update kpiObj
+            const selectedKpi = kpiOptions.find(opt => String(opt.kpiId) === String(value));
+            newData[index] = {
+                ...newData[index],
+                kpiId: value,
+                kpiKraDescription: selectedKpi?.description || '',
+                kpiObj: selectedKpi || null
+            };
+        } else if (field === 'kpiKraDescription') {
+            newData[index] = {
+                ...newData[index],
+                [field]: value,
+                kpiObj: newData[index].kpiObj ? {
+                    ...newData[index].kpiObj,
+                    description: value,
+                    label: `${newData[index].kpiId} - ${value}`
+                } : null
+            };
+        } else {
+            newData[index] = { ...newData[index], [field]: value };
+        }
+
         setDetailsTableData(newData);
 
+        // Clear error if field has value
         if (value) {
             const newErrors = [...detailsTableErrors];
             newErrors[index] = { ...newErrors[index], [field]: '' };
@@ -414,6 +631,18 @@ const KRAKPI = () => {
 
     const handleView = () => setListView(!listView);
     const handleTabChange = (_, newValue) => setValue(newValue);
+
+    const kpiOptions = kpiDetailsData
+        .filter(item => item.kpiId && item.kpiId.toString().trim() !== '') // filter out empty rows
+        .map((item) => ({
+            kpiId: item.kpiId,
+            label: `${item.kpiId} - ${item.kpiDescription}`,
+            description: item.kpiDescription
+        }));
+
+    const selectedKpiIds = detailsTableData
+        .map(row => row.kpiId)
+        .filter(id => id); // remove empty
 
     return (
         <>
@@ -441,9 +670,42 @@ const KRAKPI = () => {
                                         fullWidth
                                         name="appraisalId"
                                         value={formData.appraisalId}
+                                        disabled
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.appraisalId}
                                         helperText={fieldErrors.appraisalId}
+                                    />
+                                </div>
+
+                                <div className="col-md-3 mb-3">
+                                    <Autocomplete
+                                        options={designationList}
+                                        getOptionLabel={(option) => option.designationName || ''}
+
+                                        value={
+                                            formData.designation
+                                                ? designationList.find(
+                                                    (opt) => opt.designationName === formData.designation
+                                                ) || null
+                                                : null   // ✅ THIS FIXES CLEAR
+                                        }
+
+                                        onChange={(event, newValue) => {
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                designation: newValue ? newValue.designationName : ''
+                                            }));
+                                        }}
+
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Designation"
+                                                size="small"
+                                                error={!!fieldErrors.designation}
+                                                helperText={fieldErrors.designation}
+                                            />
+                                        )}
                                     />
                                 </div>
                             </div>
@@ -481,7 +743,7 @@ const KRAKPI = () => {
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '50px' }}>
                                                                         S.No
                                                                     </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '100px' }}>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '150px' }}>
                                                                         KPI ID
                                                                     </th>
                                                                     <th className="px-2 py-2 text-white text-center">
@@ -507,6 +769,7 @@ const KRAKPI = () => {
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.kpiId}
+                                                                                InputProps={{ readOnly: true }}
                                                                                 onChange={(e) =>
                                                                                     handleKpiChange(row.id, 'kpiId', e.target.value)
                                                                                 }
@@ -539,8 +802,18 @@ const KRAKPI = () => {
                                 <Box sx={{ padding: 2 }}>
                                     {value === 1 && (
                                         <>
-                                            <div className="mb-1">
-                                                <ActionButton title="Add" icon={AddIcon} onClick={handleAddRow1} />
+                                            <div className="mb-1 d-flex gap-2">
+                                                <ActionButtonTab
+                                                    title="Add"
+                                                    icon={AddIcon}
+                                                    onClick={handleAddRow1}
+                                                />
+
+                                                <ActionButtonTab
+                                                    title="Add New KRA"
+                                                    icon={AddIcon}
+                                                    onClick={handleNewKra}
+                                                />
                                             </div>
                                             <div className="row mt-2">
                                                 <div className="col-lg-12">
@@ -557,16 +830,16 @@ const KRAKPI = () => {
                                                                     <th className="px-2 py-2 text-white text-center" style={{ width: '50px' }}>
                                                                         S.No
                                                                     </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '100px' }}>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '150px' }}>
                                                                         KRA ID
                                                                     </th>
                                                                     <th className="px-2 py-2 text-white text-center">
                                                                         KRA DESCRIPTION
                                                                     </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '100px' }}>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '150px' }}>
                                                                         R/O
                                                                     </th>
-                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '100px' }}>
+                                                                    <th className="px-2 py-2 text-white text-center" style={{ width: '200px' }}>
                                                                         KPI ID
                                                                     </th>
                                                                     <th className="px-2 py-2 text-white text-center">
@@ -592,6 +865,7 @@ const KRAKPI = () => {
                                                                                 fullWidth
                                                                                 size="small"
                                                                                 value={row.kraId}
+                                                                                InputProps={{ readOnly: true }}
                                                                                 onChange={(e) =>
                                                                                     handleDetailChange(row.id, 'kraId', e.target.value)
                                                                                 }
@@ -612,27 +886,95 @@ const KRAKPI = () => {
                                                                             />
                                                                         </td>
                                                                         <td>
-                                                                            <TextField
-                                                                                fullWidth
-                                                                                size="small"
-                                                                                value={row.ro}
-                                                                                onChange={(e) =>
-                                                                                    handleDetailChange(row.id, 'ro', e.target.value)
+                                                                            <Autocomplete
+                                                                                options={reportingPersonList}
+                                                                                getOptionLabel={(option) => option.label || ''}
+
+                                                                                value={
+                                                                                    reportingPersonList.find(opt => opt.value === row.ro) || null
                                                                                 }
-                                                                                error={!!detailsTableErrors[index]?.ro}
-                                                                                helperText={detailsTableErrors[index]?.ro}
+
+                                                                                onChange={(event, newValue) => {
+                                                                                    handleDetailChange(row.id, 'ro', newValue?.value || '');
+                                                                                }}
+
+                                                                                renderInput={(params) => (
+                                                                                    <TextField
+                                                                                        {...params}
+                                                                                        size="small"
+                                                                                        placeholder="Select Reporting Person"
+                                                                                        error={!!detailsTableErrors[index]?.ro}
+                                                                                        helperText={detailsTableErrors[index]?.ro}
+                                                                                    />
+                                                                                )}
                                                                             />
                                                                         </td>
                                                                         <td>
-                                                                            <TextField
-                                                                                fullWidth
-                                                                                size="small"
-                                                                                value={row.kpiId}
-                                                                                onChange={(e) =>
-                                                                                    handleDetailChange(row.id, 'kpiId', e.target.value)
-                                                                                }
-                                                                                error={!!detailsTableErrors[index]?.kpiId}
-                                                                                helperText={detailsTableErrors[index]?.kpiId}
+                                                                            <Autocomplete
+                                                                                options={kpiOptions.filter(opt => {
+                                                                                    if (opt.kpiId === row.kpiId) return true;
+                                                                                    return !selectedKpiIds.includes(opt.kpiId);
+                                                                                })}
+                                                                                getOptionLabel={(option) => {
+                                                                                    if (typeof option === 'string') {
+                                                                                        const found = kpiOptions.find(opt => opt.kpiId === option);
+                                                                                        return found ? found.label : option;
+                                                                                    }
+                                                                                    return option.label || '';
+                                                                                }}
+
+                                                                                value={(() => {
+                                                                                    if (row.kpiObj && row.kpiObj.kpiId) {
+                                                                                        return row.kpiObj;
+                                                                                    }
+                                                                                    if (row.kpiId) {
+                                                                                        const found = kpiOptions.find(opt => opt.kpiId === row.kpiId);
+                                                                                        if (found) {
+                                                                                            return found;
+                                                                                        }
+                                                                                    }
+                                                                                    return null;
+                                                                                })()}
+
+                                                                                isOptionEqualToValue={(option, value) => {
+                                                                                    if (!value) return false;
+                                                                                    return option.kpiId === value.kpiId;
+                                                                                }}
+
+                                                                                onChange={(event, newValue) => {
+                                                                                    const index = detailsTableData.findIndex(d => d.id === row.id);
+                                                                                    if (index === -1) return;
+
+                                                                                    const newData = [...detailsTableData];
+
+                                                                                    newData[index] = {
+                                                                                        ...newData[index],
+                                                                                        kpiId: newValue?.kpiId || '',
+                                                                                        kpiKraDescription: newValue?.description || '',
+                                                                                        kpiObj: newValue || null
+                                                                                    };
+
+                                                                                    setDetailsTableData(newData);
+
+                                                                                    // clear error
+                                                                                    const newErrors = [...detailsTableErrors];
+                                                                                    newErrors[index] = {
+                                                                                        ...newErrors[index],
+                                                                                        kpiId: '',
+                                                                                        kpiKraDescription: ''
+                                                                                    };
+                                                                                    setDetailsTableErrors(newErrors);
+                                                                                }}
+
+                                                                                renderInput={(params) => (
+                                                                                    <TextField
+                                                                                        {...params}
+                                                                                        size="small"
+                                                                                        placeholder="Select KPI"
+                                                                                        error={!!detailsTableErrors[index]?.kpiId}
+                                                                                        helperText={detailsTableErrors[index]?.kpiId}
+                                                                                    />
+                                                                                )}
                                                                             />
                                                                         </td>
                                                                         <td>

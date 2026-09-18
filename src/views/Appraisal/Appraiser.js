@@ -5,7 +5,7 @@ import FormatListBulletedTwoToneIcon from '@mui/icons-material/FormatListBullete
 import Paper from '@mui/material/Paper';
 import Draggable from 'react-draggable';
 import { useEffect, useState } from 'react';
-import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from '@mui/material';
+import { Autocomplete, FormControl, FormHelperText, InputLabel, MenuItem, Select } from '@mui/material';
 import { showToast } from 'utils/toast-component';
 import { ToastContainer } from 'react-toastify';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
@@ -25,6 +25,7 @@ function PaperComponent(props) {
 function Appraiser() {
   const [scoreAllData, setScoreAllData] = useState([]);
   const [listViewData, setListViewData] = useState([]);
+  const [appraisalOptions, setAppraisalOptions] = useState([]);
   const orgId = localStorage.getItem('orgId');
   const branch = localStorage.getItem('branch');
   const createdBy = localStorage.getItem('userName');
@@ -219,6 +220,27 @@ function Appraiser() {
       console.error('Error fetching data:', error);
     }
   };
+
+  const getAppraisalDocId = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getAppraisalDocId?orgId=${orgId}`);
+
+      const list = response.paramObjectsMap.goalsVO || [];
+
+      const options = list.map((item) => ({
+        label: `${item.appraisalId} - ${item.department}`,
+        value: item.appraisalId,
+        department: item.department
+      }));
+
+      setAppraisalOptions(options);
+
+    } catch (error) {
+      console.error('Error fetching goals docid:', error);
+      showToast('error', 'Failed to fetch goals docid');
+    }
+  };
+
   const getAllEmployeeDetails = async () => {
     try {
       const res = await apiCalls(
@@ -235,6 +257,7 @@ function Appraiser() {
     getAllSupervisorCode();
     getAllData();
     getScoreByOrgId();
+    getAppraisalDocId();
   }, []);
 
   useEffect(() => {
@@ -438,16 +461,33 @@ function Appraiser() {
           <>
             <div className="row">
               <div className="col-md-3 mb-3">
-                <TextField
-                  label="Appraisal ID"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  name="appraisalID"
-                  value={formData.appraisalID}
-                  onChange={handleInputChange}
-                  error={!!fieldErrors.appraisalID}
-                  helperText={fieldErrors.appraisalID}
+                <Autocomplete
+                  options={appraisalOptions}
+                  getOptionLabel={(option) => option.label || ''}
+                  value={
+                    appraisalOptions.find((opt) => opt.value === formData.appraisalID) || null
+                  }
+                  onChange={(event, newValue) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      appraisalID: newValue?.value || '',
+                      department: newValue?.department || '' // optional if needed
+                    }));
+
+                    setFieldErrors((prev) => ({
+                      ...prev,
+                      appraisalID: ''
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Appraisal ID"
+                      size="small"
+                      error={!!fieldErrors.appraisalID}
+                      helperText={fieldErrors.appraisalID}
+                    />
+                  )}
                 />
               </div>
               <div className="col-md-3 mb-3">

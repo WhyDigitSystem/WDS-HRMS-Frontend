@@ -8,52 +8,67 @@ import {
   IconFileDollar,
   IconCalculator,
   IconChartBar,
-  IconIdBadge2
+  IconIdBadge2,
+  IconFingerprint
 } from '@tabler/icons-react';
 
 // Utility to check screen access
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
 // Define children with permission checks
 const employeeMasterChildren = [
-  hasScreenAccess('ED') && {
-    id: 'employeeDetails',
-    title: 'Employee Details',
-    type: 'item',
-    url: '/employeeMaster/employeeDetails',
-    icon: IconUserSearch
-  },
-  hasScreenAccess('LT') && {
-    id: 'leaveType',
-    title: 'Leave Type',
-    type: 'item',
-    url: '/leaveMaster/LeaveType',
-    icon: IconBeach
-  },
+  // hasScreenAccess('ED') && {
+  //   id: 'employeeDetails',
+  //   title: 'Employee Profile',
+  //   type: 'item',
+  //   url: '/employeeMaster/employeeProfile',
+  //   icon: IconUserSearch
+  // },
+  // hasScreenAccess('LT') && {
+  //   id: 'leaveType',
+  //   title: 'Leave Types',
+  //   type: 'item',
+  //   url: '/leaveMaster/LeaveTypes',
+  //   icon: IconBeach
+  // },
   hasScreenAccess('SP') && {
     id: 'salaryProcess',
-    title: 'Salary Process',
+    title: 'Payroll Process',
     type: 'item',
-    url: '/salaryMaster/SalaryProcess',
+    url: '/salaryMaster/PayrollProcess',
     icon: IconCalculator
   },
   hasScreenAccess('SAPP') && {
     id: 'salaryApproval',
-    title: 'Salary Approval',
+    title: 'Payroll Approval',
     type: 'item',
-    url: '/salaryMaster/SalaryApproval',
+    url: '/salaryMaster/PayrollApproval',
     icon: IconCalculator
   },
   hasScreenAccess('OT') && {
     id: 'overTime',
-    title: 'OverTime Approval',
+    title: 'OT Approval',
     type: 'item',
-    url: '/basicMaster/OverTime',
+    url: '/basicMaster/OTApproval',
     icon: IconIdBadge2
+  },
+  hasScreenAccess('SETR') && {
+    id: 'settlementReport',
+    title: 'Settlement Report',
+    type: 'item',
+    url: '/salaryMaster/SettlementReport',
+    icon: IconFingerprint
   },
   // hasScreenAccess('AD') && {
   //   id: 'advance',

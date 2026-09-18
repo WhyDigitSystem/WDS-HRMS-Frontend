@@ -325,24 +325,31 @@ const ScreenAccess = () => {
           ) : (
             <Box display="flex" justifyContent="center" alignItems="center" mt={3}>
               <Paper
-                elevation={3}
-                sx={{
-                  px: 2,
-                  py: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  background: 'linear-gradient(135deg, #1DE9B6 0%, #2196F3 100%)',
-                  borderRadius: 2,
-                  color: '#fff',
-                  minWidth: 300
-                }}
-              >
-                <InfoOutlinedIcon sx={{ color: '#fff' }} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  Please select a role to begin.
-                </Typography>
-              </Paper>
+  elevation={3}
+  sx={{
+    px: 2,
+    py: 1,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1,
+    background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+    borderRadius: 2,
+    color: '#fff',
+    minWidth: 300
+  }}
+>
+  <InfoOutlinedIcon sx={{ color: '#fff' }} />
+
+  <Typography
+    variant="body2"
+    sx={{
+      fontWeight: 500,
+      color: '#fff'
+    }}
+  >
+    Please select a role to begin.
+  </Typography>
+</Paper>
             </Box>
           )}
         </CardContent>

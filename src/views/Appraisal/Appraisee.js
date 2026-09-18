@@ -11,7 +11,9 @@ import {
     Tab,
     Tabs,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    Autocomplete,
+    CircularProgress
 } from '@mui/material';
 import dayjs from 'dayjs';
 import GridOnIcon from '@mui/icons-material/GridOn';
@@ -48,6 +50,11 @@ const Appraisee = () => {
     const [selectAll, setSelectAll] = useState(false);
     const [selectedRows, setSelectedRows] = useState([]);
     const [fillGridData, setFillGridData] = useState([]);
+
+    // New state variables for employee autocomplete
+    const [employeeOptions, setEmployeeOptions] = useState([]);
+    const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
 
     const [formData, setFormData] = useState({
         code: localStorage.getItem('employeeCode') || '',
@@ -87,15 +94,97 @@ const Appraisee = () => {
         { accessorKey: 'designation', header: 'Designation', size: 140 },
         { accessorKey: 'reportingHead', header: 'Reporting Head', size: 140 },
         { accessorKey: 'reportingHeadDesignation', header: 'Reporting Head Designation', size: 140 },
-        // { accessorKey: 'active', header: 'Active', size: 140 }
     ];
+
+    // Fetch all employees
+    const getAllEmployees = async () => {
+        const orgIdVal = parseInt(localStorage.getItem('orgId'));
+        const branchCode = localStorage.getItem('branch');
+
+        if (!orgIdVal || !branchCode) return;
+
+        setIsLoadingEmployees(true);
+        try {
+            const response = await apiCalls('get', `master/getAllEmployeeByOrgId?orgId=${orgIdVal}&branchCode=${branchCode}`);
+
+            if (response.status === true) {
+                const employees = response.paramObjectsMap.employeeVO || [];
+                // Format employees for Autocomplete (code - name)
+                const formattedEmployees = employees.map(emp => ({
+                    code: emp.employeeCode,
+                    name: emp.employee,
+                    department: emp.department,
+                    designation: emp.designation,
+                    reportingPersonCode: emp.reportingPersonCode,
+                    reportingPerson: emp.reportingPerson,
+                    reportingPersonRole: emp.reportingRole,
+                    branch: emp.branch,
+                    email: emp.email,
+                    mobileNo: emp.mobileNo
+                }));
+                setEmployeeOptions(formattedEmployees);
+            } else {
+                showToast('error', response.message || 'Failed to fetch employees');
+            }
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+            showToast('error', 'Failed to fetch employees');
+        } finally {
+            setIsLoadingEmployees(false);
+        }
+    };
+
+    // Handle employee selection
+    const handleEmployeeSelect = (event, newValue) => {
+        setSelectedEmployee(newValue);
+
+        if (newValue) {
+            // Auto-fill all form fields
+            setFormData(prev => ({
+                ...prev,
+                code: newValue.code,
+                name: newValue.name,
+                department: newValue.department || '',
+                designation: newValue.designation || '',
+                reportingHeadCode: newValue.reportingPersonCode || '',
+                reportingHead: newValue.reportingPerson || '',
+                reportingHeadDesignation: newValue.reportingPersonRole || '',
+                branch: newValue.branch || ''
+            }));
+
+            // Clear any field errors
+            setFieldErrors(prev => ({
+                ...prev,
+                code: '',
+                name: '',
+                department: '',
+                designation: '',
+                reportingHeadCode: '',
+                reportingHead: '',
+                reportingHeadDesignation: ''
+            }));
+
+            showToast('success', `Employee ${newValue.name} selected successfully`);
+        } else {
+            // Clear form when selection is cleared
+            setFormData(prev => ({
+                ...prev,
+                code: '',
+                name: '',
+                department: '',
+                designation: '',
+                reportingHeadCode: '',
+                reportingHead: '',
+                reportingHeadDesignation: '',
+                branch: ''
+            }));
+        }
+    };
 
     useEffect(() => {
         const fetchInitialData = async () => {
             await getAllAppraisees();
-            if (formData.code) {
-                await fetchEmployeeDetails(formData.code);
-            }
+            await getAllEmployees(); // Fetch employees for dropdown
         };
         fetchInitialData();
     }, []);
@@ -111,53 +200,6 @@ const Appraisee = () => {
         } catch (error) {
             console.error('Error fetching appraisees:', error);
             showToast('error', 'Failed to fetch appraisees');
-        }
-    };
-
-    const fetchEmployeeDetails = async (employeeCode) => {
-        if (!employeeCode || !orgId) return;
-
-        setIsFetchingEmployee(true);
-        try {
-            const response = await apiCalls('get', `goalsController/getEmployeeDetails?employeeCode=${employeeCode}&orgId=${orgId}`);
-
-            if (response?.status) {
-                const employeeData = response.paramObjectsMap?.employeeVO?.[0] ||
-                    response.paramObjectsMap?.employeeDetails ||
-                    response.data;
-
-                if (employeeData) {
-                    setFormData(prev => ({
-                        ...prev,
-                        name: employeeData.empName || employeeData.name || '',
-                        department: employeeData.department || '',
-                        designation: employeeData.empDesignation || employeeData.designation || '',
-                        reportingHeadCode: employeeData.reportingPersonCode || '',
-                        reportingHead: employeeData.reportingPerson || '',
-                        reportingHeadDesignation: employeeData.reportingPersonRole || '',
-                        branch: employeeData.branch || ''
-                    }));
-
-                    setFieldErrors(prev => ({
-                        ...prev,
-                        name: '',
-                        department: '',
-                        designation: '',
-                        reportingHeadCode: '',
-                        reportingHead: '',
-                        reportingHeadDesignation: ''
-                    }));
-
-                    // showToast('success', `Employee details loaded`);
-                }
-            } else {
-                showToast('error', response.message || 'Failed to fetch employee details');
-            }
-        } catch (error) {
-            console.error('Error fetching employee details:', error);
-            showToast('error', 'Failed to fetch employee details');
-        } finally {
-            setIsFetchingEmployee(false);
         }
     };
 
@@ -205,6 +247,12 @@ const Appraisee = () => {
                     active: appraisee.active === 'Active',
                 });
 
+                // Set the selected employee in Autocomplete
+                if (appraisee.code) {
+                    const matchedEmployee = employeeOptions.find(emp => emp.code === appraisee.code);
+                    setSelectedEmployee(matchedEmployee || null);
+                }
+
                 const details = appraisee.appraiseeDetailsVO || [];
                 setAppraiseeDetailsData(
                     details.map(detail => ({
@@ -243,10 +291,16 @@ const Appraisee = () => {
         if (!formData.department) errors.department = 'Department is required';
         if (!formData.designation) errors.designation = 'Designation is required';
 
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(prev => ({ ...prev, ...errors }));
+            showToast('error', 'Please fill all required fields');
+            return;
+        }
+
         setIsLoading(true);
 
         const appraiseeDetailsVo = nonEmptyDetailsData.map(row => ({
-            ...(editId && { id: editId }),
+            ...(row.id !== -1 && { id: row.id }),
             area: row.area,
             keyPerformanceIndicator: row.keyPerformanceIndicator,
             goals: row.goals,
@@ -257,11 +311,11 @@ const Appraisee = () => {
             ...(editId && { id: editId }),
             active: formData.active,
             appraiseeDetailsDTO: appraiseeDetailsVo,
-            branch,
+            branch: formData.branch || branch,
             code: formData.code,
             createdBy,
-            department,
-            designation,
+            department: formData.department || department,
+            designation: formData.designation || designation,
             finYear: formData.finYear,
             name: formData.name,
             orgId,
@@ -288,29 +342,29 @@ const Appraisee = () => {
     };
 
     const handleClear = () => {
-        // setFormData({
-        //     id: '',
-        //     code: localStorage.getItem('employeeCode') || '',
-        //     name: '',
-        //     branch: '',
-        //     department: '',
-        //     designation: '',
-        //     reportingHead: '',
-        //     reportingHeadCode: '',
-        //     reportingHeadDesignation: '',
-        //     finYear: new Date().getFullYear(),
-        //     active: true
-        // });
+        setFormData({
+            id: '',
+            code: localStorage.getItem('employeeCode') || '',
+            name: '',
+            branch: '',
+            department: '',
+            designation: '',
+            reportingHead: '',
+            reportingHeadCode: '',
+            reportingHeadDesignation: '',
+            finYear: new Date().getFullYear(),
+            active: true
+        });
 
-        // setFieldErrors({
-        //     code: '',
-        //     name: '',
-        //     department: '',
-        //     designation: '',
-        //     reportingHeadCode: '',
-        //     reportingHead: '',
-        //     reportingHeadDesignation: '',
-        // });
+        setFieldErrors({
+            code: '',
+            name: '',
+            department: '',
+            designation: '',
+            reportingHeadCode: '',
+            reportingHead: '',
+            reportingHeadDesignation: '',
+        });
 
         setAppraiseeDetailsData([
             { id: -1, area: '', keyPerformanceIndicator: '', goals: '', reMarks: '' }
@@ -321,6 +375,7 @@ const Appraisee = () => {
         ]);
 
         setEditId('');
+        setSelectedEmployee(null);
     };
 
     const handleDeleteRow = (id) => {
@@ -338,7 +393,6 @@ const Appraisee = () => {
         setAppraiseeDetailsData(newData);
         setAppraiseeDetailsErrors(newErrors);
     };
-
 
     const handleDetailChange = (id, field, value) => {
         const index = appraiseeDetailsData.findIndex(d => d.id === id);
@@ -379,6 +433,8 @@ const Appraisee = () => {
 
     const handleCloseModal = () => {
         setModalOpen(false);
+        setSelectedRows([]);
+        setSelectAll(false);
     };
 
     const handleSelectAll = () => {
@@ -390,7 +446,6 @@ const Appraisee = () => {
         setSelectAll(!selectAll);
     };
 
-    // FIXED: Proper implementation for updating fill grid remarks
     const handleFillGridRemarkChange = (index, value) => {
         setFillGridData(prevData => {
             const newData = [...prevData];
@@ -422,6 +477,7 @@ const Appraisee = () => {
         }
 
         if (newData.length === 0) {
+            handleCloseModal();
             return;
         }
 
@@ -459,19 +515,44 @@ const Appraisee = () => {
                     {!listView ? (
                         <>
                             <div className="row d-flex ml">
-                                {/* Employee Code */}
+                                {/* Employee Code - Autocomplete */}
                                 <div className="col-md-3 mb-3">
-                                    <TextField
-                                        label="Employee Code"
-                                        variant="outlined"
-                                        size="small"
-                                        fullWidth
-                                        name="code"
-                                        value={formData.code}
-                                        onChange={handleInputChange}
-                                        error={!!fieldErrors.code}
-                                        helperText={fieldErrors.code}
-                                        disabled
+                                    <Autocomplete
+                                        options={employeeOptions}
+                                        loading={isLoadingEmployees}
+                                        getOptionLabel={(option) => `${option.code} - ${option.name}`}
+                                        value={selectedEmployee}
+                                        onChange={handleEmployeeSelect}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Employee Code"
+                                                variant="outlined"
+                                                size="small"
+                                                error={!!fieldErrors.code}
+                                                helperText={fieldErrors.code}
+                                                InputProps={{
+                                                    ...params.InputProps,
+                                                    endAdornment: (
+                                                        <>
+                                                            {isLoadingEmployees ? <CircularProgress color="inherit" size={20} /> : null}
+                                                            {params.InputProps.endAdornment}
+                                                        </>
+                                                    ),
+                                                }}
+                                            />
+                                        )}
+                                        renderOption={(props, option) => (
+                                            <li {...props}>
+                                                <div>
+                                                    {option.code} - {option.name}
+                                                </div>
+                                            </li>
+                                        )}
+                                        isOptionEqualToValue={(option, value) => option.code === value?.code}
+                                        noOptionsText="No employees found"
+                                        clearOnEscape
+                                        freeSolo={false}
                                     />
                                 </div>
 
@@ -487,11 +568,10 @@ const Appraisee = () => {
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.name}
                                         helperText={fieldErrors.name}
-                                        disabled
                                     />
                                 </div>
 
-                                {/* department */}
+                                {/* Department */}
                                 <div className="col-md-3 mb-3">
                                     <TextField
                                         label="Department"
@@ -503,11 +583,10 @@ const Appraisee = () => {
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.department}
                                         helperText={fieldErrors.department}
-                                        disabled
                                     />
                                 </div>
 
-                                {/* designation */}
+                                {/* Designation */}
                                 <div className="col-md-3 mb-3">
                                     <TextField
                                         label="Designation"
@@ -519,11 +598,10 @@ const Appraisee = () => {
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.designation}
                                         helperText={fieldErrors.designation}
-                                        disabled
                                     />
                                 </div>
 
-                                {/* reportingHeadCode */}
+                                {/* Reporting Head Code */}
                                 <div className="col-md-3 mb-3">
                                     <TextField
                                         label="Reporting Head Code"
@@ -535,11 +613,10 @@ const Appraisee = () => {
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.reportingHeadCode}
                                         helperText={fieldErrors.reportingHeadCode}
-                                        disabled
                                     />
                                 </div>
 
-                                {/* reportingHead */}
+                                {/* Reporting Head */}
                                 <div className="col-md-3 mb-3">
                                     <TextField
                                         label="Reporting Head"
@@ -551,11 +628,10 @@ const Appraisee = () => {
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.reportingHead}
                                         helperText={fieldErrors.reportingHead}
-                                        disabled
                                     />
                                 </div>
 
-                                {/* reportingHeadDesignation */}
+                                {/* Reporting Head Designation */}
                                 <div className="col-md-3 mb-3">
                                     <TextField
                                         label="Reporting Head Designation"
@@ -567,23 +643,8 @@ const Appraisee = () => {
                                         onChange={handleInputChange}
                                         error={!!fieldErrors.reportingHeadDesignation}
                                         helperText={fieldErrors.reportingHeadDesignation}
-                                        disabled
                                     />
                                 </div>
-
-                                {/* active */}
-                                {/* <div className="col-md-3 mb-3 flex items-center">
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                checked={formData.active}
-                                                onChange={handleInputChange}
-                                                name="active"
-                                            />
-                                        }
-                                        label="Active"
-                                    />
-                                </div> */}
                             </div>
 
                             <div className="row mt-2">
@@ -763,7 +824,6 @@ const Appraisee = () => {
                                                                             size="small"
                                                                             value={row.reMarks}
                                                                             onChange={(e) =>
-                                                                                // FIXED: Use correct handler for fill grid remarks
                                                                                 handleFillGridRemarkChange(index, e.target.value)
                                                                             }
                                                                         />

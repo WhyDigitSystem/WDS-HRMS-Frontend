@@ -202,10 +202,9 @@ const TravelRequest = () => {
             <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px' }}>
                 <div className="row d-flex ml">
                     <div className="d-flex flex-wrap justify-content-start mb-4">
-                        <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-                        <ActionButton title="Reset" icon={ClearIcon} onClick={handleClear} />
                         <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} />
                         <ActionButton title="Apply" icon={SaveIcon} onClick={handleSave} disabled={isLoading} />
+                        <ActionButton title="Reset" icon={ClearIcon} onClick={handleClear} />
                     </div>
 
                     {!listView ? (
@@ -289,7 +288,7 @@ const TravelRequest = () => {
                             {/* Travel Reason */}
                             <div className="col-md-6 mb-3">
                                 <TextField
-                                    label="Travel Reason"
+                                    label="Reason"
                                     variant="outlined"
                                     size="small"
                                     fullWidth

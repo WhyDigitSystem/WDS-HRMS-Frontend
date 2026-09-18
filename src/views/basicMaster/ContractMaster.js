@@ -102,7 +102,116 @@ export const ContractMaster = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    let updatedValue = value;
+    let error = '';
+
+    switch (name) {
+      // CODE → Alpha Numeric + - + /
+      case 'contractorCode':
+        updatedValue = value.toUpperCase().replace(/[^A-Z0-9/-]/g, '');
+        if (!updatedValue.trim()) {
+          error = 'Code is required';
+        }
+        break;
+
+      // CONTRACTOR NAME → Only letters + spaces
+      case 'contractorName':
+        updatedValue = value.replace(/[^A-Za-z ]/g, '');
+        if (!updatedValue.trim()) {
+          error = 'Contractor name is required';
+        } else if (updatedValue.length < 3) {
+          error = 'Minimum 3 characters required';
+        }
+        break;
+
+      // CONTACT PERSON → Only letters
+      case 'contactPerson':
+        updatedValue = value.replace(/[^A-Za-z ]/g, '');
+        break;
+
+      // CONTACT NUMBER → Only 10 digits
+      case 'contactNumber':
+        updatedValue = value.replace(/\D/g, '').slice(0, 10);
+
+        if (updatedValue && updatedValue.length < 10) {
+          error = 'Contact number must be 10 digits';
+        }
+        break;
+
+      // EMAIL VALIDATION
+      case 'email':
+        updatedValue = value.toLowerCase();
+
+        if (
+          updatedValue &&
+          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(updatedValue)
+        ) {
+          error = 'Invalid email address';
+        }
+        break;
+
+      // CONTRACT VALUE → Numbers only + decimal
+      case 'contractValue':
+        updatedValue = value.replace(/[^0-9.]/g, '');
+
+        // prevent multiple decimals
+        const decimalCount = (updatedValue.match(/\./g) || []).length;
+        if (decimalCount > 1) {
+          updatedValue = updatedValue.substring(
+            0,
+            updatedValue.lastIndexOf('.')
+          );
+        }
+        break;
+
+      // PAN NUMBER → ABCDE1234F
+      case 'panNo':
+        updatedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+        if (
+          updatedValue &&
+          !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(updatedValue)
+        ) {
+          error = 'Invalid PAN format';
+        }
+        break;
+
+      // GST NUMBER
+      case 'gst':
+        updatedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+        if (
+          updatedValue &&
+          !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(updatedValue)
+        ) {
+          error = 'Invalid GST number';
+        }
+        break;
+
+      // REMARKS
+      case 'remarks':
+        updatedValue = value.slice(0, 250);
+        break;
+
+      // ADDRESS
+      case 'address':
+        updatedValue = value.slice(0, 500);
+        break;
+
+      default:
+        break;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: updatedValue
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const handleClear = () => {
@@ -129,17 +238,94 @@ export const ContractMaster = () => {
 
   const handleSave = async () => {
     const errors = {};
-    if (!formData.contractorCode) errors.contractorCode = 'Code is required';
-    if (!formData.contractorName) errors.contractorName = 'Contractor is required';
 
+    // REQUIRED VALIDATIONS
+    if (!formData.contractorCode.trim()) {
+      errors.contractorCode = 'Code is required';
+    }
+
+    if (!formData.contractorName.trim()) {
+      errors.contractorName = 'Contractor is required';
+    }
+
+    // START DATE
+    if (!formData.contractStartDate) {
+      errors.contractStartDate = 'Start Date is required';
+    }
+
+    // END DATE
+    if (!formData.contractEndDate) {
+      errors.contractEndDate = 'End Date is required';
+    }
+
+    // DATE COMPARISON
+    if (
+      formData.contractStartDate &&
+      formData.contractEndDate &&
+      new Date(formData.contractEndDate) <
+      new Date(formData.contractStartDate)
+    ) {
+      errors.contractEndDate =
+        'End Date cannot be before Start Date';
+    }
+
+    // CONTACT NUMBER VALIDATION
+    if (
+      formData.contactNumber &&
+      formData.contactNumber.length !== 10
+    ) {
+      errors.contactNumber =
+        'Contact number must be 10 digits';
+    }
+
+    // EMAIL VALIDATION
+    if (
+      formData.email &&
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(
+        formData.email
+      )
+    ) {
+      errors.email = 'Invalid email address';
+    }
+
+    // PAN VALIDATION
+    if (
+      formData.panNo &&
+      !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNo)
+    ) {
+      errors.panNo = 'Invalid PAN format';
+    }
+
+    // GST VALIDATION
+    if (
+      formData.gst &&
+      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+        formData.gst
+      )
+    ) {
+      errors.gst = 'Invalid GST number';
+    }
+
+    // CONTRACT VALUE VALIDATION
+    if (
+      formData.contractValue &&
+      Number(formData.contractValue) <= 0
+    ) {
+      errors.contractValue =
+        'Contract value must be greater than 0';
+    }
+
+    // STOP SAVE IF ERRORS
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
     }
 
     setIsLoading(true);
+
     const payload = {
       ...(editId && { id: editId }),
+
       contractorCode: formData.contractorCode,
       contractor: formData.contractorName,
       contactPerson: formData.contactPerson,
@@ -155,6 +341,7 @@ export const ContractMaster = () => {
       contractType: formData.contractType,
       renewalRequired: formData.renewalRequired,
       status: formData.status ? 'Active' : 'Inactive',
+
       orgId: parseInt(orgId),
       branch,
       branchCode,
@@ -163,17 +350,36 @@ export const ContractMaster = () => {
     };
 
     try {
-      const response = await apiCalls('put', `shiftmaster/createUpdateContractMaster`, payload);
+      const response = await apiCalls(
+        'put',
+        `shiftmaster/createUpdateContractMaster`,
+        payload
+      );
+
       if (response.status) {
-        showToast('success', editId ? 'Contract Updated Successfully' : 'Contract Created Successfully');
+        showToast(
+          'success',
+          editId
+            ? 'Contract Updated Successfully'
+            : 'Contract Created Successfully'
+        );
+
         handleClear();
         getAllContracts();
       } else {
-        showToast('error', response.paramObjectsMap?.errorMessage || 'Failed to save contract');
+        showToast(
+          'error',
+          response.paramObjectsMap?.errorMessage ||
+          'Failed to save contract'
+        );
       }
     } catch (error) {
       console.error(error);
-      showToast('error', 'Server error occurred');
+
+      showToast(
+        'error',
+        'Server error occurred'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -217,6 +423,7 @@ export const ContractMaster = () => {
                 helperText={fieldErrors.contractorCode}
                 size="small"
                 fullWidth
+                inputProps={{ maxLength: 15 }}
               />
             </div>
             <div className="col-md-3 mb-3">
@@ -229,6 +436,7 @@ export const ContractMaster = () => {
                 helperText={fieldErrors.contractorName}
                 size="small"
                 fullWidth
+                inputProps={{ maxLength: 50 }}
               />
             </div>
             <div className="col-md-3 mb-3">
@@ -237,8 +445,11 @@ export const ContractMaster = () => {
                 name="contactPerson"
                 value={formData.contactPerson}
                 onChange={handleInputChange}
+                error={!!fieldErrors.contactPerson}
+                helperText={fieldErrors.contactPerson}
                 size="small"
                 fullWidth
+                inputProps={{ maxLength: 40 }}
               />
             </div>
             <div className="col-md-3 mb-3">
@@ -247,22 +458,39 @@ export const ContractMaster = () => {
                 name="contactNumber"
                 value={formData.contactNumber}
                 onChange={handleInputChange}
+                error={!!fieldErrors.contactNumber}
+                helperText={fieldErrors.contactNumber}
                 size="small"
                 fullWidth
+                inputProps={{ maxLength: 10 }}
               />
             </div>
             <div className="col-md-3 mb-3">
-              <TextField label="Email" name="email" value={formData.email} onChange={handleInputChange} size="small" fullWidth />
+              <TextField
+                label="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                error={!!fieldErrors.email}
+                helperText={fieldErrors.email}
+                size="small"
+                fullWidth
+                inputProps={{ maxLength: 100 }}
+              />
             </div>
             <div className="col-md-3 mb-3">
               <TextField
                 label="Contract Value"
                 name="contractValue"
-                type="number"
+                type="text"
                 value={formData.contractValue}
                 onChange={handleInputChange}
                 size="small"
                 fullWidth
+                inputProps={{
+                  inputMode: 'decimal',
+                  maxLength: 12
+                }}
               />
             </div>
             <div className="col-md-3 mb-3">
@@ -274,6 +502,8 @@ export const ContractMaster = () => {
                 size="small"
                 fullWidth
                 multiline
+                inputProps={{ maxLength: 250 }}
+                helperText={`${formData.remarks.length}/250`}
               />
             </div>
             <div className="col-md-3 mb-3">
@@ -385,13 +615,35 @@ export const ContractMaster = () => {
                 size="small"
                 fullWidth
                 multiline
+                inputProps={{ maxLength: 500 }}
+                helperText={`${formData.address.length}/500`}
               />
             </div>
             <div className="col-md-3 mb-3">
-              <TextField label="PAN No" name="panNo" value={formData.panNo} onChange={handleInputChange} size="small" fullWidth />
+              <TextField
+                label="PAN No"
+                name="panNo"
+                value={formData.panNo}
+                onChange={handleInputChange}
+                error={!!fieldErrors.panNo}
+                helperText={fieldErrors.panNo}
+                size="small"
+                fullWidth
+                inputProps={{ maxLength: 10 }}
+              />
             </div>
             <div className="col-md-3 mb-3">
-              <TextField label="GST" name="gst" value={formData.gst} onChange={handleInputChange} size="small" fullWidth />
+              <TextField
+                label="GST"
+                name="gst"
+                value={formData.gst}
+                onChange={handleInputChange}
+                error={!!fieldErrors.gst}
+                helperText={fieldErrors.gst}
+                size="small"
+                fullWidth
+                inputProps={{ maxLength: 15 }}
+              />
             </div>
             <div className="col-md-3 mb-3">
               <FormControlLabel control={<Checkbox checked={formData.status} onChange={handleCheckboxChange} />} label="Status" />

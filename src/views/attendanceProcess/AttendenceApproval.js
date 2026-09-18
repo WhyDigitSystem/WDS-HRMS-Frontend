@@ -316,10 +316,10 @@ const AttendenceApproval = () => {
                 />
               </TableCell>
               <TableCell>
-                <strong>Code</strong>
+                <strong>Name</strong>
               </TableCell>
               <TableCell>
-                <strong>Name</strong>
+                <strong>Code</strong>
               </TableCell>
               {/* <TableCell>
                 <strong>Branch</strong>
@@ -360,8 +360,8 @@ const AttendenceApproval = () => {
                   <TableCell padding="checkbox">
                     <Checkbox checked={selectedRows.includes(row.empCode)} onChange={() => handleSelectRow(row.empCode)} />
                   </TableCell>
-                  <TableCell>{row.empCode}</TableCell>
                   <TableCell>{row.empName}</TableCell>
+                  <TableCell>{row.empCode}</TableCell>
                   {/* <TableCell>{row.branch}</TableCell> */}
                   <TableCell>{row.department}</TableCell>
                   <TableCell>{formatValue(row.totalDays)}</TableCell>

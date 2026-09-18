@@ -29,8 +29,6 @@ const CheckinDetails = ({ isLoading }) => {
   const [empcode] = useState(localStorage.getItem('employeeCode'));
   const [empName] = useState(localStorage.getItem('employeeName'));
   const [designation] = useState(localStorage.getItem('designation'));
-  // const [profileImage] = useState(localStorage.getItem('profileImage'));
-  // const [profileImage, setProfileImage] = useState(localStorage.getItem('profileImage') || '');
   const [profileImage, setProfileImage] = useState('');
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [checkInTime, setCheckInTime] = useState(null);
@@ -49,26 +47,6 @@ const CheckinDetails = ({ isLoading }) => {
   const [longitude, setLongitude] = useState(null);
   const [locationAddress, setLocationAddress] = useState('');
   const [employeeEmail, setEmployeeEmail] = useState('');
-
-  useEffect(() => {
-    const storedImage = localStorage.getItem('profileImage');
-    if (storedImage) {
-      setProfileImage(storedImage);
-    }
-
-    const handleImageUpdate = () => {
-      const updatedImage = localStorage.getItem('profileImage');
-      if (updatedImage) {
-        setProfileImage(updatedImage);
-      }
-    };
-
-    window.addEventListener('profileImageUpdated', handleImageUpdate);
-
-    return () => {
-      window.removeEventListener('profileImageUpdated', handleImageUpdate);
-    };
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -95,6 +73,7 @@ const CheckinDetails = ({ isLoading }) => {
         setReportingPersonCode(employee?.reportningPersonCode || '');
         setReportingPersonMail(employee?.reportnigPersonEmail || '');
         setEmployeeEmail(employee?.email || '');
+        setProfileImage(employee?.profileImage || '')
       }
     } catch (error) {
       console.error('Error:', error);

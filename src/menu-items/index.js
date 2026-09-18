@@ -11,6 +11,13 @@ import basicMaster from './basicMaster';
 import companySetup from './companySetup';
 import admin from './admin';
 import salaryMaster from './salaryMaster';
+import Appraisal from './Appraisal';
+import AssetManagement from './assetManagement';
+import ExpenceTrack from './ExpenceTrack';
+import RecruitmentManagement from './recruitmentManagement';
+import SeparationManagement from './separationManagement';
+import manageTax from './manageTax';
+import mamageTaxNew from './manageTaxNew';
 // Import other dynamically filtered modules as needed
 
 const filterValid = (items) => items.filter(Boolean);
@@ -25,6 +32,13 @@ const getMenuItems = () => {
       me,
       // finance,
       team,
+      Appraisal,
+      AssetManagement,
+      RecruitmentManagement,
+      SeparationManagement,
+      ExpenceTrack,
+      manageTax,
+      mamageTaxNew,
       basicMaster,
       salaryMaster,
       companySetup,

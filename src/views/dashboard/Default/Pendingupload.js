@@ -26,6 +26,8 @@ import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import IncrementViewDialog from 'utils/IncrementViewDialog';
+import { showToast } from 'utils/toast-component';
 
 // Background image component
 const BackgroundImage = () => {
@@ -143,133 +145,371 @@ const PendingApproval = ({ isLoading }) => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [processingId, setProcessingId] = useState(null);
-  // const [processingId, setProcessingId] = useState(null);
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
   const [branch, setBranch] = useState(localStorage.getItem('branch'));
   const [branchCode, setBranchCode] = useState(localStorage.getItem('branchCode'));
   const [employeeName, setEmployeeName] = useState(localStorage.getItem('employeeName'));
   const [empCode, setEmpCode] = useState(localStorage.getItem('employeeCode'));
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
-  // const orgId = localStorage.getItem("orgId");
+  const [userType] = useState(localStorage.getItem('userType'));
   const employeeCode = localStorage.getItem('employeeCode');
   const isProcessing = processingId !== null;
+  const [selectedIncrement, setSelectedIncrement] = useState(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+
+  const [EMPLOYEECODE] = useState("WDS051");
+  const isAdmin = userType?.toUpperCase() === "ADMIN";
 
   useEffect(() => {
     getAllRequests();
   }, [orgId, employeeCode]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     if (processingId) {
-  //       // If component unmounts during processing, refresh data when mounted again
-  //       getLeaveRequest();
-  //     }
-  //   };
-  // }, [processingId]);
+  console.log('Leave', leaveRequests)
+
+  // const getAllRequests = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     const [
+  //       leaveResponse,
+  //       permissionResponse,
+  //       compoOffResponse,
+  //       checkOutResponse,
+  //       checkInOutResult,
+  //       incrementResponse,
+  //       expenseClaims,
+  //       travelExpense
+  //     ] = await Promise.all([
+  //       apiCalls(
+  //         'get',
+  //         `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `basicmaster/getRequestCheckOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+  //       ),
+  //       apiCalls(
+  //         'get',
+  //         `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+  //       )
+  //     ]);
+
+  //     // ===== Normalize all responses =====
+  //     const normalize = (data) =>
+  //       Array.isArray(data) ? data : [data].filter(Boolean);
+
+  //     const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
+  //     const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
+  //     const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
+  //     const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
+  //     const expenseRequests = normalize(expenseClaims?.paramObjectsMap?.expenseClaimsVO);
+  //     const travelRequests = normalize(travelExpense?.paramObjectsMap?.travelRequestsVO);
+
+  //     let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
+  //       ...item,
+  //       employeeEmail: item.email || item.employeeEmail || ''
+  //     }));
+
+  //     // ===== Process CheckInOut Adjustment =====
+  //     const rawCheckInOut = normalize(checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO);
+
+  //     const grouped = {};
+
+  //     rawCheckInOut.forEach((item) => {
+  //       const key = `${item.employeeCode}_${item.checkInDate}`;
+
+  //       if (!grouped[key]) {
+  //         grouped[key] = {
+  //           ...item,
+  //           id: key,
+  //           entryTime: '',
+  //           exitTime: '',
+  //           employeeEmail: item.email || item.employeeEmail || '',
+  //           records: []
+  //         };
+  //       }
+
+  //       grouped[key].records.push(item);
+  //     });
+
+  //     const checkInOutRequests = Object.values(grouped).map((group) => {
+  //       const sortedRecords = group.records.sort((a, b) =>
+  //         a.entryTime.localeCompare(b.entryTime)
+  //       );
+
+  //       const entry = sortedRecords[0]?.entryTime || '';
+  //       const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
+
+  //       return {
+  //         ...group,
+  //         entryTime: entry,
+  //         exitTime: exit,
+  //         approveStatus: group.records[0]?.approveStatus || 'PENDING',
+  //         screenName: group.records[0]?.screenName || 'CHECKINOUTADJUSTMENT'
+  //       };
+  //     });
+
+  //     // ===== Filter only PENDING requests =====
+  //     const filterPending = (arr) => arr.filter((r) => !r.approveStatus || r.approveStatus === 'PENDING');
+
+  //     const combinedRequests = [
+  //       ...filterPending(leaveRequests),
+  //       ...filterPending(permissionRequests),
+  //       ...filterPending(compoOffRequests),
+  //       ...filterPending(checkOutRequests),
+  //       ...filterPending(checkInOutRequests),
+  //       ...filterPending(incrementManagementRequests),
+  //       ...filterPending(expenseRequests),
+  //       ...filterPending(travelRequests),
+  //     ];
+
+  //     // ===== Set State =====
+  //     setLeaveRequests(combinedRequests);
+  //     setScreenNames(combinedRequests.map((item) => item.screenName));
+  //   } catch (error) {
+  //     console.error('Error fetching combined requests:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const mapUserDashboardToAdminFormat = (list = []) => {
+    const grouped = {};
+
+    list.forEach((item, index) => {
+      const key = `${item.type}_${item.fromdate}`;
+
+      if (!grouped[key]) {
+        let screenName = "";
+
+        if (item.type === "CHECKINOUT_ADJUSTMENT") {
+          screenName = "CHECKINOUTADJUSTMENT";
+        } else if (item.type === "COMPENSATORY_OFF") {
+          screenName = "COMPENSATORY OFF";
+        } else {
+          screenName = item.type.replace(/_/g, " ");
+        }
+
+        grouped[key] = {
+          id: index + 1,
+          screenName,
+          approveStatus: item.approvalstatus,
+
+          startDate: item.fromdate,
+          endDate: item.todate,
+          checkInDate: item.fromdate,
+
+          // CompOff specific
+          compOffDate:
+            item.type === "COMPENSATORY_OFF"
+              ? item.fromdate
+              : undefined,
+
+          totalDays:
+            item.type === "COMPENSATORY_OFF"
+              ? "1"
+              : item.duration || "",
+
+          employeeName,
+          employeeCode,
+
+          reason: item.reason || "",
+          leaveType:
+            item.type === "COMPENSATORY_OFF"
+              ? "Compensatory Off"
+              : "",
+
+          entryTime: "",
+          exitTime: "",
+          records: []
+        };
+      }
+
+      grouped[key].records.push(item);
+    });
+
+    return Object.values(grouped).map((group) => {
+      if (group.screenName === "CHECKINOUTADJUSTMENT") {
+        const inEntry = group.records.find(r => r.status === "IN");
+        const outEntry = group.records.find(r => r.status === "OUT");
+
+        group.entryTime = inEntry?.time || "";
+        group.exitTime = outEntry?.time || "";
+      }
+
+      delete group.records;
+      return group;
+    });
+  };
 
   const getAllRequests = async () => {
     try {
       setLoading(true);
 
-      const [
-        leaveResponse,
-        permissionResponse,
-        compoOffResponse,
-        checkOutResponse,
-        checkInOutResult
-      ] = await Promise.all([
-        apiCalls(
-          'get',
-          `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
-        ),
-        apiCalls(
-          'get',
-          `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
-        ),
-        apiCalls(
-          'get',
-          `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
-        ),
-        apiCalls(
-          'get',
-          `basicmaster/getRequestCheckOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
-        ),
-        apiCalls(
-          'get',
-          `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
-        )
-      ]);
+      const userType = localStorage.getItem("userType");
 
-      // ===== Normalize Leave/Permission/CompoOff/Checkout Requests =====
-      const normalize = (data) =>
-        Array.isArray(data) ? data : [data].filter(Boolean);
+      // ================= ADMIN FLOW =================
+      if (userType === "ADMIN") {
 
-      const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
-      const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
-      const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
+        const [
+          leaveResponse,
+          permissionResponse,
+          compoOffResponse,
+          checkOutResponse,
+          checkInOutResult,
+          incrementResponse,
+          expenseClaims,
+          travelExpense
+        ] = await Promise.all([
+          apiCalls(
+            'get',
+            `leaveprocess/getLeaveRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+          ),
+          apiCalls(
+            'get',
+            `employeemaster/getPendingPermissionRequest?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+          ),
+          apiCalls(
+            'get',
+            `leaveprocess/getCompoffRequestForDashBoard?orgId=${orgId}&reportingPersonCode=${employeeCode}&branchCode=${branchCode}`
+          ),
+          apiCalls(
+            'get',
+            `basicmaster/getRequestCheckOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `basicmaster/getRequestCheckInOutByOrgId?branch=${branch}&orgId=${orgId}&reportingPersoncode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `incrementmanagement/getIncrementManagementForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `/assetmanagement/getExpenseClaimsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+          ),
+          apiCalls(
+            'get',
+            `/assetmanagement/getTravelRequestsForDashBoard?branchCode=${branchCode}&orgId=${orgId}&reportingPersonCode=${employeeCode}`
+          )
+        ]);
 
-      let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
-        ...item,
-        employeeEmail: item.email || item.employeeEmail || ''
-      }));
+        const normalize = (data) =>
+          Array.isArray(data) ? data : [data].filter(Boolean);
 
-      // ===== Process CheckInOut Adjustment =====
-      const rawCheckInOut = normalize(checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO);
+        const leaveRequests = normalize(leaveResponse?.paramObjectsMap?.leaveRequestVO);
+        const permissionRequests = normalize(permissionResponse?.paramObjectsMap?.permissionRequestVO);
+        const compoOffRequests = normalize(compoOffResponse?.paramObjectsMap?.compensatoryOffVO);
+        const incrementManagementRequests = normalize(incrementResponse?.paramObjectsMap?.incrementManagementVO);
+        const expenseRequests = normalize(expenseClaims?.paramObjectsMap?.expenseClaimsVO);
+        const travelRequests = normalize(travelExpense?.paramObjectsMap?.travelRequestsVO);
 
-      const grouped = {};
+        let checkOutRequests = normalize(checkOutResponse?.paramObjectsMap?.checkInVO).map((item) => ({
+          ...item,
+          employeeEmail: item.email || item.employeeEmail || ''
+        }));
 
-      rawCheckInOut.forEach((item) => {
-        const key = `${item.employeeCode}_${item.checkInDate}`;
+        // ===== Process CheckInOut Adjustment =====
+        const rawCheckInOut = normalize(checkInOutResult?.paramObjectsMap?.checkInOutAdjustmentVO);
 
-        if (!grouped[key]) {
-          grouped[key] = {
-            ...item,
-            id: key,
-            entryTime: '',
-            exitTime: '',
-            employeeEmail: item.email || item.employeeEmail || '',
-            records: []
+        const grouped = {};
+
+        rawCheckInOut.forEach((item) => {
+          const key = `${item.employeeCode}_${item.checkInDate}`;
+
+          if (!grouped[key]) {
+            grouped[key] = {
+              ...item,
+              id: key,
+              entryTime: '',
+              exitTime: '',
+              employeeEmail: item.email || item.employeeEmail || '',
+              records: []
+            };
+          }
+
+          grouped[key].records.push(item);
+        });
+
+        const checkInOutRequests = Object.values(grouped).map((group) => {
+          const sortedRecords = group.records.sort((a, b) =>
+            a.entryTime.localeCompare(b.entryTime)
+          );
+
+          const entry = sortedRecords[0]?.entryTime || '';
+          const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
+
+          return {
+            ...group,
+            entryTime: entry,
+            exitTime: exit,
+            approveStatus: group.records[0]?.approveStatus || 'PENDING',
+            screenName: group.records[0]?.screenName || 'CHECKINOUTADJUSTMENT'
           };
-        }
+        });
 
-        grouped[key].records.push(item);
-      });
+        const filterPending = (arr) =>
+          arr.filter((r) => !r.approveStatus || r.approveStatus === 'PENDING');
 
-      const checkInOutRequests = Object.values(grouped).map((group) => {
-        // Sort records by time
-        const sortedRecords = group.records.sort((a, b) =>
-          a.entryTime.localeCompare(b.entryTime)
+        const combinedRequests = [
+          ...filterPending(leaveRequests),
+          ...filterPending(permissionRequests),
+          ...filterPending(compoOffRequests),
+          ...filterPending(checkOutRequests),
+          ...filterPending(checkInOutRequests),
+          ...filterPending(incrementManagementRequests),
+          ...filterPending(expenseRequests),
+          ...filterPending(travelRequests)
+        ];
+
+        setLeaveRequests(combinedRequests);
+        setScreenNames(combinedRequests.map((item) => item.screenName));
+      }
+
+      // ================= USER FLOW =================
+      else {
+
+        const result = await apiCalls(
+          'get',
+          `/basicmaster/getDashBoardApprovalStatusDetails/${employeeCode}`
         );
 
-        // Assign first time as entry, last time as exit
-        const entry = sortedRecords[0]?.entryTime || '';
-        const exit = sortedRecords[sortedRecords.length - 1]?.entryTime || '';
+        const dashboardData =
+          result?.paramObjectsMap?.dashBoard || [];
 
-        return {
-          ...group,
-          entryTime: entry,
-          exitTime: exit,
-          approveStatus: group.records[0]?.approveStatus || 'PENDING',
-          screenName: group.records[0]?.screenName || 'CHECKINOUTADJUSTMENT'
-        };
-      });
+        const mapped = mapUserDashboardToAdminFormat(dashboardData);
 
-      // ===== Filter only PENDING requests =====
-      const filterPending = (arr) => arr.filter((r) => !r.approveStatus || r.approveStatus === 'PENDING');
+        const pendingOnly = mapped.filter(
+          (r) => !r.approveStatus || r.approveStatus === "PENDING"
+        );
 
-      const combinedRequests = [
-        ...filterPending(leaveRequests),
-        ...filterPending(permissionRequests),
-        ...filterPending(compoOffRequests),
-        ...filterPending(checkOutRequests),
-        ...filterPending(checkInOutRequests)
-      ];
+        setLeaveRequests(pendingOnly);
+        setScreenNames(pendingOnly.map((i) => i.screenName));
+      }
 
-      // ===== Set State =====
-      setLeaveRequests(combinedRequests);
-      setScreenNames(combinedRequests.map((item) => item.screenName));
     } catch (error) {
-      console.error('Error fetching combined requests:', error);
+      console.error("Error fetching dashboard requests:", error);
     } finally {
       setLoading(false);
     }
@@ -293,7 +533,7 @@ const PendingApproval = ({ isLoading }) => {
       // 1. Make API call to approve/reject
       await apiCalls(
         'put',
-        `/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${request.employeeCode}&id=${request.id}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${request.screenName}`
+        `/leaveprocess/createApprovalLeave?action=${action}&actionBy=${loginUserName}&employeeCode=${request.employeeCode}&id=${request.id}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${request.screenName}&email=${request.email}`
       );
 
       setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
@@ -552,13 +792,111 @@ const PendingApproval = ({ isLoading }) => {
     }
   };
 
+  const handleActionIncrementManagement = async (request, action) => {
+    setProcessingId(request.id);
+
+    try {
+      const response = await apiCalls(
+        'put',
+        `/incrementmanagement/createApprovalIncrementManagement?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&orgId=${orgId}&notifyCode=${employeeCode}&notify=${employeeName}&screenName=${request.screenName}`
+      );
+
+      if (response.status === true) {
+        setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+        toast.success(`Increment request ${action.toLowerCase()} successfully`, {
+          autoClose: 3000
+        });
+      } else {
+        throw new Error(response.message || `Failed to ${action.toLowerCase()} increment request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action.toLowerCase()}ing increment request:`, error);
+
+      // Revert UI if error occurs
+      setLeaveRequests((prev) => [...prev, request].sort((a, b) => a.id - b.id));
+
+      toast.error(`Failed to ${action.toLowerCase()} increment request`, {
+        autoClose: 3000
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+  const handleActionExpense = async (request, action) => {
+    setProcessingId(request.id);
+
+    try {
+      const response = await apiCalls(
+        'put',
+        `/assetmanagement/createApprovalExpenseClaims?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}&approvedAmount=${request.amount}`
+      );
+
+      if (response.status === true) {
+        setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+        toast.success(`Expense request ${action.toLowerCase()} successfully`, {
+          autoClose: 3000
+        });
+      } else {
+        throw new Error(response.message || `Failed to ${action.toLowerCase()} expense request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action.toLowerCase()}ing expense request:`, error);
+
+      // Revert UI if error occurs
+      setLeaveRequests((prev) => [...prev, request].sort((a, b) => a.id - b.id));
+
+      toast.error(`Failed to ${action.toLowerCase()} expense request`, {
+        autoClose: 3000
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+  const handleActionTravel = async (request, action) => {
+    setProcessingId(request.id);
+
+    try {
+      const response = await apiCalls(
+        'put',
+        `/assetmanagement/createApprovalTravelRequests?action=${action}&actionBy=${employeeName}&employeeCode=${request.employeeCode}&id=${request.id}&notify=${employeeCode}&notifyCode=${employeeCode}&orgId=${orgId}&screenName=${request.screenName}&approvedAmount=${request.estimatedCost}`
+      );
+      if (response.status === true) {
+        setLeaveRequests((prev) => prev.filter((r) => r.id !== request.id));
+
+        toast.success(`Travel request ${action.toLowerCase()} successfully`, {
+          autoClose: 3000
+        });
+      } else {
+        throw new Error(response.message || `Failed to ${action.toLowerCase()} travel request`);
+      }
+    } catch (error) {
+      console.error(`Error ${action.toLowerCase()}ing travel request:`, error);
+
+      // Revert UI if error occurs
+      setLeaveRequests((prev) => [...prev, request].sort((a, b) => a.id - b.id));
+
+      toast.error(`Failed to ${action.toLowerCase()} travel request`, {
+        autoClose: 3000
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleApproveAll = async () => {
     if (leaveRequests.length === 0) return;
 
-    setProcessingId('ALL'); // To optionally show UI loading spinner
+    setProcessingId('ALL');
 
     for (const request of leaveRequests) {
       try {
+        // Skip increment management from bulk approval
+        if (request.screenName === 'INCREMENT MANAGEMENT') {
+          continue;
+        }
+
         if (request.screenName === 'LEAVE REQUEST') {
           await handleActionLeave(request, 'APPROVED');
         } else if (request.screenName === 'PERMISSION REQUEST') {
@@ -569,6 +907,12 @@ const PendingApproval = ({ isLoading }) => {
           await handleActionCheckout(request, 'APPROVED');
         } else if (request.screenName === 'CHECKINOUTADJUSTMENT') {
           await handleCheckInOutApprove(request, 'APPROVED');
+        } else if (request.screenName === 'CHECKINOUTADJUSTMENT') {
+          await handleCheckInOutApprove(request, 'APPROVED');
+        } else if (request.screenName === 'EXPENSE CLAIMS') {
+          await handleActionExpense(request, 'APPROVED');
+        } else if (request.screenName === 'TRAVEL REQUEST') {
+          await handleActionTravel(request, 'APPROVED');
         }
       } catch (error) {
         console.error(`Error approving request ID ${request.id}:`, error);
@@ -579,10 +923,55 @@ const PendingApproval = ({ isLoading }) => {
     setProcessingId(null);
   };
 
+  const handleViewIncrement = (incrementData) => {
+    setSelectedIncrement(incrementData);
+    setViewDialogOpen(true);
+  };
+
+  const handleApproveIncrement = async (incrementData) => {
+    try {
+      // Call the increment management approval API
+      await handleActionIncrementManagement(incrementData, 'APPROVED');
+      setViewDialogOpen(false);
+      // showToast('success', 'Increment approved successfully');
+    } catch (error) {
+      showToast('error', 'Failed to approve increment');
+    }
+  };
+
+  const handleRejectIncrement = async (incrementData) => {
+    try {
+      await handleActionIncrementManagement(incrementData, 'REJECTED');
+      setViewDialogOpen(false);
+      showToast('success', 'Increment rejected successfully');
+    } catch (error) {
+      showToast('error', 'Failed to reject increment');
+    }
+  };
+
   const ActionButtons = ({ request }) => {
     const isProcessing = processingId === request.id;
     const isPending = !request.approveStatus || request.approveStatus === 'PENDING';
 
+    // Check for Increment Management - Only show View button in main list
+    if (request.screenName === 'INCREMENT MANAGEMENT') {
+      return (
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => handleViewIncrement(request)}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2
+          }}
+        >
+          View
+        </Button>
+      );
+    }
+
+    // Normal approve/reject logic for other screens
     if (!isPending) {
       return (
         <Chip
@@ -590,8 +979,14 @@ const PendingApproval = ({ isLoading }) => {
           size="small"
           sx={{
             fontWeight: 600,
-            backgroundColor: request.approveStatus === 'APPROVED' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)',
-            color: request.approveStatus === 'APPROVED' ? theme.palette.success.dark : theme.palette.error.dark
+            backgroundColor:
+              request.approveStatus === 'APPROVED'
+                ? 'rgba(76, 175, 80, 0.1)'
+                : 'rgba(244, 67, 54, 0.1)',
+            color:
+              request.approveStatus === 'APPROVED'
+                ? theme.palette.success.dark
+                : theme.palette.error.dark
           }}
         />
       );
@@ -599,28 +994,20 @@ const PendingApproval = ({ isLoading }) => {
 
     return (
       <Stack direction="row" spacing={1} alignItems="center">
-        <Tooltip title="Approve leave request">
+        {/* APPROVE Button for other request types */}
+        <Tooltip title="Approve request">
           <span>
             <IconButtonStyled
               actiontype="approve"
               onClick={() => {
-                if (request.screenName === 'LEAVE REQUEST') {
-                  handleActionLeave(request, 'APPROVED');
-                }
-                if (request.screenName === 'PERMISSION REQUEST') {
-                  handleActionPermission(request, 'APPROVED');
-                }
-                if (request.screenName === 'COMPENSATORY OFF') {
-                  handleActionCompoOff(request, 'APPROVED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUT') {
-                  handleActionCheckout(request, 'APPROVED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUTADJUSTMENT') {
-                  handleCheckInOutApprove(request, 'APPROVED'); // You can customize this if you need different logic
-                }
+                if (request.screenName === 'LEAVE REQUEST') handleActionLeave(request, 'APPROVED');
+                if (request.screenName === 'PERMISSION REQUEST') handleActionPermission(request, 'APPROVED');
+                if (request.screenName === 'COMPENSATORY OFF') handleActionCompoOff(request, 'APPROVED');
+                if (request.screenName === 'CHECKINOUT') handleActionCheckout(request, 'APPROVED');
+                if (request.screenName === 'CHECKINOUTADJUSTMENT') handleCheckInOutApprove(request, 'APPROVED');
+                if (request.screenName === 'EXPENSE CLAIMS') handleActionExpense(request, 'APPROVED');
+                if (request.screenName === 'TRAVEL REQUEST') handleActionTravel(request, 'APPROVED');
               }}
-              // onClick={() => handleAction(request, "APPROVED")}
               disabled={isProcessing}
             >
               {isProcessing ? <CircularProgress size={20} color="inherit" /> : <ThumbUp fontSize="small" />}
@@ -628,28 +1015,20 @@ const PendingApproval = ({ isLoading }) => {
           </span>
         </Tooltip>
 
-        <Tooltip title="Reject leave request">
+        {/* REJECT Button for other request types */}
+        <Tooltip title="Reject request">
           <span>
             <IconButtonStyled
               actiontype="reject"
               onClick={() => {
-                if (request.screenName === 'LEAVE REQUEST') {
-                  handleActionLeave(request, 'REJECTED');
-                }
-                if (request.screenName === 'PERMISSION REQUEST') {
-                  handleActionPermission(request, 'REJECTED');
-                }
-                if (request.screenName === 'COMPENSATORY OFF') {
-                  handleActionCompoOff(request, 'REJECTED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUT') {
-                  handleActionCheckout(request, 'REJECTED'); // You can customize this if you need different logic
-                }
-                if (request.screenName === 'CHECKINOUTADJUSTMENT') {
-                  handleCheckInOutApprove(request, 'REJECTED'); // You can customize this if you need different logic
-                }
+                if (request.screenName === 'LEAVE REQUEST') handleActionLeave(request, 'REJECTED');
+                if (request.screenName === 'PERMISSION REQUEST') handleActionPermission(request, 'REJECTED');
+                if (request.screenName === 'COMPENSATORY OFF') handleActionCompoOff(request, 'REJECTED');
+                if (request.screenName === 'CHECKINOUT') handleActionCheckout(request, 'REJECTED');
+                if (request.screenName === 'CHECKINOUTADJUSTMENT') handleCheckInOutApprove(request, 'REJECTED');
+                if (request.screenName === 'EXPENSE CLAIMS') handleActionExpense(request, 'REJECTED');
+                if (request.screenName === 'TRAVEL REQUEST') handleActionTravel(request, 'REJECTED');
               }}
-              // onClick={() => handleAction(request, "REJECTED")}
               disabled={isProcessing}
             >
               {isProcessing ? <CircularProgress size={20} color="inherit" /> : <ThumbDown fontSize="small" />}
@@ -664,14 +1043,14 @@ const PendingApproval = ({ isLoading }) => {
     <Box sx={{ position: 'relative', height: '100%' }}>
       <BackgroundImage />
       <GradientOverlay />
-      <StyledCard sx={{ p: 3, height: '100%' }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <StyledCard sx={{ p: 0, height: '100%' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
           <Typography variant="h5" fontWeight="700" color="primary">
             Pending Approvals
           </Typography>
 
           <Box display="flex" alignItems="center" gap={1}>
-            {leaveRequests.length > 0 && (
+            {userType?.toUpperCase() === "ADMIN" && leaveRequests.length > 0 && (
               <Button
                 variant="contained"
                 color="success"
@@ -689,7 +1068,10 @@ const PendingApproval = ({ isLoading }) => {
             )}
 
             {leaveRequests.length > 3 && (
-              <ViewAllButton onClick={handleOpenModal} endIcon={<ArrowForward sx={{ fontSize: '18px' }} />}>
+              <ViewAllButton
+                onClick={handleOpenModal}
+                endIcon={<ArrowForward sx={{ fontSize: '18px' }} />}
+              >
                 View All ({leaveRequests.length})
               </ViewAllButton>
             )}
@@ -713,8 +1095,8 @@ const PendingApproval = ({ isLoading }) => {
                       <Avatar
                         sx={{
                           bgcolor: theme.palette.primary.main,
-                          width: 44,
-                          height: 44,
+                          width: 36,
+                          height: 36,
                           mr: 2,
                           fontSize: '1.1rem',
                           fontWeight: 600,
@@ -725,7 +1107,10 @@ const PendingApproval = ({ isLoading }) => {
                       </Avatar>
                       <Box>
                         <Typography variant="subtitle1" fontWeight="600">
-                          {leaveRequest.employeeName || 'Unknown Employee'}
+                          {/* {userType === "Admin"
+                            ? (leaveRequest.employeeName || "Unknown Employee")
+                            : (employeeName || "Unknown Employee")} */}
+                          {leaveRequest.employeeName || "Unknown Employee"}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {leaveRequest.screenName || 'No type specified'}
@@ -736,7 +1121,27 @@ const PendingApproval = ({ isLoading }) => {
 
                   <Grid item xs={12} sm={4}>
                     <Box display="flex" justifyContent="flex-end">
-                      <ActionButtons request={leaveRequest} />
+                      {isAdmin ? (
+                        <ActionButtons request={leaveRequest} />
+                      ) : (
+                        <Stack spacing={0.5} alignItems="flex-end">
+                          {/* FROM */}
+                          <Typography fontSize="0.8rem" color="text.secondary">
+                            From{" "}
+                            <Box component="span" fontWeight={600} color="text.primary">
+                              {dayjs(leaveRequest.startDate).format("DD-MM-YYYY")}
+                            </Box>
+                          </Typography>
+
+                          {/* TO */}
+                          <Typography fontSize="0.8rem" color="text.secondary">
+                            To{" "}
+                            <Box component="span" fontWeight={600} color="text.primary">
+                              {dayjs(leaveRequest.endDate).format("DD-MM-YYYY")}
+                            </Box>
+                          </Typography>
+                        </Stack>
+                      )}
                     </Box>
                   </Grid>
                 </Grid>
@@ -784,7 +1189,7 @@ const PendingApproval = ({ isLoading }) => {
           >
             <Box display="flex" justifyContent="space-between" alignItems="center">
               <Typography variant="h3" fontWeight="700">
-                All Pending Leave Requests
+                Pending Requests
               </Typography>
               <IconButton
                 onClick={handleCloseModal}
@@ -824,7 +1229,7 @@ const PendingApproval = ({ isLoading }) => {
                           </Avatar>
                           <Box>
                             <Typography variant="subtitle1" fontWeight="600">
-                              {request.employeeName || 'Unknown Employee'}
+                              {`${request.employeeName || 'Unknown Employee'} - ${request.employeeCode || ''}`}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {request.department || 'No department specified'}
@@ -979,6 +1384,108 @@ const PendingApproval = ({ isLoading }) => {
                               </Grid>
                             </>
                           )}
+
+                          {screen === 'INCREMENT MANAGEMENT' && (
+                            <>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increment Cycle
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.incrementCycle}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Increase %
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.totalCtcPercentage}%
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  New Designation
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.newDesignation || '-'}
+                                </Typography>
+                              </Grid>
+                            </>
+                          )}
+                          {screen === 'EXPENSE CLAIMS' && (
+                            <>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Category
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.category}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Amount
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {`${request.amount}-${request.currency}`}
+                                </Typography>
+                              </Grid>
+                              {/* <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Exp Limit
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {`${request.expenseLimit}`}
+                                </Typography>
+                              </Grid> */}
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Expense Date
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.expenseDate ? dayjs(request.expenseDate).format('DD-MM-YYYY') : '-'}
+                                </Typography>
+                              </Grid>
+                            </>
+                          )}
+                          {screen === 'TRAVEL REQUEST' && (
+                            <>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Category
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {request.screenName}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Est. Amount
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {`${request.estimatedCost}`}
+                                </Typography>
+                              </Grid>
+                              {/* <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Exp Limit
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {`${request.expenseLimit}`}
+                                </Typography>
+                              </Grid> */}
+                              <Grid item xs={6} sm={4}>
+                                <Typography variant="body2" color="text.secondary">
+                                  Date
+                                </Typography>
+                                <Typography variant="body1" fontWeight="500">
+                                  {`${request.departureDate ? dayjs(request.departureDate).format('DD/MM/YYYY') : '-'} to 
+                                  ${request.returnDate ? dayjs(request.returnDate).format('DD/MM/YYYY') : '-'}`}
+                                </Typography>
+                              </Grid>
+                            </>
+                          )}
                         </Grid>
 
                         {request.reason && (
@@ -995,7 +1502,12 @@ const PendingApproval = ({ isLoading }) => {
                     </Grid>
 
                     <Box mt={3} display="flex" justifyContent="flex-end">
-                      <ActionButtons request={request} />
+                      {
+                        isAdmin ? (
+                          <ActionButtons request={request} />
+                        ) : null
+                      }
+
                     </Box>
 
                     {index < leaveRequests.length - 1 && <Divider sx={{ my: 3, borderColor: 'rgba(0,0,0,0.1)' }} />}
@@ -1025,6 +1537,16 @@ const PendingApproval = ({ isLoading }) => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Increment View Dialog */}
+        <IncrementViewDialog
+          open={viewDialogOpen}
+          onClose={() => setViewDialogOpen(false)}
+          data={selectedIncrement}
+          onApprove={handleApproveIncrement}
+          onReject={handleRejectIncrement}
+          isProcessing={processingId === selectedIncrement?.id}
+        />
       </StyledCard>
     </Box>
   );

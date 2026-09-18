@@ -162,38 +162,99 @@ const ESIReport = () => {
 
   return (
     <>
-      <Card sx={{ padding: 4, backgroundColor: '#ffffff', boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)', borderRadius: 4, maxWidth: '100%', mt: 3 }}>
-        <ToastContainer position="top-right" autoClose={5000} />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#3f51b5' }}>
-            ESI Report
-          </Typography>
-          <Box>
-            <Tooltip title="Print">
-              <IconButton color="primary" onClick={handlePrint}><PrintIcon /></IconButton>
-            </Tooltip>
-            <Tooltip title="Download PDF">
-              <IconButton color="error" onClick={handleDownloadPDF}><PictureAsPdfIcon /></IconButton>
-            </Tooltip>
-            <Tooltip title="Download Excel">
-              <IconButton color="success" onClick={handleDownloadExcel}><GridOnIcon /></IconButton>
-            </Tooltip>
-          </Box>
+
+      <ToastContainer position="top-right" autoClose={5000} />
+      <Box
+        sx={{
+          mb: 2,
+          px: 2,
+          py: 1.2,
+          borderRadius: '14px',
+          background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(15,23,42,0.10)'
+        }}
+      >
+        <Typography
+          sx={{
+            color: 'white',
+            fontWeight: 700,
+            fontSize: {
+              xs: '15px',
+              sm: '18px'
+            },
+            letterSpacing: '0.3px'
+          }}
+        >
+          ESI Report
+        </Typography>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Tooltip title="Print">
+            <IconButton
+              onClick={handlePrint}
+              sx={{
+                color: '#fff',
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                p: 0.8,
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.22)'
+                }
+              }}
+            >
+              <PrintIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Download PDF">
+            <IconButton
+              onClick={handleDownloadPDF}
+              sx={{
+                color: '#fff',
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                p: 0.8,
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.22)'
+                }
+              }}
+            >
+              <PictureAsPdfIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Download Excel">
+            <IconButton
+              onClick={handleDownloadExcel}
+              sx={{
+                color: '#fff',
+                backgroundColor: 'rgba(255,255,255,0.12)',
+                p: 0.8,
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.22)'
+                }
+              }}
+            >
+              <GridOnIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
         </Box>
-        <Box sx={{ mt: 0 }}>
-          {listViewData.length > 0 && (
-            <Paper sx={{ boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)', borderRadius: 2, overflow: 'hidden' }}>
-              <CommonListViewTable
-                data={listViewData}
-                columns={listViewColumns}
-                blockEdit
-                showActions={false}
-                hideActions
-              />
-            </Paper>
-          )}
-        </Box>
-      </Card>
+      </Box>
+      <Box sx={{ mt: 0 }}>
+        {listViewData.length > 0 && (
+          <Paper sx={{ boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)', borderRadius: 2, overflow: 'hidden' }}>
+            <CommonListViewTable
+              data={listViewData}
+              columns={listViewColumns}
+              blockEdit
+              showActions={false}
+              hideActions
+            />
+          </Paper>
+        )}
+      </Box>
+
     </>
   );
 };

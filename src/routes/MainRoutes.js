@@ -7,7 +7,8 @@ import MinimalLayout from 'layout/MinimalLayout';
 import PrivateRoute from './PrivateRoute';
 
 // dashboard routing
-const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
+// const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
+const Dashboard = Loadable(lazy(() => import('views/DashboardNew/Dashboard')));
 const AuthLogin3 = Loadable(lazy(() => import('views/pages/authentication/authentication3/Login3')));
 
 // utilities routing
@@ -36,11 +37,15 @@ const MainRoutes = {
       children: [
         {
           path: 'default',
-          element: <DashboardDefault />
+          element: <Dashboard />
         }
+        // {
+        //   path: 'default',
+        //   element: <DashboardDefault />
+        // }
       ]
     },
-    
+
     {
       path: 'utils',
       children: [
@@ -93,4 +98,4 @@ const MainRoutes = {
   ]
 };
 
-export default MainRoutes;
+export default MainRoutes;

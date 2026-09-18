@@ -14,11 +14,7 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
-import {
-  LockOutlined,
-  LockResetOutlined,
-  VerifiedUserOutlined
-} from '@mui/icons-material';
+import { LockOutlined, LockResetOutlined, VerifiedUserOutlined, Visibility, VisibilityOff } from '@mui/icons-material';
 import { IconSettings } from '@tabler/icons-react';
 import { useState } from 'react';
 import axios from 'axios';
@@ -120,10 +116,7 @@ const ChangePasswordPopup = () => {
         <ListItemIcon>
           <IconSettings stroke={1.5} size="1.3rem" />
         </ListItemIcon>
-        <ListItemText
-          sx={{ color: 'text.primary' }}
-          primary={<Typography variant="body2">Change Password</Typography>}
-        />
+        <ListItemText sx={{ color: 'text.primary' }} primary={<Typography variant="body2">Change Password</Typography>} />
       </ListItemButton>
 
       <ToastContainer />
@@ -133,25 +126,34 @@ const ChangePasswordPopup = () => {
         onClose={handleClose}
         maxWidth="xs"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 18px 45px rgba(15,23,42,0.18)'
+          }
+        }}
       >
-
         <DialogTitle
           sx={{
             textAlign: 'center',
             fontWeight: 700,
-            fontSize: '1.25rem',
+            fontSize: '1.1rem',
             color: '#fff',
-            py: 2,
-            background: 'linear-gradient(193deg, #7bb9b4 30%, #009d90 90%)',
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16
+            py: 1.8,
+            background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+            letterSpacing: '0.3px'
           }}
         >
           Change Password
         </DialogTitle>
 
-
-        <DialogContent sx={{ p: 4 }}>
+        <DialogContent
+          sx={{
+            p: 3,
+            background: '#f8fafc'
+          }}
+        >
           <Stack spacing={3} mt={5}>
             <TextField
               label="Current Password"
@@ -160,10 +162,24 @@ const ChangePasswordPopup = () => {
               onChange={handleChange('currentPassword')}
               fullWidth
               variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: '#fff',
+
+                  '&:hover fieldset': {
+                    borderColor: '#3a6b6d'
+                  },
+
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3a6b6d'
+                  }
+                }
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LockOutlined color="primary" />
+                    <LockOutlined sx={{ color: '#3a6b6d' }} />
                   </InputAdornment>
                 )
               }}
@@ -176,10 +192,24 @@ const ChangePasswordPopup = () => {
               onChange={handleChange('newPassword')}
               fullWidth
               variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: '#fff',
+
+                  '&:hover fieldset': {
+                    borderColor: '#3a6b6d'
+                  },
+
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3a6b6d'
+                  }
+                }
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <LockResetOutlined color="primary" />
+                    <LockResetOutlined sx={{ color: '#3a6b6d' }} />
                   </InputAdornment>
                 )
               }}
@@ -192,16 +222,39 @@ const ChangePasswordPopup = () => {
               onChange={handleChange('confirmPassword')}
               fullWidth
               variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: '#fff',
+
+                  '&:hover fieldset': {
+                    borderColor: '#3a6b6d'
+                  },
+
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#3a6b6d'
+                  }
+                }
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <VerifiedUserOutlined color="primary" />
+                    <VerifiedUserOutlined sx={{ color: '#3a6b6d' }} />
                   </InputAdornment>
                 ),
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={handleClickShowPassword}>
-                      {values.showPassword ? '🙊' : '🙈'}
+                    <IconButton
+                      onClick={handleClickShowPassword}
+                      edge="end"
+                      sx={{
+                        color: '#3a6b6d',
+                        '&:hover': {
+                          backgroundColor: 'rgba(58, 107, 109, 0.08)'
+                        }
+                      }}
+                    >
+                      {values.showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 )
@@ -213,14 +266,20 @@ const ChangePasswordPopup = () => {
         <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
           <Button
             variant="outlined"
-            color="secondary"
             onClick={handleClear}
             sx={{
               textTransform: 'none',
-              borderRadius: 3,
-              px: 4,
-              color: '#10413d',
-              borderColor:'#10413d'
+              borderRadius: '10px',
+              px: 3,
+              py: 1,
+              fontWeight: 600,
+              borderColor: '#dc2626',
+              color: '#dc2626',
+
+              '&:hover': {
+                borderColor: '#b91c1c',
+                background: '#fee2e2'
+              }
             }}
           >
             Cancel
@@ -230,16 +289,18 @@ const ChangePasswordPopup = () => {
             onClick={handleSave}
             sx={{
               textTransform: 'none',
-              borderRadius: 3,
-              px: 4,
-              background: 'linear-gradient(193deg, #7bb9b4 30%, #009d90 90%)',
-              color: '#fff',
+              borderRadius: '10px',
+              px: 3,
+              py: 1,
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #3a6b6d 0%, #2a4b4d 100%)',
+
               '&:hover': {
-                background: 'linear-gradientrgb(7, 93, 86) 90%)'
+                background: 'linear-gradient(135deg, #467b7d 0%, #33595b 100%)'
               }
             }}
           >
-            Change
+            Change Password
           </Button>
         </DialogActions>
       </Dialog>

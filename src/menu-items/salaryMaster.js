@@ -2,8 +2,15 @@
 import { IconCash, IconReceipt2, IconFileDollar, IconCalculator, IconCoins, IconSun, IconUserSearch } from '@tabler/icons-react';
 
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 

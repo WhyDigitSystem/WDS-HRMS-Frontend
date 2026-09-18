@@ -29,20 +29,27 @@ const icons = {
 
 // Permission check
 const hasScreenAccess = (screenId) => {
+  const userType = localStorage.getItem('userType');
+
+  if (userType === 'ADMIN') {
+    return true;
+  }
+
   const screenAccess = JSON.parse(localStorage.getItem('screenAccess') || '{}');
   const access = screenAccess?.[screenId];
+
   return access?.canRead || access?.canWrite || access?.canDelete;
 };
 
 // Children items with permission checks
 const meChildren = [
-  hasScreenAccess('HR') && {
-    id: 'holidayReport',
-    title: 'Holiday Report',
-    type: 'item',
-    url: '/me/HolidayReport',
-    icon: icons.BeachAccessIcon
-  },
+  // hasScreenAccess('HR') && {
+  //   id: 'holidayReport',
+  //   title: 'Holiday Report',
+  //   type: 'item',
+  //   url: '/me/HolidayReport',
+  //   icon: icons.BeachAccessIcon
+  // },
   hasScreenAccess('PR') && {
     id: 'permissionRequest',
     title: 'Permission Request',
@@ -65,31 +72,31 @@ const meChildren = [
     icon: icons.FlightTakeoffIcon
   },
   hasScreenAccess('COF') && {
-    id: 'compoOff',
-    title: 'Compensatory Off',
+    id: 'comp_Off',
+    title: 'Comp_Off',
     type: 'item',
-    url: '/me/CompoOff',
+    url: '/me/Comp_Off',
     icon: icons.AccessTimeIcon
   },
   hasScreenAccess('WFH') && {
     id: 'WorkFromHome',
-    title: 'Work From Home',
+    title: 'WFH',
     type: 'item',
-    url: '/me/WorkFromHome',
+    url: '/me/WFH',
     icon: icons.IconDeviceLaptop
   },
   hasScreenAccess('TS') && {
     id: 'timeSheet',
-    title: 'Time Sheet',
+    title: 'Timesheet',
     type: 'item',
     url: '/me/TimeSheet',
     icon: icons.AccessTimeIcon
   },
   hasScreenAccess('SISO') && {
     id: 'swipeInSwipeOut',
-    title: 'Check In & Out',
+    title: 'Check-In/Out',
     type: 'item',
-    url: '/me/SwipeInSwipeOut',
+    url: '/me/CheckInOut',
     icon: icons.IconFingerprint
   },
   hasScreenAccess('PS') && {
@@ -97,6 +104,13 @@ const meChildren = [
     title: 'Payslip',
     type: 'item',
     url: '/finance/payslip',
+    icon: IconFileInvoice
+  },
+  hasScreenAccess('TK') && {
+    id: 'task',
+    title: 'Task',
+    type: 'item',
+    url: '/me/Task',
     icon: IconFileInvoice
   },
 ].filter(Boolean); // filter out inaccessible screens

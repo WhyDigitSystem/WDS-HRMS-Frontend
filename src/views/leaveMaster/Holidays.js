@@ -124,54 +124,68 @@ const Holidays = () => {
 
   const handleInputChange = (e) => {
     const { name, value, checked, type, selectionStart, selectionEnd } = e.target;
+
     const nameRegex = /^[A-Za-z ]*$/;
-    const codeRegex = /^[a-zA-Z0-9#_\-\/\\]*$/;
-    setFormData((prevData) => ({ ...prevData, [name]: value.toUpperCase() }));
-    setFieldErrors((prev) => ({ ...prev, [name]: '' }));
 
-    let errorMessage = '';
+    // Validation
+    if (name === "festival") {
+      if (!nameRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          festival: "Only Alphabets Allowed",
+        }));
+        return;
+      }
 
-    if (name === 'employeeName' && !codeRegex.test(value)) {
-      errorMessage = 'Invalid Format';
-    } else if (name === 'employeeCode' && !codeRegex.test(value)) {
-      errorMessage = 'Invalid Format';
+      if (value.length > 50) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          festival: "Exceeded Max Length",
+        }));
+        return;
+      }
     }
 
-    if (errorMessage) {
-      setFieldErrors((prevErrors) => ({ ...prevErrors, [name]: errorMessage }));
+    let newValue = value;
+
+    // No automatic uppercase conversion
+    if (name === "festival") {
+      newValue = value;
+    }
+
+    if (name === "branch") {
+      const selectedBranch = branchList.find((br) => br.branch === value);
+
+      setFormData((prev) => ({
+        ...prev,
+        branch: value,
+        branchCode: selectedBranch ? selectedBranch.branchCode : "",
+      }));
+    } else if (type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: checked,
+      }));
     } else {
-      setFieldErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: newValue,
+      }));
+    }
 
-      if (name === 'branch') {
-        const selectedBranch = branchList.find((br) => br.branch === value);
-        setFormData((prevData) => ({
-          ...prevData,
-          branch: value,
-          branchCode: selectedBranch ? selectedBranch.branchCode : ''
-        }));
-      } else if (type === 'checkbox') {
-        setFormData((prevData) => ({ ...prevData, [name]: checked }));
-      } else {
-        let inputValue = value;
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
 
-        if (name === 'email') {
-          inputValue = value.toLowerCase();
-        } else if (type === 'text' || type === 'textarea') {
-          inputValue = value.toUpperCase();
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement && inputElement.setSelectionRange) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
         }
-
-        setFormData((prevData) => ({ ...prevData, [name]: inputValue }));
-
-        // Check if input type is text or textarea before calling setSelectionRange
-        if (type === 'text' || type === 'textarea') {
-          setTimeout(() => {
-            const inputElement = document.getElementsByName(name)[0];
-            if (inputElement && inputElement.setSelectionRange) {
-              inputElement.setSelectionRange(selectionStart, selectionEnd);
-            }
-          }, 0);
-        }
-      }
+      }, 0);
     }
   };
 
@@ -509,9 +523,35 @@ const Holidays = () => {
                   </Button>
 
                   {formData.logo && (
-                    <IconButton onClick={handleOpen} sx={{ color: 'rgb(103 58 183)' }}>
-                      <ControlCameraIcon />
-                    </IconButton>
+                    <>
+                      {/* SMALL IMAGE PREVIEW */}
+                      <Box
+                        sx={{
+                          width: 55,
+                          height: 55,
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          border: '2px solid rgb(103 58 183)',
+                          cursor: 'pointer'
+                        }}
+                        onClick={handleOpen}
+                      >
+                        <img
+                          src={URL.createObjectURL(formData.logo)}
+                          alt="Holiday"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </Box>
+
+                      {/* OPEN PREVIEW */}
+                      <IconButton onClick={handleOpen} sx={{ color: 'rgb(103 58 183)' }}>
+                        <ControlCameraIcon />
+                      </IconButton>
+                    </>
                   )}
                 </Box>
                 <Dialog open={open} onClose={handleClose}>

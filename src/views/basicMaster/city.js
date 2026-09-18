@@ -169,33 +169,72 @@ export const City = () => {
 
   const handleInputChange = (e) => {
     const { name, value, checked, selectionStart, selectionEnd, type } = e.target;
-    const codeRegex = /^[a-zA-Z0-9#_\-\/\\]*$/;
+
+    const codeRegex = /^[A-Za-z0-9#_\-\/\\]*$/;
     const nameRegex = /^[A-Za-z ]*$/;
 
-    if (name === 'cityCode' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only AlphaNumerics are Allowed' });
-    } else if (name === 'cityCode' && value.length > 3) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Max Length is 3' });
-    } else if (name === 'cityName' && !nameRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'cityName' && value.length > 40) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: name === 'active' ? checked : value.toUpperCase()
-      });
-      setFieldErrors({ ...fieldErrors, [name]: '' });
-
-      // Update the cursor position after the input change
-      if (type === 'text' || type === 'textarea') {
-        setTimeout(() => {
-          const inputElement = document.getElementsByName(name)[0];
-          if (inputElement) {
-            inputElement.setSelectionRange(selectionStart, selectionEnd);
-          }
-        }, 0);
+    // Validation
+    if (name === "cityCode") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          cityCode: "Only AlphaNumerics are Allowed",
+        }));
+        return;
       }
+
+      if (value.length > 3) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          cityCode: "Max Length is 3",
+        }));
+        return;
+      }
+    }
+
+    if (name === "cityName") {
+      if (!nameRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          cityName: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 40) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          cityName: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    let newValue = value;
+
+    // Only City Code should be uppercase
+    if (name === "cityCode") {
+      newValue = value.toUpperCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "active" ? checked : newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
+      setTimeout(() => {
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
+        }
+      }, 0);
     }
   };
 
@@ -320,8 +359,8 @@ export const City = () => {
   };
 
   const listViewColumns = [
-    { accessorKey: 'cityCode', header: 'Code', size: 140 },
     { accessorKey: 'cityName', header: 'City', size: 140 },
+    { accessorKey: 'cityCode', header: 'Code', size: 140 },
     { accessorKey: 'state', header: 'State', size: 140 },
     { accessorKey: 'country', header: 'Country', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
@@ -371,19 +410,6 @@ export const City = () => {
             <div className="row">
               <div className="col-md-3 mb-3">
                 <TextField
-                  label="Code"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  name="cityCode"
-                  value={formData.cityCode}
-                  onChange={handleInputChange}
-                  error={!!fieldErrors.cityCode}
-                  helperText={fieldErrors.cityCode}
-                />
-              </div>
-              <div className="col-md-3 mb-3">
-                <TextField
                   label="Name"
                   variant="outlined"
                   size="small"
@@ -393,6 +419,19 @@ export const City = () => {
                   onChange={handleInputChange}
                   error={!!fieldErrors.cityName}
                   helperText={fieldErrors.cityName}
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <TextField
+                  label="Code"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  name="cityCode"
+                  value={formData.cityCode}
+                  onChange={handleInputChange}
+                  error={!!fieldErrors.cityCode}
+                  helperText={fieldErrors.cityCode}
                 />
               </div>
 

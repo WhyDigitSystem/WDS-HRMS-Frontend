@@ -40,15 +40,15 @@ const PermissionApproval = () => {
   }, [branchCode, orgId, employeeCode]);
 
   const listViewColumns = [
-    { accessorKey: 'date', header: 'Date', size: 140 },
     { accessorKey: 'employeename', header: 'Name', size: 140 },
     { accessorKey: 'employeecode', header: 'Code', size: 140 },
-    { accessorKey: 'employeeemail', header: 'Email', size: 140 },
-    { accessorKey: 'notes', header: 'Notes', size: 140 },
+    { accessorKey: 'date', header: 'Date', size: 140 },
     { accessorKey: 'fromtime', header: 'From Time', size: 140 },
     { accessorKey: 'totime', header: 'To Time', size: 140 },
     { accessorKey: 'totalhours', header: 'Total Hours', size: 140 },
-    { accessorKey: 'branch', header: 'Branch', size: 140 } // Now visible in the table
+    { accessorKey: 'employeeemail', header: 'Email', size: 140 },
+    { accessorKey: 'notes', header: 'Reason', size: 140 },
+    // { accessorKey: 'branch', header: 'Branch', size: 140 } // Now visible in the table
   ];
 
   return (

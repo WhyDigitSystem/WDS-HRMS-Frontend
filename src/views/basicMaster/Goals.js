@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FormatListBulletedTwoToneIcon from '@mui/icons-material/FormatListBulletedTwoTone';
 import SaveIcon from '@mui/icons-material/Save';
 import SearchIcon from '@mui/icons-material/Search';
-import { Button, TextField, Box, Tab, Tabs, FormControlLabel, Checkbox } from '@mui/material';
+import { Button, TextField, Box, Tab, Tabs, FormControlLabel, Checkbox, MenuItem, Autocomplete } from '@mui/material';
 import dayjs from 'dayjs';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import Paper from '@mui/material/Paper';
@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react';
 import ActionButton from 'utils/ActionButton';
 import ToastComponent, { showToast } from 'utils/toast-component';
 import CommonListViewTable from 'views/basicMaster/CommonListViewTable';
+
 function PaperComponent(props) {
   return (
     <Draggable handle="#draggable-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
@@ -22,8 +23,10 @@ function PaperComponent(props) {
     </Draggable>
   );
 }
+
 const Goals = () => {
   const [listViewData, setListViewData] = useState([]);
+  const [goalsDocId, setGoalsDocId] = useState([]);
   const [orgId] = useState(parseInt(localStorage.getItem('orgId')));
   const [createdBy] = useState(localStorage.getItem('userName'));
   const [value, setValue] = useState(0);
@@ -34,15 +37,21 @@ const Goals = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [fillGridData, setFillGridData] = useState([]);
+  const [designationList, setDesignationList] = useState([]);
+  const [kpiKraList, setKpiKraList] = useState([]); // Store KPI/KRA data
+  const [selectedAppraisalData, setSelectedAppraisalData] = useState(null); // Store selected appraisal data
+
   const [formData, setFormData] = useState({
     appraisalId: '',
-    department: '',
+    designation: '',
+    finYear: '',
     active: true
   });
 
   const [fieldErrors, setFieldErrors] = useState({
     appraisalId: '',
-    department: ''
+    department: '',
+    finYear: ''
   });
 
   const [goalsDetailsData, setGoalsDetailsData] = useState([{ id: null, area: '', indicator: '', goals: '' }]);
@@ -51,12 +60,8 @@ const Goals = () => {
 
   const listViewColumns = [
     { accessorKey: 'appraisalId', header: 'Appraisal ID', size: 140 },
-    { accessorKey: 'department', header: 'Department', size: 140 }
-    // { accessorKey: 'code', header: 'Code', size: 140 },
-    // { accessorKey: 'name', header: 'Name', size: 140 },
-    // { accessorKey: 'supervisorCode', header: 'Supv Code', size: 140 },
-    // { accessorKey: 'supervisorName', header: 'Supv Name', size: 140 },
-    // { accessorKey: 'active', header: 'Active', size: 140 }
+    { accessorKey: 'designation', header: 'Designation', size: 140 },
+    { accessorKey: 'finYear', header: 'Year', size: 140 }
   ];
 
   const handleInputChange = (e) => {
@@ -76,7 +81,42 @@ const Goals = () => {
 
   useEffect(() => {
     getAllGoals();
+    getGoalsDocId();
+    getAllKRAKPIs(); // Fetch KPI/KRA data on load
   }, []);
+
+  const getGoalsDocId = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getGoalsDocId?orgId=${orgId}`);
+
+      const docId = response.paramObjectsMap.goalsDocId;
+
+      setGoalsDocId(docId);
+
+      setFormData((prev) => ({
+        ...prev,
+        appraisalId: docId
+      }));
+
+    } catch (error) {
+      console.error('Error fetching goals docid:', error);
+      showToast('error', 'Failed to fetch goals docid');
+    }
+  };
+
+  const getAllKRAKPIs = async () => {
+    try {
+      const response = await apiCalls('get', `/goalsController/getKpiKraByOrgId?orgId=${orgId}`);
+      if (response.status) {
+        setKpiKraList(response.paramObjectsMap.kpiKraVO || []);
+      } else {
+        showToast('error', response.message || 'Failed to fetch KPIKRA');
+      }
+    } catch (error) {
+      console.error('Error fetching KPIKRA:', error);
+      showToast('error', 'Failed to fetch KPIKRA');
+    }
+  };
 
   const getAllGoals = async () => {
     try {
@@ -91,6 +131,7 @@ const Goals = () => {
       showToast('error', 'Failed to fetch goals');
     }
   };
+
   const getGoalsById = async (row) => {
     setEditId(row.original.id);
     try {
@@ -100,13 +141,14 @@ const Goals = () => {
         const goal = response.paramObjectsMap.goalsVO;
         setFormData({
           appraisalId: goal.appraisalId,
-          department: goal.department
+          designation: goal.designation,
+          finYear: goal.finYear,
         });
 
         // Preserve actual database IDs
         setGoalsDetailsData(
           goal.goalsDetailsVO.map((detail) => ({
-            id: detail.id, // Actual ID from database
+            id: detail.id,
             area: detail.area,
             indicator: detail.indicators,
             goals: detail.goals
@@ -123,9 +165,10 @@ const Goals = () => {
     // Validate main form fields
     const errors = {};
     if (!formData.appraisalId) errors.appraisalId = 'Appraisal ID is required';
-    if (!formData.department) errors.department = 'Department is required';
+    if (!formData.designation) errors.designation = 'Designation is required';
+    if (!formData.finYear) errors.finYear = 'Year is required';
 
-    // Validate details
+    // Validate details - check if goals are filled
     const detailsErrors = goalsDetailsData.map((detail) => {
       const error = {};
       if (!detail.area) error.area = 'Area is required';
@@ -145,20 +188,22 @@ const Goals = () => {
 
     setIsLoading(true);
 
-    // Prepare details payload with IDs
+    // Prepare details payload
     const goalsDetailsVo = goalsDetailsData.map((row) => ({
-      id: row.id, // Include existing ID for updates
       area: row.area,
       indicators: row.indicator,
-      goals: row.goals
+      goals: row.goals,
+      ...(row.kpiId && { kpiId: row.kpiId }), // Include KPI ID if available
+      ...(row.kraId && { kraId: row.kraId })  // Include KRA ID if available
     }));
 
     const payload = {
       ...(editId && { id: editId }),
-      active: formData.active,
-      appraisalId: parseInt(formData.appraisalId),
-      department: formData.department,
+      active: true,
+      appraisalId: formData.appraisalId,
+      designation: formData.designation,
       finYear: formData.finYear,
+      finYear: formData.finYear || new Date().getFullYear().toString(),
       orgId,
       createdBy,
       goalsDetailsDTO: goalsDetailsVo
@@ -170,6 +215,7 @@ const Goals = () => {
         showToast('success', editId ? 'Goal updated successfully' : 'Goal created successfully');
         handleClear();
         getAllGoals();
+        getGoalsDocId();
       } else {
         showToast('error', response.message || 'Operation failed');
       }
@@ -184,16 +230,19 @@ const Goals = () => {
   const handleClear = () => {
     setFormData({
       appraisalId: '',
-      department: ''
+      designation: '',
+      finYear: ''
     });
 
     setFieldErrors({
       appraisalId: '',
-      department: ''
+      department: '',
+      finYear: ''
     });
 
-    setGoalsDetailsData([{ id: null, area: '', indicator: '', goals: '' }]);
+    setSelectedAppraisalData(null);
 
+    setGoalsDetailsData([{ id: null, area: '', indicator: '', goals: '' }]);
     setGoalsDetailsErrors([{ area: '', indicator: '', goals: '' }]);
 
     setEditId('');
@@ -203,24 +252,22 @@ const Goals = () => {
     const lastRow = goalsDetailsData[goalsDetailsData.length - 1];
 
     // Validate last row before adding new one
-    if (!lastRow.area || !lastRow.indicator || !lastRow.goals) {
+    if (!lastRow.goals) {
       const newErrors = [...goalsDetailsErrors];
       const lastIndex = newErrors.length - 1;
       newErrors[lastIndex] = {
-        area: !lastRow.area ? 'Area is required' : '',
-        indicator: !lastRow.indicator ? 'Indicator is required' : '',
-        goals: !lastRow.goals ? 'Goals is required' : ''
+        ...newErrors[lastIndex],
+        goals: 'Goals is required before adding new row'
       };
       setGoalsDetailsErrors(newErrors);
-      showToast('warning', 'Please fill current row before adding new');
+      showToast('warning', 'Please fill goals for current row before adding new');
       return;
     }
 
-    // Generate temporary negative ID for new rows
+    // Add new empty row
     const newId = goalsDetailsData.length > 0 ? Math.min(...goalsDetailsData.map((d) => d.id)) - 1 : -1;
 
     setGoalsDetailsData((prev) => [...prev, { id: newId, area: '', indicator: '', goals: '' }]);
-
     setGoalsDetailsErrors((prev) => [...prev, { area: '', indicator: '', goals: '' }]);
   };
 
@@ -259,6 +306,7 @@ const Goals = () => {
 
   const handleView = () => setListView(!listView);
   const handleTabChange = (_, newValue) => setValue(newValue);
+
   return (
     <>
       <div>
@@ -277,30 +325,94 @@ const Goals = () => {
             <>
               <div className="row d-flex ml">
                 <div className="col-md-3 mb-3">
-                  <TextField
-                    label="Appraisal ID"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    name="appraisalId"
-                    value={formData.appraisalId}
-                    onChange={handleInputChange}
-                    error={!!fieldErrors.appraisalId}
-                    helperText={fieldErrors.appraisalId}
+                  <Autocomplete
+                    options={kpiKraList}
+                    getOptionLabel={(option) => option.appraisalId || ''}
+                    value={kpiKraList.find(item => item.appraisalId === formData.appraisalId) || null}
+                    onChange={(event, newValue) => {
+                      if (newValue) {
+                        setSelectedAppraisalData(newValue);
+                        setFormData((prev) => ({
+                          ...prev,
+                          appraisalId: newValue.appraisalId,
+                          designation: newValue.designation || '',
+                          finYear: newValue.finYear || '',
+                        }));
+
+                        // Populate goals details from KPI/KRA data
+                        if (newValue && newValue.kpiKraDetailsVO) {
+                          const populatedDetails = newValue.kpiKraDetailsVO.map((detail, index) => ({
+                            id: index,
+                            area: detail.kraDescription,
+                            indicator: detail.kpiDescription,
+                            goals: '',
+                            kpiId: detail.kpiId,
+                            kraId: detail.kraId
+                          }));
+
+                          setGoalsDetailsData(populatedDetails);
+                          setGoalsDetailsErrors(populatedDetails.map(() => ({ area: '', indicator: '', goals: '' })));
+                        } else {
+                          setGoalsDetailsData([{ id: null, area: '', indicator: '', goals: '' }]);
+                          setGoalsDetailsErrors([{ area: '', indicator: '', goals: '' }]);
+                        }
+                      } else {
+                        // Handle clear
+                        setFormData((prev) => ({
+                          ...prev,
+                          appraisalId: '',
+                          designation: '',
+                          finYear: ''
+                        }));
+                        setSelectedAppraisalData(null);
+                        setGoalsDetailsData([{ id: null, area: '', indicator: '', goals: '' }]);
+                        setGoalsDetailsErrors([{ area: '', indicator: '', goals: '' }]);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Appraisal ID"
+                        variant="outlined"
+                        size="small"
+                        error={!!fieldErrors.appraisalId}
+                        helperText={fieldErrors.appraisalId}
+                      />
+                    )}
+                    isOptionEqualToValue={(option, value) => option.appraisalId === value?.appraisalId}
+                    noOptionsText="No Appraisal IDs found"
+                    clearOnEscape
+                    freeSolo={false}
+                    disableClearable={false}
                   />
                 </div>
 
                 <div className="col-md-3 mb-3">
                   <TextField
-                    label="Department"
+                    label="Designation"
                     variant="outlined"
                     size="small"
                     fullWidth
-                    name="department"
-                    value={formData.department}
+                    name="designation"
+                    value={formData.designation}
+                    disabled
                     onChange={handleInputChange}
-                    error={!!fieldErrors.department}
-                    helperText={fieldErrors.department}
+                    error={!!fieldErrors.designation}
+                    helperText={fieldErrors.designation}
+                  />
+                </div>
+                <div className="col-md-3 mb-3">
+                  <TextField
+                    label="Year"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    name="finYear"
+                    value={formData.finYear}
+                    disabled
+                    onChange={handleInputChange}
+                    error={!!fieldErrors.finYear}
+                    helperText={fieldErrors.finYear}
                   />
                 </div>
               </div>
@@ -334,8 +446,8 @@ const Goals = () => {
                                   <th className="px-2 py-2 text-white text-center" style={{ width: '50px' }}>
                                     S.No
                                   </th>
-                                  <th className="px-2 py-2 text-white text-center">Area</th>
-                                  <th className="px-2 py-2 text-white text-center">Indicators</th>
+                                  <th className="px-2 py-2 text-white text-center">Area (KRA)</th>
+                                  <th className="px-2 py-2 text-white text-center">Indicators (KPI)</th>
                                   <th className="px-2 py-2 text-white text-center">Goals</th>
                                 </tr>
                               </thead>
@@ -343,7 +455,12 @@ const Goals = () => {
                                 {goalsDetailsData.map((row, index) => (
                                   <tr key={row.id}>
                                     <td className="border px-2 py-2 text-center">
-                                      <ActionButton title="Delete" icon={DeleteIcon} onClick={() => handleDeleteRow(row.id)} />
+                                      <ActionButton
+                                        title="Delete"
+                                        icon={DeleteIcon}
+                                        onClick={() => handleDeleteRow(row.id)}
+                                        disabled={goalsDetailsData.length <= 1}
+                                      />
                                     </td>
                                     <td className="text-center pt-3">{index + 1}</td>
                                     <td>
@@ -351,6 +468,7 @@ const Goals = () => {
                                         fullWidth
                                         size="small"
                                         value={row.area}
+                                        disabled // Area is auto-populated from KRA
                                         onChange={(e) => handleDetailChange(row.id, 'area', e.target.value)}
                                         error={!!goalsDetailsErrors[index]?.area}
                                         helperText={goalsDetailsErrors[index]?.area}
@@ -361,6 +479,7 @@ const Goals = () => {
                                         fullWidth
                                         size="small"
                                         value={row.indicator}
+                                        disabled // Indicator is auto-populated from KPI
                                         onChange={(e) => handleDetailChange(row.id, 'indicator', e.target.value)}
                                         error={!!goalsDetailsErrors[index]?.indicator}
                                         helperText={goalsDetailsErrors[index]?.indicator}
@@ -370,6 +489,7 @@ const Goals = () => {
                                       <TextField
                                         fullWidth
                                         size="small"
+                                        placeholder="Enter goals here..."
                                         value={row.goals}
                                         onChange={(e) => handleDetailChange(row.id, 'goals', e.target.value)}
                                         error={!!goalsDetailsErrors[index]?.goals}

@@ -1,11 +1,26 @@
-import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Fab, Tab, Tabs, Tooltip, Typography } from '@mui/material';
-import { IconCheck, IconClock, IconHelp, IconListCheck, IconPlus, IconUser } from '@tabler/icons-react';
+import {
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Fab,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+  IconButton
+} from '@mui/material';
+import { IconCheck, IconClock ,IconHelp, IconListCheck, IconPlus, IconUser } from '@tabler/icons-react';
 import apiCalls from 'apicall';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { showToast } from 'utils/toast-component';
 import AllTicketsTab from './AllTicketsTab';
 import RaiseTicketTab from './RaiseTicketTab';
+import CloseIcon from '@mui/icons-material/Close';
+
 
 const getStatusChip = (status) => {
   switch (status) {
@@ -40,7 +55,8 @@ const SupportTickets = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [orgId, setOrgId] = useState(localStorage.getItem('orgId'));
   const [loginUserName, setLoginUserName] = useState(localStorage.getItem('userName'));
-
+  const userType = localStorage.getItem('userType');
+const [email, setEmail] = useState(localStorage.getItem('email'));
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [detailDialog, setDetailDialog] = useState(false);
   const [tickets, setTickets] = useState([]);
@@ -139,7 +155,8 @@ const SupportTickets = () => {
       status: ticket.status,
       userName: loginUserName,
       orgId: orgId,
-      createdBy: loginUserName
+      createdBy: loginUserName,
+      email: email
     };
 
     try {
@@ -236,35 +253,43 @@ const SupportTickets = () => {
 
       <Dialog open={open} onClose={handleToggle} maxWidth="md" fullWidth>
         <DialogTitle
-          sx={{
-            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%, #2a4b4d 90%)',
-            color: '#fff',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            fontSize: '1.6rem',
-            paddingY: 2,
-            borderTopLeftRadius: '6px', // More rounded corners
-            borderTopRightRadius: '6px',
-            boxShadow: '0 6px 15px rgba(0,0,0,0.3)' // Deeper shadow for better depth
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#fff',
-              fontWeight: 600,
-              textAlign: 'center',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              letterSpacing: 1.2,
-              gap: 1.5 // Slightly bigger gap between icon and text
-            }}
-          >
-            <IconHelp size={24} color="#fff" />
-            Support Center
-          </Typography>
-        </DialogTitle>
+  sx={{
+    background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+    color: '#fff',
+    fontWeight: 'bold',
+    position: 'relative',
+    textAlign: 'center',
+    py: 2
+  }}
+>
+  <Typography
+    variant="h6"
+    sx={{
+      color: '#fff',
+      fontWeight: 600,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 1
+    }}
+  >
+    <IconHelp size={24} />
+    Support Center
+  </Typography>
+
+  {/* X CLOSE BUTTON */}
+  <IconButton
+    onClick={handleToggle}
+    sx={{
+      position: 'absolute',
+      right: 8,
+      top: 8,
+      color: '#fff'
+    }}
+  >
+    <CloseIcon />
+  </IconButton>
+</DialogTitle>
 
         <Tabs value={tab} onChange={(e, newVal) => setTab(newVal)} variant="scrollable" scrollButtons="auto">
           {tabs.map((t, index) => (
@@ -276,7 +301,7 @@ const SupportTickets = () => {
           {tab === 0 && <RaiseTicketTab ticket={ticket} handleChange={handleChange} handleSubmit={handleSubmit} />}
           {tab === 1 && (
             <AllTicketsTab
-              tickets={loginUserName === 'EBSPL/ITADMIN' ? adminTickets : tickets}
+              tickets={userType === 'ADMIN' ? adminTickets : tickets}
               onRowClick={handleRowClick}
               getAllTickets={getTicketsByOrgId}
             />
@@ -298,9 +323,32 @@ const SupportTickets = () => {
             // </Button>
             ''
           ) : (
-            <Button variant="outlined" onClick={handleToggle}>
-              Close
-            </Button>
+            <Button
+  variant="outlined"
+  onClick={handleToggle}
+  style={{
+    textTransform: 'none',
+    fontWeight: 600,
+    borderRadius: 8,
+    padding: '6px 16px',
+    border: '1px solid #3a6b6d',
+    color: '#2a4b4d',
+    backgroundColor: '#ffffff',
+    transition: 'all 0.2s ease'
+  }}
+  onMouseOver={(e) => {
+    e.currentTarget.style.backgroundColor = 'rgba(58, 107, 109, 0.08)';
+    e.currentTarget.style.borderColor = '#2a4b4d';
+    e.currentTarget.style.transform = 'translateY(-1px)';
+  }}
+  onMouseOut={(e) => {
+    e.currentTarget.style.backgroundColor = '#ffffff';
+    e.currentTarget.style.borderColor = '#3a6b6d';
+    e.currentTarget.style.transform = 'translateY(0px)';
+  }}
+>
+  Close
+</Button>
           )}
         </DialogActions>
       </Dialog>

@@ -76,11 +76,13 @@ const UpcomingHolidayCard = () => {
   const filterActiveHolidays = (holidays) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return holidays.filter(holiday => {
-      const holidayDate = new Date(holiday.holidayDate);
-      holidayDate.setHours(0, 0, 0, 0);
-      return holidayDate >= today;
-    }).sort((a, b) => new Date(a.holidayDate) - new Date(b.holidayDate));
+    return holidays
+      .filter((holiday) => {
+        const holidayDate = new Date(holiday.holidayDate);
+        holidayDate.setHours(0, 0, 0, 0);
+        return holidayDate >= today;
+      })
+      .sort((a, b) => new Date(a.holidayDate) - new Date(b.holidayDate));
   };
 
   const getAllHolidayByOrgId = async () => {
@@ -97,12 +99,12 @@ const UpcomingHolidayCard = () => {
         const currentYear = today.getFullYear();
         const nextMonth = (currentMonth + 1) % 12;
 
-        const thisMonthHolidays = active.filter(h => {
+        const thisMonthHolidays = active.filter((h) => {
           const date = new Date(h.holidayDate);
           return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
         });
 
-        const nextMonthHolidays = active.filter(h => {
+        const nextMonthHolidays = active.filter((h) => {
           const date = new Date(h.holidayDate);
           return date.getMonth() === nextMonth && date.getFullYear() === (nextMonth < currentMonth ? currentYear + 1 : currentYear);
         });
@@ -208,32 +210,39 @@ const UpcomingHolidayCard = () => {
         }}
       >
         {status === 'today' && (
-          <Box sx={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bgcolor: '#4CAF50',
-            color: 'white',
-            px: 1.5,
-            py: 0.5,
-            fontSize: 12,
-            fontWeight: 'bold',
-            borderBottomLeftRadius: 8
-          }}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bgcolor: '#4CAF50',
+              color: 'white',
+              px: 1.5,
+              py: 0.5,
+              fontSize: 12,
+              fontWeight: 'bold',
+              borderBottomLeftRadius: 8
+            }}
+          >
             TODAY!
           </Box>
         )}
 
         <Box display="flex" alignItems="center" mb={1}>
-          <CelebrationIcon sx={{
-            mr: 1,
-            color: status === 'today' ? '#4CAF50' : status === 'past' ? '#9E9E9E' : '#FF9800',
-            fontSize: 24
-          }} />
-          <Typography variant="subtitle1" sx={{
-            fontWeight: 'bold',
-            color: status === 'past' ? 'text.secondary' : 'text.primary'
-          }}>
+          <CelebrationIcon
+            sx={{
+              mr: 1,
+              color: status === 'today' ? '#4CAF50' : status === 'past' ? '#9E9E9E' : '#FF9800',
+              fontSize: 24
+            }}
+          />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 'bold',
+              color: status === 'past' ? 'text.secondary' : 'text.primary'
+            }}
+          >
             {holiday.festival}
           </Typography>
         </Box>
@@ -260,12 +269,15 @@ const UpcomingHolidayCard = () => {
 
         {holiday?.holidayType && (
           <Box display="flex" mb={1}>
-            <Typography variant="caption" sx={{
-              fontWeight: 'bold',
-              color: 'text.secondary',
-              display: 'flex',
-              alignItems: 'center'
-            }}>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 'bold',
+                color: 'text.secondary',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
               <InfoIcon sx={{ fontSize: 16, mr: 0.5 }} /> Type:
             </Typography>
             <Typography variant="caption" sx={{ ml: 0.5 }}>
@@ -276,10 +288,13 @@ const UpcomingHolidayCard = () => {
 
         {holiday?.description && (
           <Box mb={1}>
-            <Typography variant="caption" sx={{
-              fontWeight: 'bold',
-              color: 'text.secondary'
-            }}>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 'bold',
+                color: 'text.secondary'
+              }}
+            >
               Description:
             </Typography>
             <Typography variant="caption" sx={{ ml: 0.5 }}>
@@ -290,10 +305,13 @@ const UpcomingHolidayCard = () => {
 
         {holiday?.branch && (
           <Box>
-            <Typography variant="caption" sx={{
-              fontWeight: 'bold',
-              color: 'text.secondary'
-            }}>
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 'bold',
+                color: 'text.secondary'
+              }}
+            >
               Branch:
             </Typography>
             <Typography variant="caption" sx={{ ml: 0.5 }}>
@@ -318,48 +336,58 @@ const UpcomingHolidayCard = () => {
           <Grid container spacing={3} sx={{ mb: 3 }}>
             {/* Total Holidays Card */}
             <Grid item xs={12} sm={6} md={6}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #f5f7fa 0%, #e3e9f2 100%)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&:hover': {
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.12)'
-                },
-                transition: 'all 0.3s ease'
-              }}>
-                <Box sx={{
-                  position: 'absolute',
-                  top: -20,
-                  right: -20,
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  bgcolor: 'rgba(63, 81, 181, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+              <Card
+                sx={{
+                  p: 3,
+                  height: '100%',
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #f5f7fa 0%, #e3e9f2 100%)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.12)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -20,
+                    right: -20,
+                    width: 80,
+                    height: 80,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(63, 81, 181, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
                   <EventIcon sx={{ fontSize: 40, color: 'primary.main', opacity: 0.3 }} />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" sx={{
-                    color: 'text.secondary',
-                    mb: 0.5,
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 0.5,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
                     <EventIcon sx={{ fontSize: 18, mr: 1 }} /> Total Holidays
                   </Typography>
-                  <Typography variant="caption" sx={{
-                    color: 'text.secondary',
-                    display: 'block',
-                    mt: 1
-                  }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      display: 'block',
+                      mt: 1
+                    }}
+                  >
                     {stats.upcomingHolidays} upcoming
                   </Typography>
                 </Box>
@@ -368,41 +396,48 @@ const UpcomingHolidayCard = () => {
 
             {/* Holidays This Month Card */}
             <Grid item xs={12} sm={6} md={6}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2e9 100%)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&:hover': {
-                  transform: 'translateY(-3px)',
-                  boxShadow: '0 6px 24px rgba(0,0,0,0.12)'
-                },
-                transition: 'all 0.3s ease'
-              }}>
-                <Box sx={{
-                  position: 'absolute',
-                  top: -20,
-                  right: -20,
-                  width: 80,
-                  height: 80,
-                  borderRadius: '50%',
-                  bgcolor: 'rgba(76, 175, 80, 0.1)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+              <Card
+                sx={{
+                  p: 3,
+                  height: '100%',
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #f5f7fa 0%, #e3f2e9 100%)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&:hover': {
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.12)'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -20,
+                    right: -20,
+                    width: 80,
+                    height: 80,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(76, 175, 80, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
                   <CalendarMonthIcon sx={{ fontSize: 40, color: '#4CAF50', opacity: 0.3 }} />
                 </Box>
                 <Box>
-                  <Typography variant="subtitle2" sx={{
-                    color: 'text.secondary',
-                    mb: 0.5,
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 0.5,
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
                     <CalendarMonthIcon sx={{ fontSize: 18, mr: 1 }} /> This Month
                   </Typography>
                   {stats.holidaysThisMonth === 0 ? (
@@ -411,27 +446,36 @@ const UpcomingHolidayCard = () => {
                     </Typography>
                   ) : (
                     <>
-                      <Typography variant="h4" sx={{
-                        fontWeight: 'bold',
-                        color: '#4CAF50',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        lineHeight: 1
-                      }}>
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          fontWeight: 'bold',
+                          color: '#4CAF50',
+                          display: 'flex',
+                          alignItems: 'flex-end',
+                          lineHeight: 1
+                        }}
+                      >
                         {stats.holidaysThisMonth}
-                        <Typography variant="caption" sx={{
-                          ml: 1,
-                          color: 'text.secondary',
-                          lineHeight: 1.2
-                        }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            ml: 1,
+                            color: 'text.secondary',
+                            lineHeight: 1.2
+                          }}
+                        >
                           in {new Date().toLocaleString('default', { month: 'long' })}
                         </Typography>
                       </Typography>
-                      <Typography variant="caption" sx={{
-                        color: 'text.secondary',
-                        display: 'block',
-                        mt: 1
-                      }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'text.secondary',
+                          display: 'block',
+                          mt: 1
+                        }}
+                      >
                         {stats.holidaysNextMonth} in next month
                       </Typography>
                     </>
@@ -442,14 +486,16 @@ const UpcomingHolidayCard = () => {
           </Grid>
 
           {activeHolidays.length > 0 && (
-            <Card sx={{
-              mb: 3,
-              p: 3,
-              borderRadius: 3,
-              boxShadow: 3,
-              borderLeft: '4px solid #3f51b5',
-              background: 'linear-gradient(to right, #f8f9fa, #ffffff)'
-            }}>
+            <Card
+              sx={{
+                mb: 3,
+                p: 3,
+                borderRadius: 3,
+                boxShadow: 3,
+                borderLeft: '4px solid #3f51b5',
+                background: 'linear-gradient(to right, #f8f9fa, #ffffff)'
+              }}
+            >
               <Box
                 sx={{
                   display: 'flex',
@@ -460,12 +506,14 @@ const UpcomingHolidayCard = () => {
                 }}
               >
                 <Box display="flex" alignItems="center">
-                  <CelebrationIcon sx={{
-                    fontSize: 32,
-                    mr: 2,
-                    color: 'primary.main',
-                    animation: `${pulse} 2s infinite`
-                  }} />
+                  <CelebrationIcon
+                    sx={{
+                      fontSize: 32,
+                      mr: 2,
+                      color: 'primary.main',
+                      animation: `${pulse} 2s infinite`
+                    }}
+                  />
                   <Box>
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                       Upcoming Holiday
@@ -505,7 +553,7 @@ const UpcomingHolidayCard = () => {
                   const isToday = getHolidayStatus(holiday.holidayDate) === 'today';
 
                   return (
-                    <Grid item xs={12} key={index} >
+                    <Grid item xs={12} key={index}>
                       <Box
                         sx={{
                           p: 4,
@@ -519,7 +567,7 @@ const UpcomingHolidayCard = () => {
                           transition: 'all 0.3s ease',
                           '&:hover': {
                             transform: 'scale(1.01)'
-                          },
+                          }
                         }}
                       >
                         {isToday && (
@@ -544,7 +592,7 @@ const UpcomingHolidayCard = () => {
                           </Box>
                         )}
 
-                        <Grid container spacing={3} alignItems="center">
+                        <Grid container spacing={3} alignItems="center" >
                           <Grid item xs={12} md={3} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Avatar
                               src={holiday.holidaysImage ? `data:image/png;base64,${holiday.holidaysImage}` : ''}
@@ -564,19 +612,19 @@ const UpcomingHolidayCard = () => {
                             </Avatar>
                           </Grid>
 
-                          <Grid item xs={12} md={6} >
+                          <Grid item xs={12} md={6}>
                             <Typography variant="h4" fontWeight="bold" sx={{ mb: 1.5 }}>
                               🎊 {holiday.festival}
                             </Typography>
 
                             <Box display="flex" alignItems="center" mb={1.5}>
-                              <TodayIcon sx={{ mr: 1, fontSize: 24, color: 'text.secondary' }} />
+                              <TodayIcon sx={{ mr: 1, fontSize: 24, color: 'text.secondary',textAlign: 'center' }} />
                               <Box>
                                 <Typography variant="h6" sx={{ color: '#4e342e' }}>
                                   {getDayName(holiday.holidayDate)}, {formatDate(holiday.holidayDate)}
                                 </Typography>
                                 {!isToday && (
-                                  <Typography variant="subtitle2" sx={{ color: '#6d4c41', mt: 0.5 }}>
+                                  <Typography variant="subtitle2" sx={{ color: '#6d4c41', mt: 0.5,textAlign: 'center' }}>
                                     {daysUntil === 1 ? 'Tomorrow!' : `${daysUntil} days to go`}
                                   </Typography>
                                 )}
@@ -598,7 +646,7 @@ const UpcomingHolidayCard = () => {
                             )}
                           </Grid>
 
-                          <Grid item xs={12} md={3} sx={{ display: 'flex', justifyContent: 'center' }}>
+                          {/* <Grid item xs={12} md={3} sx={{ display: 'flex', justifyContent: 'center' }}>
                             <Box sx={{
                               bgcolor: isToday ? '#4CAF50' : '#FF9800',
                               color: 'white',
@@ -608,14 +656,56 @@ const UpcomingHolidayCard = () => {
                               width: '100%',
                               maxWidth: 200
                             }}>
-                              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                              <Typography   sx={{ mb: 1,color:'black'}}>
                                 {isToday ? "It's Today!" : "Countdown"}
                               </Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                              <Typography  sx={{ fontWeight: 'bold',fontSize: '1rem'}}>
                                 {isToday ? "🎉" : daysUntil}
                               </Typography>
-                              <Typography variant="caption">
+                              <Typography sx={{ color:'black' }}>
                                 {isToday ? "Enjoy your holiday!" : `day${daysUntil !== 1 ? 's' : ''} remaining`}
+                              </Typography>
+                            </Box>
+                          </Grid> */}
+                          <Grid item xs={12} sm={4} md={3} display="flex" justifyContent={{ xs: 'center', md: 'flex-end' }}>
+                            <Box
+                              sx={{
+                                bgcolor: isToday ? '#4CAF50' : '#FF9800',
+                                color: 'white',
+                                p: { xs: 1, sm: 1.5, md: 2 },
+                                borderRadius: 2,
+                                textAlign: 'center',
+                                width: { xs: '100%', sm: '90%', md: 160 },
+                                minHeight: { xs: 'auto', md: 120 }
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  mb: 0.5,
+                                  fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                                  color: 'black'
+                                }}
+                              >
+                                {isToday ? "It's Today!" : 'Countdown'}
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  fontWeight: 'bold',
+                                  fontSize: { xs: '1.5rem', sm: '2rem', md: '2.2rem' },
+                                  lineHeight: 1
+                                }}
+                              >
+                                {isToday ? '🎉' : daysUntil}
+                              </Typography>
+
+                              <Typography
+                                sx={{
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  color: 'black'
+                                }}
+                              >
+                                {isToday ? 'Enjoy your holiday!' : `day${daysUntil !== 1 ? 's' : ''} remaining`}
                               </Typography>
                             </Box>
                           </Grid>
@@ -624,11 +714,14 @@ const UpcomingHolidayCard = () => {
                         {(holiday.description || holiday.branch) && (
                           <Box mt={3}>
                             {holiday.description && (
-                              <Typography variant="body1" sx={{
-                                color: '#6d4c41',
-                                fontStyle: 'italic',
-                                mb: holiday.branch ? 1 : 0
-                              }}>
+                              <Typography
+                                variant="body1"
+                                sx={{
+                                  color: '#6d4c41',
+                                  fontStyle: 'italic',
+                                  mb: holiday.branch ? 1 : 0
+                                }}
+                              >
                                 "{holiday.description}"
                               </Typography>
                             )}
@@ -660,15 +753,17 @@ const UpcomingHolidayCard = () => {
               }
             }}
           >
-            <DialogTitle sx={{
-              bgcolor: 'primary.main',
-              color: 'white',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              py: 2,
-              px: 3
-            }}>
+            <DialogTitle
+              sx={{
+                bgcolor: 'primary.main',
+                color: 'white',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                py: 2,
+                px: 3
+              }}
+            >
               <Box display="flex" alignItems="center">
                 <CelebrationIcon sx={{ mr: 2, fontSize: 28 }} />
                 <Box>
@@ -693,17 +788,20 @@ const UpcomingHolidayCard = () => {
               </IconButton>
             </DialogTitle>
 
-            <DialogContent dividers sx={{
-              p: 0,
-              '&::-webkit-scrollbar': {
-                width: '8px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0,0,0,0.2)',
-                borderRadius: '4px'
-              }
-            }}>
-              <Box sx={{ p: 3, px:4 , py:2 }} >
+            <DialogContent
+              dividers
+              sx={{
+                p: 0,
+                '&::-webkit-scrollbar': {
+                  width: '8px'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  borderRadius: '4px'
+                }
+              }}
+            >
+              <Box sx={{ p: 3, px: 4, py: 2 }}>
                 <Grid container spacing={3}>
                   {allHolidays
                     .sort((a, b) => new Date(a.holidayDate) - new Date(b.holidayDate))
@@ -836,13 +934,7 @@ const UpcomingHolidayCard = () => {
                                 </Box>
                               )}
 
-                              <Box
-                                mt={1}
-                                pt={0.5}
-                                borderTop="1px dashed #ccc"
-                                display="flex"
-                                justifyContent="space-between"
-                              >
+                              <Box mt={1} pt={0.5} borderTop="1px dashed #ccc" display="flex" justifyContent="space-between">
                                 <Typography variant="caption" sx={{ fontSize: '0.65rem', color: '#999' }}>
                                   {status.toUpperCase()}
                                 </Typography>

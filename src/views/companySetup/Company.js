@@ -23,7 +23,8 @@ import {
   TableHead,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  Autocomplete
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ControlCameraIcon from '@mui/icons-material/ControlCamera';
@@ -51,9 +52,12 @@ const Company = () => {
   const [stateList, setStateList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [currencyList, setCurrencyList] = useState([]);
+  const [designationData, setDesignationData] = useState([]);
   const [editId, setEditId] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
-  const [weekOffRows, setWeekOffRows] = useState([{ weekOff: '', weekNumbers: [] }]);
+  const [weekOffRows, setWeekOffRows] = useState([
+    { weekOff: '', weekNumbers: [], designation: [] }
+  ]);
 
   const handleWeekOffChange = (index, value) => {
     const updated = [...weekOffRows];
@@ -68,12 +72,25 @@ const Company = () => {
   };
 
   const handleAddRow = () => {
-    setWeekOffRows([...weekOffRows, { weekOff: '', weekNumbers: [] }]);
+    setWeekOffRows([
+      ...weekOffRows,
+      { weekOff: '', weekNumbers: [], designation: [] }
+    ]);
+  };
+
+  const handleDesignationChange = (index, value) => {
+    const updated = [...weekOffRows];
+
+    const newValue = value.includes('ALL') ? ['ALL'] : value;
+
+    updated[index].designation = newValue;
+
+    setWeekOffRows(updated);
   };
 
   const handleClearRow = (index) => {
     const updated = [...weekOffRows];
-    updated[index] = { weekOff: '', weekNumbers: [] };
+    updated[index] = { weekOff: '', weekNumbers: [], designation: [] };
     setWeekOffRows(updated);
   };
 
@@ -88,6 +105,7 @@ const Company = () => {
     companyName: '',
     ceo: '',
     address: '',
+    designation: '',
     currency: '',
     country: '',
     state: '',
@@ -101,12 +119,15 @@ const Company = () => {
     leavePolicy: '',
     attendanceMode: [],
     overTime: '',
+    separation: [],
     otType: '',
     otPolicy: '',
     weekOff: [],
     shiftIn: null,
     shiftOut: null,
     gstRegistered: true,
+    monthlyAttendanceMail: true,
+    permissionRequest: true,
     active: true,
     latitude: null,
     longitude: null,
@@ -122,6 +143,7 @@ const Company = () => {
     address: '',
     currency: '',
     country: '',
+    designation: '',
     state: '',
     city: '',
     pincode: '',
@@ -133,12 +155,15 @@ const Company = () => {
     leavePolicy: '',
     attendanceMode: '',
     overTime: '',
+    separation: '',
     otType: '',
     otPolicy: '',
     weekOff: '',
     shiftIn: null,
     shiftOut: null,
     gstRegistered: true,
+    monthlyAttendanceMail: true,
+    permissionRequest: true,
     active: true,
     latitude: null,
     longitude: null,
@@ -187,6 +212,7 @@ const Company = () => {
     getAllCountries();
     getCompanyDetails();
     getAllCurrency();
+    getAllDesignation();
   }, []); // Run only once on mount
 
   useEffect(() => {
@@ -234,38 +260,51 @@ const Company = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value, checked, type, multiple } = e.target || e;
+  const getAllDesignation = async () => {
+    try {
+      const result = await apiCalls('get', `commonmaster/getDesignationByOrgId?orgid=${orgId}`);
+      setDesignationData(result.paramObjectsMap.designationVO.reverse());
+    } catch (err) {
+      console.log('error', err);
+      showToast('error', 'Error fetching designation list');
+    }
+  };
 
-    // Regular expressions for validation
+  const handleInputChange = (e) => {
+    const { name, value, checked, type } = e.target;
+
     const nameRegex = /^[A-Za-z ]*$/;
     const numericRegex = /^[0-9]*$/;
-    const alphanumericRegex = /^[A-Za-z0-9]*$/;
 
-    let newValue = value;
     let error = '';
 
-    if (multiple) {
-      const selectedValues = Array.from(e.target.selectedOptions, (option) => option.value);
-      setFormData((prev) => ({
-        ...prev,
-        [name]: selectedValues
-      }));
-      return;
-    }
+    // Convert GSTIN to uppercase early (important)
+    let updatedValue = value;
 
-    // Validation logic
+    // =========================
+    // CEO validation
+    // =========================
     if (name === 'ceo') {
       if (!nameRegex.test(value)) {
         error = 'Only alphabetic characters are allowed';
       }
-    } else if (name === 'pincode') {
+    }
+
+    // =========================
+    // Pincode validation
+    // =========================
+    if (name === 'pincode') {
       if (!numericRegex.test(value)) {
         error = 'Only numeric characters are allowed';
       } else if (value.length > 6) {
         error = 'Only 6 digits are allowed';
       }
-    } else if (name === 'mobileNo') {
+    }
+
+    // =========================
+    // Mobile validation
+    // =========================
+    if (name === 'mobileNo') {
       if (!numericRegex.test(value)) {
         error = 'Only numeric characters are allowed';
       } else if (value.length > 10) {
@@ -273,56 +312,88 @@ const Company = () => {
       }
     }
 
-    // Update error state
-    setFieldErrors((prevErrors) => ({
-      ...prevErrors,
+    // =========================
+    // GSTIN validation (NEW)
+    // =========================
+    if (name === 'gstIn') {
+      const gstinRegex =
+        /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+      updatedValue = value.toUpperCase();
+
+      if (updatedValue.length > 15) {
+        error = 'GSTIN must be 15 characters';
+      } else if (updatedValue && !gstinRegex.test(updatedValue)) {
+        error = 'Invalid GSTIN format';
+      }
+    }
+
+    // =========================
+    // Update errors
+    // =========================
+    setFieldErrors((prev) => ({
+      ...prev,
       [name]: error
     }));
 
-    // Only update form data if there's no error
-    if (!error) {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: newValue
+
+
+    if (name === 'country') {
+      const selectedCountry = value;
+
+      const matchedCurrency = currencyList.find(
+        (item) => item.country === selectedCountry
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        country: selectedCountry,
+        currency: matchedCurrency ? matchedCurrency.currency : ''
       }));
+
+      return; // stop further execution
     }
 
+
+
+    // =========================
+    // Checkbox handling
+    // =========================
     if (type === 'checkbox') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
+      setFormData((prev) => ({
+        ...prev,
         [name]: checked
       }));
-      return; // Exit here to avoid further processing for checkboxes
-    }
-
-    if (name === 'weekOff') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: value // value is already an array from MUI Select
-      }));
       return;
     }
 
-    // Handle dropdowns separately
-    if (type === 'select-one') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: value
+
+
+
+    // =========================
+    // Country → Auto Currency Mapping (case-safe)
+    // =========================
+    if (name === 'country') {
+      const selectedCountry = value.toUpperCase();
+
+      const matchedCurrency = currencyList.find(
+        (item) => item.country?.toUpperCase() === selectedCountry
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        country: selectedCountry,
+        currency: matchedCurrency?.currency || ''
       }));
+
       return;
     }
-
-    // If it's not a checkbox or dropdown, process the input normally
-    if (type !== 'checkbox' && type !== 'select-one') {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        [name]: newValue
-      }));
-    }
-
+    // =========================
+    // Normal input handling
+    // =========================
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: updatedValue
     }));
   };
 
@@ -337,6 +408,21 @@ const Company = () => {
       if (response.status === true) {
         setListView(false);
         const particularCompany = response.paramObjectsMap.companyVO[0];
+
+        const createdDate =
+          particularCompany?.commonDate?.createdon
+            ? dayjs(particularCompany.commonDate.createdon, 'DD-MM-YYYY hh:mm:ss A')
+            : null;
+
+        if (createdDate) {
+          localStorage.setItem(
+            'companyCreatedDate',
+            createdDate.format('YYYY-MM-DD')
+          );
+        }
+
+        console.log('PARTICULAR COMPANY IS:', particularCompany);
+
         console.log('PARTICULAR COMPANY IS:', particularCompany);
         setLogo(response.paramObjectsMap.companyVO[0].companyLogo);
         // Extract weekOffDays as an array
@@ -346,7 +432,10 @@ const Company = () => {
         const weekOffDataFromApi =
           particularCompany.companyWeekOffVO?.map((item) => ({
             weekOff: item.weekOffDays || '',
-            weekNumbers: item.weekNumbers || []
+            weekNumbers: item.weekNumbers || [],
+            designation: item.type
+              ? item.type.split(',').map((d) => d.trim())
+              : []
           })) || [];
 
         setWeekOffRows(weekOffDataFromApi);
@@ -373,9 +462,14 @@ const Company = () => {
           // attendanceMode: particularCompany.attendanceMode,
           attendanceMode: particularCompany.attendanceMode ? particularCompany.attendanceMode.split(',').map((item) => item.trim()) : [],
           overTime: particularCompany.otFlag,
+          separation: particularCompany.separation
+            ? particularCompany.separation.split(',').map((item) => item.trim())
+            : [],
           otType: particularCompany.otType,
           otPolicy: particularCompany.otPolicy,
           gstRegistered: particularCompany.gstregistered === 'Active',
+          monthlyAttendanceMail: particularCompany.monthlyAttendanceMail,
+          permissionRequest: particularCompany.permissionRequest,
           active: particularCompany.active === 'Active',
           // weekOff: weekOffDays,
           // shiftIn: particularCompany.shiftIn || null,
@@ -445,12 +539,15 @@ const Company = () => {
       leavePolicy: '',
       attendanceMode: '',
       overTime: '',
+      separation: [],
       otType: '',
       otPolicy: '',
       weekOff: '',
       shiftIn: null,
       shiftOut: null,
       gstRegistered: true,
+      monthlyAttendanceMail: true,
+      permissionRequest: true,
       active: true,
       latitude: null,
       longitude: null,
@@ -476,12 +573,15 @@ const Company = () => {
       leavePolicy: '',
       attendanceMode: '',
       overTime: '',
+      separation: '',
       otType: '',
       otPolicy: '',
       weekOff: '',
       shiftIn: null,
       shiftOut: null,
       gstRegistered: true,
+      monthlyAttendanceMail: true,
+      permissionRequest: true,
       active: true,
       latitude: null,
       longitude: null,
@@ -573,13 +673,18 @@ const Company = () => {
           .filter((row) => row.weekOff && row.weekNumbers.length > 0)
           .map((row) => ({
             weekOffDays: row.weekOff,
-            weekNumbers: row.weekNumbers.includes(-1) ? [-1] : row.weekNumbers // 'All' as [0]
+            weekNumbers: row.weekNumbers.includes(-1) ? [-1] : row.weekNumbers,
+            type: row.designation.includes('ALL')
+              ? ['ALL']
+              : row.designation
           })),
         country: formData.country,
         createdBy: loginUserName,
         currency: formData.currency,
         gstIn: formData.gstIn,
         gstRegistered: formData.gstRegistered,
+        monthlyAttendanceMail: formData.monthlyAttendanceMail,
+        permissionRequest: formData.permissionRequest,
         leaveCreditControl: formData.leaveCreditControl,
         // autoCreditDate: formData.autoCreditDate,
         autoCreditDate: formData.autoCreditDate
@@ -587,6 +692,7 @@ const Company = () => {
           : null,
         leavePolicy: formData.leavePolicy,
         attendanceMode: formData.attendanceMode,
+        separation: formData.separation,
         otFlag: formData.overTime,
         otType: formData.otType,
         otPolicy: formData.otPolicy,
@@ -717,10 +823,9 @@ const Company = () => {
       <div className="card w-full p-6 bg-base-100 shadow-xl" style={{ padding: '20px', borderRadius: '10px' }}>
         <div className="row d-flex ml">
           <div className="d-flex flex-wrap justify-content-start mb-4" style={{ marginBottom: '20px' }}>
-            <ActionButton title="Search" icon={SearchIcon} onClick={() => console.log('Search Clicked')} />
-            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
             {/* <ActionButton title="List View" icon={FormatListBulletedTwoToneIcon} onClick={handleView} /> */}
-            <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={() => handleSave()} margin="0 10px 0 10px" />
+            <ActionButton title="Save" icon={SaveIcon} isLoading={isLoading} onClick={() => handleSave()} />
+            <ActionButton title="Clear" icon={ClearIcon} onClick={handleClear} />
           </div>
         </div>
         {listView ? (
@@ -795,7 +900,7 @@ const Company = () => {
                   <InputLabel id="country">Country</InputLabel>
                   <Select labelId="country" label="Country" name="country" value={formData.country} onChange={handleInputChange}>
                     {countryList?.map((row) => (
-                      <MenuItem key={row.id} value={row.countryName}>
+                      <MenuItem key={row.id} value={row.countryName.toUpperCase()}>
                         {row.countryName}
                       </MenuItem>
                     ))}
@@ -869,7 +974,8 @@ const Company = () => {
                   error={!!fieldErrors.mobileNo}
                   helperText={fieldErrors.mobileNo}
                 />
-              </div>
+
+              </div >
               <div className="col-md-3 mb-3">
                 <TextField
                   label="GST In"
@@ -962,11 +1068,34 @@ const Company = () => {
                     renderValue={(selected) => (Array.isArray(selected) ? selected.join(', ') : '')}
                   >
                     <MenuItem value="Files">Files</MenuItem>
-                    <MenuItem value="Software">Software</MenuItem>
+                    <MenuItem value="System">System</MenuItem>
                     <MenuItem value="Biometric">Biometric</MenuItem>
                   </Select>
                   {fieldErrors.attendanceMode && <FormHelperText>{fieldErrors.attendanceMode}</FormHelperText>}
                 </FormControl>
+              </div>
+
+              <div className="col-md-3 mb-3">
+                <Autocomplete
+                  multiple
+                  size="small"
+                  options={designationData.map((d) => d.designationName)}
+                  value={Array.isArray(formData.separation) ? formData.separation : []}
+                  onChange={(event, newValue) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      separation: newValue
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Separation"
+                      error={!!fieldErrors.separation}
+                      helperText={fieldErrors.separation}
+                    />
+                  )}
+                />
               </div>
 
               <div className="col-md-3 mb-3">
@@ -1119,8 +1248,8 @@ const Company = () => {
                     startIcon={<CloudUploadIcon />}
                     sx={{ color: 'rgb(103 58 183)', borderRadius: '12px' }}
                   >
-                    {/* {logo ? logo.name === '' ? "Logo👉" : logo.name : 'Upload Logo'} */}
-                    {logo ? (typeof logo === 'object' && logo.name ? logo.name : 'Logo👉') : 'Upload Logo'}
+                    {/* {logo ? logo.name === '' ? "Logo" : logo.name : 'Upload Logo'} */}
+                    {logo ? (typeof logo === 'object' && logo.name ? logo.name : 'Logo') : 'Upload Logo'}
 
                     <input type="file" hidden accept="image/png, image/jpeg" onChange={handleLogoChange} />
                   </Button>
@@ -1187,6 +1316,18 @@ const Company = () => {
               </div>
               <div className="col-md-3 mb-3">
                 <FormControlLabel
+                  control={<Checkbox checked={formData.monthlyAttendanceMail} onChange={handleInputChange} name="monthlyAttendanceMail" />}
+                  label="Monthly Attendance Mail"
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <FormControlLabel
+                  control={<Checkbox checked={formData.permissionRequest} onChange={handleInputChange} name="permissionRequest" />}
+                  label="Permission Request"
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <FormControlLabel
                   control={<Checkbox checked={formData.active} onChange={handleInputChange} name="active" />}
                   label="Active"
                 />
@@ -1210,38 +1351,43 @@ const Company = () => {
           </>
         )}
       </div>
-      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="lg">
         <DialogTitle>Select Week Off Days</DialogTitle>
         <DialogContent>
           <Table>
             <TableHead>
               <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
-                <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Week Off</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Week Numbers</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', color: '#333' }}>Actions</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Week Off</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Week Numbers</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Type</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', width: '25%' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
               {weekOffRows.map((row, index) => (
                 <TableRow key={index}>
-                  {/* Week Off Dropdown */}
-                  <TableCell>
+
+                  {/* Week Off */}
+                  <TableCell sx={{ width: '25%' }}>
                     <FormControl fullWidth size="small">
-                      <Select value={row.weekOff} onChange={(e) => handleWeekOffChange(index, e.target.value)} displayEmpty>
+                      <Select
+                        value={row.weekOff}
+                        onChange={(e) => handleWeekOffChange(index, e.target.value)}
+                        displayEmpty
+                      >
                         <MenuItem value="">
                           <em>Select Day</em>
                         </MenuItem>
                         {['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'].map((day) => (
-                          <MenuItem key={day} value={day}>
-                            {day}
-                          </MenuItem>
+                          <MenuItem key={day} value={day}>{day}</MenuItem>
                         ))}
                       </Select>
                     </FormControl>
                   </TableCell>
 
-                  {/* Week Numbers Multi-select */}
-                  <TableCell>
+                  {/* Week Numbers */}
+                  <TableCell sx={{ width: '25%' }}>
                     <FormControl fullWidth size="small">
                       <Select
                         multiple
@@ -1251,29 +1397,61 @@ const Company = () => {
                           const updated = value.includes(-1) ? [-1] : value;
                           handleWeekNumberChange(index, updated);
                         }}
-                        renderValue={(selected) => (selected.includes(-1) ? 'All' : selected.join(', '))}
+                        renderValue={(selected) =>
+                          selected.includes(-1) ? 'All' : selected.join(', ')
+                        }
                       >
                         {[1, 2, 3, 4, 5].map((num) => (
-                          <MenuItem key={num} value={num}>
-                            {num}
-                          </MenuItem>
+                          <MenuItem key={num} value={num}>{num}</MenuItem>
                         ))}
-                        <MenuItem key="All" value={-1}>
-                          All
-                        </MenuItem>
+                        <MenuItem value={-1}>All</MenuItem>
                       </Select>
                     </FormControl>
                   </TableCell>
 
+                  {/* Designation */}
+                  <TableCell sx={{ width: '25%' }}>
+                    <Autocomplete
+                      multiple
+                      size="small"
+                      options={['ALL', ...designationData.map((d) => d.designationName)]}
+                      value={Array.isArray(row.designation) ? row.designation : []}
+                      onChange={(event, newValue) => {
+                        const value = newValue.includes('ALL') ? ['ALL'] : newValue;
+                        handleDesignationChange(index, value);
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Designation"
+                          placeholder="Select Designation"
+                        />
+                      )}
+                    />
+                  </TableCell>
+
                   {/* Actions */}
-                  <TableCell>
-                    <Button variant="outlined" color="secondary" size="small" onClick={() => handleClearRow(index)} sx={{ mr: 1 }}>
+                  <TableCell sx={{ width: '25%' }}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      onClick={() => handleClearRow(index)}
+                      sx={{ mr: 1 }}
+                    >
                       Clear
                     </Button>
-                    <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteRow(index)}>
+
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleDeleteRow(index)}
+                    >
                       Delete
                     </Button>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>

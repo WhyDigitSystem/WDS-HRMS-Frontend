@@ -227,11 +227,10 @@
   padding-left: 0.25rem !important;
 }
 
-.css-kvip5o-MuiToolbar-root {
-  // background: linear-gradient(193deg, #8ea6a8 30%, #4d7fa7 90%); }
-  background: linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%) !important;
-  padding: 14px 10px 0px !important;
-}
+// .css-kvip5o-MuiToolbar-root {
+//   background: linear-gradient(193deg, #2a4b4d 30%, #3a6b6d 90%) !important;
+//   padding: 14px 10px 0px !important;
+// }
 
 .ps {
   background: linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%) !important;
@@ -704,17 +703,8 @@
 }
 
 .react-calendar {
-    width: 100%;
-    max-width: 100%;
-    background: white;
-    border: 1px solid #a0a096;
-    font-family: 'Arial', 'Helvetica', sans-serif;
-    line-height: 1.125em;
+  width: 100% !important;
 }
-
-// .react-calendar {
-//   width: 100% !important;
-// }
 
 // .react-calendar {
 //   width: 100%;
@@ -818,7 +808,7 @@
 }
 
 .css-h4y409-MuiList-root {
-  padding-top: 10px !important;
+  // padding-top: 10px !important;
   padding-bottom: 0px !important;
 }
 
@@ -1454,10 +1444,11 @@
 }
 
 .css-1weec88-MuiInputBase-root-MuiOutlinedInput-root {
-  width: 400px !important;
+  width: 350px !important;
   margin-left: 47px !important;
   border-radius: 17px !important;
   box-shadow: none !important;
+  height:40px;
 }
 
 // .css-4a5t8g-MuiInputBase-input-MuiOutlinedInput-input.MuiInputBase-inputSizeSmall {
@@ -1723,3 +1714,19 @@
     color: #fff !important;
     justify-content: center;
 }
+.MuiDrawer-root {
+  z-index: 900 !important;
+}
+.MuiDrawer-paper {
+  z-index: 900 !important;
+}
+.MuiList-padding {
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+}
+// manage tax new
+.css-1aqz245{
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+

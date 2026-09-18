@@ -69,8 +69,19 @@ const ShiftMaster = () => {
 
   const handleChange = (index, field, value) => {
     const updated = [...rows];
+
+    // Allow only numbers and decimal
+    const numberFields = ['breakTime', 'graceTime', 'halfDayHours', 'fullDayHours'];
+
+    if (numberFields.includes(field)) {
+      // Accept only numbers with optional decimal
+      if (!/^\d*\.?\d*$/.test(value)) {
+        return;
+      }
+    }
+
     updated[index][field] = value;
-    
+
     // If Open Shift is checked, clear time fields
     if (field === 'isOpenShift' && value === true) {
       updated[index].inTime = '';
@@ -78,7 +89,7 @@ const ShiftMaster = () => {
       updated[index].errors.inTime = '';
       updated[index].errors.outTime = '';
     }
-    
+
     setRows(updated);
   };
 
@@ -101,17 +112,17 @@ const ShiftMaster = () => {
 
   const validateRow = (row) => {
     const errors = {};
-    
+
     // Always validate these fields
     if (!row.shiftCode || row.shiftCode.length < 2) errors.shiftCode = 'Required, min 2 chars';
     if (!row.shiftName || row.shiftName.length < 3) errors.shiftName = 'Required, min 3 chars';
-    
+
     // Conditional validation for time fields
     if (!row.isOpenShift) {
       if (!row.inTime) errors.inTime = 'In-Time required';
       if (!row.outTime) errors.outTime = 'Out-Time required';
     }
-    
+
     return errors;
   };
 

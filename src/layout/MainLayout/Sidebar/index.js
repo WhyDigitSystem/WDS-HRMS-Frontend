@@ -22,16 +22,23 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
 
   const drawer = (
     <>
-      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+      {/* <Box sx={{ display: { xs: 'block', md: 'none' } }}>
         <Box sx={{ display: 'flex', p: 2, mx: 'auto' }}>
           <LogoSection />
         </Box>
+      </Box> */}
+      {/* <Box sx={{ display: { xs: 'none', sm: 'none', md: 'none', lg: 'block' } }}>
+       <Box sx={{ display: 'flex', p: 2, mx: 'auto' }}>
+         <LogoSection />
       </Box>
+    </Box> */}
+
       <BrowserView>
         <PerfectScrollbar
           component="div"
           style={{
-            height: !matchUpMd ? 'calc(100vh - 56px)' : 'calc(100vh - 88px)',
+            height: !matchUpMd ? 'calc(100vh - 56px)' : 'calc(100vh - 70px)',
+            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
             paddingLeft: '16px',
             paddingRight: '16px'
           }}
@@ -44,7 +51,14 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         </PerfectScrollbar>
       </BrowserView>
       <MobileView>
-        <Box sx={{ px: 2 }}>
+        {/* <Box sx={{ px: 2 }}> */}
+         <Box
+    sx={{
+      px: 2,
+      height: '100vh',
+      background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)'
+    }}
+  >
           <MenuList />
           <MenuCard />
           <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
@@ -68,12 +82,16 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         sx={{
           '& .MuiDrawer-paper': {
             width: drawerWidth,
-            background: theme.palette.background.default,
+            // background: theme.palette.background.default,
+            background: 'linear-gradient(193deg, #3a6b6d 30%, #2a4b4d 90%)',
+
             color: theme.palette.text.primary,
             borderRight: 'none',
+            top:'68px',
             [theme.breakpoints.up('md')]: {
-              top: '88px'
-            }
+              top: '70px'
+            },
+            
           }
         }}
         ModalProps={{ keepMounted: true }}

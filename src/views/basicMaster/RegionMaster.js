@@ -42,25 +42,71 @@ export const RegionMaster = () => {
     getAllRegions();
   }, []);
   const handleInputChange = (e) => {
-    const { name, value, checked, selectionStart, selectionEnd } = e.target;
-    const codeRegex = /^[a-zA-Z0-9 ]*$/;
+    const { name, value, checked, selectionStart, selectionEnd, type } = e.target;
+
+    const codeRegex = /^[A-Za-z0-9 ]*$/;
     const nameRegex = /^[A-Za-z ]*$/;
 
-    if (name === 'regionCode' && !codeRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only AlphaNumerics are Allowed' });
-    } else if (name === 'regionCode' && value.length > 5) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Max Length is 5' });
-    } else if (name === 'regionName' && !nameRegex.test(value)) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Only Alphabets Allowed' });
-    } else if (name === 'regionName' && value.length > 50) {
-      setFieldErrors({ ...fieldErrors, [name]: 'Exceeded Max Length' });
-    } else {
-      setFieldErrors({ ...fieldErrors, [name]: '' });
-      const upperCaseValue = value.toUpperCase();
-      setFormData({ ...formData, [name]: name === 'active' ? checked : upperCaseValue });
+    // Validation
+    if (name === "regionCode") {
+      if (!codeRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          regionCode: "Only AlphaNumerics are Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 5) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          regionCode: "Max Length is 5",
+        }));
+        return;
+      }
+    }
+
+    if (name === "regionName") {
+      if (!nameRegex.test(value)) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          regionName: "Only Alphabets Allowed",
+        }));
+        return;
+      }
+
+      if (value.length > 50) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          regionName: "Exceeded Max Length",
+        }));
+        return;
+      }
+    }
+
+    let newValue = value;
+
+    // Only Region Code should be uppercase
+    if (name === "regionCode") {
+      newValue = value.toUpperCase();
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "active" ? checked : newValue,
+    }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    // Maintain cursor position
+    if (type === "text" || type === "textarea") {
       setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.setSelectionRange(selectionStart, selectionEnd);
+        const inputElement = document.getElementsByName(name)[0];
+        if (inputElement) {
+          inputElement.setSelectionRange(selectionStart, selectionEnd);
         }
       }, 0);
     }
@@ -172,8 +218,8 @@ export const RegionMaster = () => {
   };
 
   const listViewColumns = [
-    { accessorKey: 'regionCode', header: 'Code', size: 140 },
     { accessorKey: 'regionName', header: 'Region', size: 140 },
+    { accessorKey: 'regionCode', header: 'Code', size: 140 },
     { accessorKey: 'active', header: 'Active', size: 140 }
   ];
 
@@ -197,19 +243,6 @@ export const RegionMaster = () => {
             <div className="row">
               <div className="col-md-3 mb-3">
                 <TextField
-                  label="Code"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  name="regionCode"
-                  value={formData.regionCode}
-                  onChange={handleInputChange}
-                  error={!!fieldErrors.regionCode}
-                  helperText={fieldErrors.regionCode}
-                />
-              </div>
-              <div className="col-md-3 mb-3">
-                <TextField
                   label="Name"
                   variant="outlined"
                   size="small"
@@ -220,6 +253,19 @@ export const RegionMaster = () => {
                   error={!!fieldErrors.regionName}
                   helperText={fieldErrors.regionName}
                   inputRef={inputRef}
+                />
+              </div>
+              <div className="col-md-3 mb-3">
+                <TextField
+                  label="Code"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  name="regionCode"
+                  value={formData.regionCode}
+                  onChange={handleInputChange}
+                  error={!!fieldErrors.regionCode}
+                  helperText={fieldErrors.regionCode}
                 />
               </div>
               <div className="col-md-3 mb-3">

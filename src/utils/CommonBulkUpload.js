@@ -366,6 +366,8 @@ const CommonBulkUpload = ({
   documentName,
   employeeCode,
   employeeName,
+  branchCode,
+  branch,
   // New prop to control whether to show attendance processing dialog
   showAttendanceProcessing = false
 }) => {
@@ -421,6 +423,8 @@ const CommonBulkUpload = ({
       formData.append('documentName', documentName);
       formData.append('employeeCode', employeeCode);
       formData.append('employeeName', employeeName);
+      formData.append('branch', branch);
+      formData.append('branchCode', branchCode);
 
       try {
         const headers = {
