@@ -625,7 +625,7 @@ const ExperienceLetter = () => {
                                 color: '#374151',
                                 textAlign: 'justify'
                             }}>
-                                His main job responsibilities to involve project development and also supports technically. During his tenure, we found him very cordial and professional in the approach.
+                                His/Her main job responsibilities to involve project development and also supports technically. During his tenure, we found him very cordial and professional in the approach.
                             </Typography>
 
                             <Typography sx={{
